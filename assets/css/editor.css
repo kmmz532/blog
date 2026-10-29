@@ -543,6 +543,13 @@
   }
 }
 
+/* 編集画面だけ幅を 1400px まで広げる。並べて表示のときに本文欄が狭くなりすぎるため。ヘッダーとフッターも同じ幅にそろえる */
+body:has(.editor) .header-inner,
+body:has(.editor) .layout,
+body:has(.editor) .footer {
+  max-width: 1400px;
+}
+
 /* 並べて表示は幅 1400px 以上のときだけ。本文とプレビューだけを左右に分ける */
 @media (min-width: 1400px) {
   .editor-main.split .editor-panes {
