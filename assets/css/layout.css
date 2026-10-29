@@ -134,7 +134,7 @@
 /* 半分の画面幅（1920 の半分は 960）でも横並びにする */
 @media (min-width: 720px) {
   .layout:has(> .sidebar) {
-    grid-template-columns: minmax(0, 760px) 260px;
+    grid-template-columns: minmax(0, 840px) 260px;
     justify-content: center;
   }
 
