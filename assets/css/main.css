@@ -98,7 +98,6 @@ button {
   height: 3.5rem;
   background-color: rgba(var(--background-rgb), 0.8);
   backdrop-filter: blur(3px);
-  border-bottom: 1px solid var(--border);
 }
 
 .header-inner {
