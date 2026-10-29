@@ -207,6 +207,12 @@ function rememberManualHeight() {
   if (body.style.height !== autoHeight) manualHeight = body.offsetHeight;
 }
 
+// 並べて表示のときは、プレビューの高さを本文欄と同じにする（取っ手は本文欄の 1 つだけ）
+function fitPreviewToBody() {
+  const split = $('editor-main').dataset.view === 'split';
+  $('preview').style.height = split ? `${$('f-body').offsetHeight}px` : '';
+}
+
 function autosize() {
   const body = $('f-body');
   body.style.height = 'auto';
@@ -241,6 +247,7 @@ function refreshPreview() {
   thumbs.renderThumb();
   if (fields.kind === 'external') externals.renderExternalCard(fields);
   else renderPreview(fields.body, null, $('preview'));
+  fitPreviewToBody();
 }
 
 // ---- 画面状態 ----
@@ -347,7 +354,10 @@ function start() {
   externals.attach();
   slugs.attach();
   attachScrollSync();
-  new ResizeObserver(rememberManualHeight).observe($('f-body'));
+  new ResizeObserver(() => {
+    rememberManualHeight();
+    fitPreviewToBody();
+  }).observe($('f-body'));
 
   for (const button of document.querySelectorAll('#kind-tabs button')) {
     button.addEventListener('click', () => {
