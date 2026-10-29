@@ -17,7 +17,7 @@
 ## ブラウザでの扱い
 
 - 外部スクリプトは `marked` だけです。バージョンを固定し、SRI（`integrity`）を付けています。
-- Content-Security-Policy で、スクリプトの読み込み元を `self` と `cdn.jsdelivr.net` に限定しています（インラインスクリプトはテーマの初期化に必要なため許可）。
+- Content-Security-Policy で、スクリプトの読み込み元を `self`・`cdn.jsdelivr.net`・X の埋め込み用（`platform.twitter.com`、`platform.twimg.com`）に限定しています（インラインスクリプトはテーマの初期化に必要なため許可）。X の埋め込みは `{{< tweet >}}` を使う記事があるときだけ読み込まれます。
 - ユーザーの入力（記事の本文、タイトル、一覧の表示）は `textContent` で描画します。
 - `innerHTML` を使うのはプレビューだけです。プレビューは `script`、`iframe` などの要素と、`on*` 属性、`javascript:` の URL を取り除いてから描画します。
 - 記事の slug は `^[a-z0-9-]{1,80}$` で検査します。API に渡すパスはこの検査を通ったものだけです。
