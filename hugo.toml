@@ -29,7 +29,7 @@ enableRobotsTXT = true
   branch = "main"
   author = "Mizuto, Kaminakano"
   bio = "ウェブ開発やアプリ開発に興味のある大学生"
-  footer = "© 2025-2026 Mizuto, Kaminakano | contact@kmmz.jp - Osaka, Japan"
+  footer = "© 2025-2026 Mizuto, Kaminakano - CC BY 4.0. | contact@kmmz.jp - Osaka, Japan"
 
 # サイドバーのリンク (URLが空であれば非表示)
 [[params.links]]
