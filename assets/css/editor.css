@@ -236,7 +236,8 @@
 .body-input {
   display: block;
   width: 100%;
-  min-height: 60vh;
+  min-height: 12rem;
+  max-height: 60vh;
   padding: 14px 16px;
   font-family: ui-monospace, SFMono-Regular, Consolas, "Courier New", monospace;
   font-size: 15px;
@@ -247,7 +248,7 @@
   border-radius: 0 0 8px 8px;
   outline: none;
   resize: none;
-  overflow: hidden;
+  overflow-y: auto;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
