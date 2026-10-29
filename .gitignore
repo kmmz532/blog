@@ -1,5 +1,6 @@
 posts/
 public/
 resources/
+.diff-build/
 .hugo_build.lock
 .env

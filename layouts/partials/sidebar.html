@@ -58,7 +58,7 @@
     <ul class="sidebar-list">
       {{- range first 12 ((where site.RegularPages "Section" "posts").GroupByDate "2006-01") }}
       <li>
-        <a href="{{ "/archives/" | relURL }}#{{ .Key }}">{{ with time (printf "%s-01" .Key) }}{{ .Year }}年{{ .Month }}月{{ end }}</a>
+        <a href="{{ "/archives/" | relURL }}#{{ .Key }}">{{ with time (printf "%s-01" .Key) }}{{ .Year }}年{{ .Format "1" }}月{{ end }}</a>
         <span class="count">({{ len .Pages }})</span>
       </li>
       {{- end }}

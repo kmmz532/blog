@@ -1,7 +1,7 @@
 {{ define "main" }}
 <h1 class="page-title">{{ .Title }}</h1>
 {{- range (where site.RegularPages "Section" "posts").GroupByDate "2006-01" }}
-<h2 id="{{ .Key }}" class="archive-year">{{ with time (printf "%s-01" .Key) }}{{ .Year }}年{{ .Month }}月{{ end }}<span class="card-meta"> （{{ len .Pages }}件）</span></h2>
+<h2 id="{{ .Key }}" class="archive-year">{{ with time (printf "%s-01" .Key) }}{{ .Year }}年{{ .Format "1" }}月{{ end }}<span class="card-meta"> （{{ len .Pages }}件）</span></h2>
 <ul class="archive-list">
   {{- range .Pages }}
   <li>
