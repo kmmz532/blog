@@ -946,6 +946,55 @@ a.chip:hover {
   background: var(--background);
 }
 
+/* 既存のカテゴリ・タグから選ぶチップ（押すと選択、もう一度押すと解除） */
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--foreground);
+  background: none;
+  border: 1px solid var(--text-secondary);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.choice:hover {
+  border-color: var(--link);
+}
+
+.choice[aria-pressed="true"] {
+  background: var(--text-primary);
+  color: var(--background);
+  border-color: transparent;
+}
+
+.new-choice {
+  margin-top: 0.5rem;
+}
+
+.tag-selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-selected .chip button {
+  margin-left: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
 .tag-input .chip button {
   margin-left: 4px;
   border: none;

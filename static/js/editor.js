@@ -14,6 +14,9 @@ const SOURCE_NAMES = { 'zenn.dev': 'Zenn', 'qiita.com': 'Qiita', 'note.com': 'no
 // originalSlug: 保存済み記事の slug。新規は null。kind: 'article' | 'external'
 const state = { kind: 'article', originalSlug: null, sha: null, aliases: [], extra: [] };
 let tags = [];
+// 既存の記事から集計したもの。{ name, count } の配列（件数の多い順）
+let knownCategories = [];
+let knownTags = [];
 let dirty = false;
 let autoSource = '';
 // 利用者が日時を触ったら、外部ページからの自動入力で上書きしない
@@ -26,6 +29,9 @@ function debounce(fn, ms) {
     timer = setTimeout(() => fn(...args), ms);
   };
 }
+
+let scheduleDraft = () => {};
+let scheduleRefresh = () => {};
 
 function setStatus(message, isError = false) {
   const el = $('status');
@@ -49,9 +55,185 @@ function markDirty() {
   scheduleRefresh();
 }
 
-function currentCategory() {
-  return document.querySelector('input[name="f-category"]:checked')?.value ?? 'tech';
+function isHttps(url) {
+  try {
+    return new URL(url).protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
+
+// ---- カテゴリ（既存から 1 つ選ぶ。「＋ 新規」で作る） ----
+
+function currentCategory() {
+  return $('category-chips').querySelector('[aria-pressed="true"]')?.dataset.value ?? 'tech';
+}
+
+function renderCategories(selected) {
+  const names = knownCategories.map((item) => item.name);
+  if (selected && !names.includes(selected)) names.push(selected);
+  const box = $('category-chips');
+  box.replaceChildren(
+    ...names.map((name) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'choice';
+      button.dataset.value = name;
+      button.textContent = name;
+      button.setAttribute('aria-pressed', String(name === selected));
+      button.addEventListener('click', () => {
+        renderCategories(name);
+        markDirty();
+      });
+      return button;
+    }),
+  );
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'choice';
+  add.textContent = '＋ 新規';
+  add.addEventListener('click', () => {
+    $('category-new').hidden = false;
+    $('f-category-new').focus();
+  });
+  box.append(add);
+}
+
+function commitNewCategory() {
+  const name = $('f-category-new').value.trim();
+  $('f-category-new').value = '';
+  $('category-new').hidden = true;
+  if (!name) return;
+  if (name.includes(',')) {
+    setStatus('カテゴリ名に , は使えません。', true);
+    return;
+  }
+  const existing = knownCategories.find((item) => item.name.toLowerCase() === name.toLowerCase());
+  if (!existing) knownCategories.push({ name, count: 0 });
+  renderCategories(existing?.name ?? name);
+  markDirty();
+}
+
+// ---- タグ（選択中のタグと、既存タグの候補） ----
+
+// 大文字小文字だけ違うときは既存のほうを使う
+function normalizeTagName(raw) {
+  const name = raw.trim().replace(/^#/, '');
+  if (!name || name.includes(',')) return null;
+  const existing = knownTags.find((item) => item.name.toLowerCase() === name.toLowerCase());
+  return existing?.name ?? name;
+}
+
+function renderSelectedTags() {
+  const box = $('tag-selected');
+  box.replaceChildren(
+    ...tags.map((tag, index) => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = `#${tag}`;
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', `${tag} を外す`);
+      remove.textContent = '×';
+      remove.addEventListener('click', () => {
+        tags.splice(index, 1);
+        renderSelectedTags();
+        renderTagSuggestions($('f-tag-entry').value);
+        markDirty();
+      });
+      chip.append(remove);
+      return chip;
+    }),
+  );
+}
+
+// 入力文字を含む既存タグを出す。押すと選択・解除
+function renderTagSuggestions(filter) {
+  const needle = filter.trim().toLowerCase();
+  const box = $('tag-suggest');
+  const matches = knownTags.filter((item) => item.name.toLowerCase().includes(needle));
+  box.replaceChildren(
+    ...matches.map((item) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'choice';
+      button.textContent = `#${item.name} (${item.count})`;
+      button.setAttribute('aria-pressed', String(tags.includes(item.name)));
+      button.addEventListener('click', () => {
+        if (tags.includes(item.name)) tags = tags.filter((tag) => tag !== item.name);
+        else tags.push(item.name);
+        renderSelectedTags();
+        renderTagSuggestions($('f-tag-entry').value);
+        markDirty();
+      });
+      return button;
+    }),
+  );
+}
+
+function addTagFromEntry() {
+  const entry = $('f-tag-entry');
+  const raw = entry.value;
+  const name = normalizeTagName(raw);
+  entry.value = '';
+  if (name === null) {
+    if (raw.trim()) setStatus('タグ名に , は使えません。', true);
+    return;
+  }
+  if (!tags.includes(name)) {
+    tags.push(name);
+    renderSelectedTags();
+    markDirty();
+  }
+  renderTagSuggestions('');
+}
+
+function attachTagInput() {
+  const entry = $('f-tag-entry');
+  entry.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault();
+      addTagFromEntry();
+    } else if (event.key === 'Backspace' && entry.value === '' && tags.length) {
+      tags.pop();
+      renderSelectedTags();
+      renderTagSuggestions('');
+      markDirty();
+    }
+  });
+  entry.addEventListener('input', () => renderTagSuggestions(entry.value));
+  entry.addEventListener('blur', () => {
+    if (entry.value.trim()) addTagFromEntry();
+  });
+}
+
+// 既存の記事から、カテゴリとタグの件数を集計する。失敗しても手入力は続けられる
+async function loadIndex() {
+  try {
+    const res = await fetch($('post-form').dataset.indexUrl, { cache: 'no-store' });
+    if (!res.ok) return;
+    const posts = await res.json();
+    const categoryCounts = new Map();
+    const tagCounts = new Map();
+    for (const post of posts) {
+      for (const category of post.categories ?? []) {
+        categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
+      }
+      for (const tag of post.tags ?? []) {
+        tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+      }
+    }
+    const byCount = (a, b) => b.count - a.count || a.name.localeCompare(b.name);
+    knownCategories = [...categoryCounts].map(([name, count]) => ({ name, count })).sort(byCount);
+    knownTags = [...tagCounts].map(([name, count]) => ({ name, count })).sort(byCount);
+    renderCategories(currentCategory());
+    renderTagSuggestions($('f-tag-entry').value);
+  } catch {
+    // 一覧が出なくても、新規に入力すれば使える
+  }
+}
+
+// ---- フォームとの変換 ----
 
 function readForm() {
   return {
@@ -73,16 +255,17 @@ function writeForm(fields) {
   $('f-slug').value = fields.slug;
   $('f-title').value = fields.title;
   $('f-date').value = fields.date;
-  for (const radio of document.querySelectorAll('input[name="f-category"]')) {
-    radio.checked = radio.value === fields.category;
-  }
+  renderCategories(fields.category);
   tags = [...fields.tags];
-  renderTags();
+  renderSelectedTags();
+  renderTagSuggestions('');
   $('f-summary').value = fields.summary;
+  $('summary-details').open = Boolean(fields.summary);
   $('f-body').value = fields.body;
   $('f-external').value = fields.url ?? '';
   $('f-source').value = fields.source ?? '';
   updateSummaryCount();
+  updateSummaryHint();
   autosize();
 }
 
@@ -98,14 +281,6 @@ function validate(fields) {
     if (!fields.source) return 'サイト名を入力してください。';
   }
   return null;
-}
-
-function isHttps(url) {
-  try {
-    return new URL(url).protocol === 'https:';
-  } catch {
-    return false;
-  }
 }
 
 // 種類は保存後に変えられないので、既存記事ではタブを隠す
@@ -134,69 +309,7 @@ function setView(view) {
   refreshPreview();
 }
 
-// ---- タグ（チップ入力） ----
-
-function renderTags() {
-  const box = $('tag-input');
-  for (const chip of box.querySelectorAll('.chip')) chip.remove();
-  tags.forEach((tag, index) => {
-    const chip = document.createElement('span');
-    chip.className = 'chip';
-    chip.textContent = tag;
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.setAttribute('aria-label', `${tag} を削除`);
-    remove.textContent = '×';
-    remove.addEventListener('click', () => {
-      tags.splice(index, 1);
-      renderTags();
-      markDirty();
-    });
-    chip.append(remove);
-    box.insertBefore(chip, $('f-tag-entry'));
-  });
-}
-
-function addTag(raw) {
-  const tag = raw.trim().replace(/^#/, '');
-  if (!tag || tags.includes(tag)) return;
-  tags.push(tag);
-  renderTags();
-  markDirty();
-}
-
-function attachTagInput() {
-  const entry = $('f-tag-entry');
-  entry.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' || event.key === ',') {
-      event.preventDefault();
-      addTag(entry.value);
-      entry.value = '';
-    } else if (event.key === 'Backspace' && entry.value === '' && tags.length) {
-      tags.pop();
-      renderTags();
-      markDirty();
-    }
-  });
-  entry.addEventListener('blur', () => {
-    addTag(entry.value);
-    entry.value = '';
-  });
-  $('tag-input').addEventListener('click', () => entry.focus());
-}
-
-async function loadTagSuggestions() {
-  try {
-    const res = await fetch($('post-form').dataset.indexUrl, { cache: 'no-store' });
-    if (!res.ok) return;
-    const known = new Set((await res.json()).flatMap((post) => post.tags ?? []));
-    $('tag-list').replaceChildren(...[...known].sort().map((tag) => new Option(tag)));
-  } catch {
-    // 候補が出なくても入力は続けられる
-  }
-}
-
-// ---- 概要・本文の高さ・外部記事 ----
+// ---- 概要（自動生成の表示。保存時の規則は partial external-meta.html と同じ） ----
 
 function updateSummaryCount() {
   const length = [...$('f-summary').value].length;
@@ -205,11 +318,28 @@ function updateSummaryCount() {
   count.classList.toggle('warn', length > SUMMARY_TARGET);
 }
 
+// 本文から概要を作る。<pre> を除き、文字を整え、120 字で切る
+function autoSummary(markdown) {
+  if (!window.marked || !markdown.trim()) return '';
+  const template = document.createElement('template');
+  template.innerHTML = window.marked.parse(markdown);
+  template.content.querySelectorAll('pre').forEach((el) => el.remove());
+  const text = template.content.textContent.replace(/\s+/g, ' ').trim();
+  const chars = [...text];
+  return chars.length > SUMMARY_TARGET ? `${chars.slice(0, SUMMARY_TARGET).join('')}…` : text;
+}
+
+function updateSummaryHint() {
+  $('f-summary').placeholder = autoSummary($('f-body').value) || '（本文から自動生成されます）';
+}
+
 function autosize() {
   const body = $('f-body');
   body.style.height = 'auto';
   body.style.height = `${body.scrollHeight}px`;
 }
+
+// ---- 外部記事 ----
 
 function sourceFromUrl(url) {
   try {
@@ -244,11 +374,13 @@ async function autofillExternal() {
   if (!$('f-title').value && meta.title) $('f-title').value = meta.title;
   if (!$('f-summary').value && meta.summary) {
     $('f-summary').value = meta.summary;
+    $('summary-details').open = true;
     updateSummaryCount();
   }
   if (!tags.length && meta.tags.length) {
     tags = meta.tags.filter(Boolean);
-    renderTags();
+    renderSelectedTags();
+    renderTagSuggestions('');
   }
   if (!dateTouched && meta.date) $('f-date').value = meta.date;
   const source = $('f-source');
@@ -278,7 +410,7 @@ function renderExternalCard(fields) {
 
   const heading = document.createElement('h2');
   heading.className = 'card-title';
-  heading.textContent = fields.title || '（無題）';
+  heading.textContent = fields.title || fields.url || '（無題）';
 
   const source = document.createElement('p');
   source.className = 'card-external';
@@ -307,6 +439,7 @@ function renderExternalCard(fields) {
 
 function refreshPreview() {
   const fields = readForm();
+  updateSummaryHint();
   if (fields.kind === 'external') renderExternalCard(fields);
   else renderPreview(fields.body, fields.title, $('preview'));
 }
@@ -513,7 +646,7 @@ async function load() {
   updateChrome();
   refreshPreview();
   renderDrafts($('drafts'));
-  loadTagSuggestions();
+  loadIndex();
 }
 
 function start() {
@@ -530,6 +663,13 @@ function start() {
     markDirty();
   });
   $('f-external').addEventListener('change', autofillExternal);
+  $('f-category-new').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      commitNewCategory();
+    }
+  });
+  $('f-category-new').addEventListener('blur', commitNewCategory);
   $('f-slug').addEventListener('input', () => {
     const slug = $('f-slug').value;
     if (slug && !isValidSlug(slug)) setStatus('slug は英小文字・数字・ハイフンのみ使えます。', true);
@@ -582,10 +722,6 @@ function start() {
 
   load();
 }
-
-// start() の中で差し替える。markDirty から呼べるよう先に宣言しておく
-let scheduleRefresh = () => {};
-let scheduleDraft = () => {};
 
 if (getToken()) {
   start();

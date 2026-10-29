@@ -22,14 +22,11 @@
   <section class="sidebar-card">
     <h2 class="sidebar-title">カテゴリ</h2>
     <ul class="sidebar-list">
-      {{- range slice "tech" "diary" "misc" "devlog" }}
-      {{- $page := site.GetPage (printf "/categories/%s" .) }}
-      {{- with $page }}
+      {{- range site.Taxonomies.categories.ByCount }}
       <li>
-        <a href="{{ .RelPermalink }}" {{ if and (eq $.Kind "term") (eq $.Data.Term .Title) }}class="current"{{ end }}>{{ .Title }}</a>
-        <span class="count">({{ len .Pages }})</span>
+        <a href="{{ .Page.RelPermalink }}" {{ if and (eq $.Kind "term") (eq $.Data.Term .Page.Title) }}class="current"{{ end }}>{{ .Page.Title }}</a>
+        <span class="count">({{ .Count }})</span>
       </li>
-      {{- end }}
       {{- end }}
     </ul>
   </section>

@@ -53,25 +53,25 @@
       <label class="field">投稿日時
         <input id="f-date" type="datetime-local" required></label>
       <div class="field">
-        <span>カテゴリ</span>
-        <div class="segmented" role="radiogroup" aria-label="カテゴリ">
-          <label><input type="radio" name="f-category" value="tech" checked><span>tech</span></label>
-          <label><input type="radio" name="f-category" value="diary"><span>diary</span></label>
-          <label><input type="radio" name="f-category" value="misc"><span>misc</span></label>
-          <label><input type="radio" name="f-category" value="devlog"><span>devlog</span></label>
+        <span>カテゴリ（1 つ選ぶ）</span>
+        <div id="category-chips" class="choices" role="group" aria-label="カテゴリ"></div>
+        <div id="category-new" class="new-choice" hidden>
+          <input id="f-category-new" placeholder="新しいカテゴリ名" aria-label="新しいカテゴリ名" maxlength="30">
         </div>
       </div>
       <div class="field">
         <span>タグ</span>
-        <div id="tag-input" class="tag-input">
-          <input id="f-tag-entry" list="tag-list" placeholder="タグを入力して Enter" aria-label="タグ">
-        </div>
-        <datalist id="tag-list"></datalist>
+        <div id="tag-selected" class="tag-selected" aria-label="選択中のタグ"></div>
+        <input id="f-tag-entry" placeholder="検索または新しいタグ（Enter）" aria-label="タグ" maxlength="40">
+        <div id="tag-suggest" class="choices" aria-label="既存のタグ"></div>
       </div>
-      <label class="field">概要
-        <textarea id="f-summary" rows="3"></textarea></label>
-      <p id="summary-count" class="char-count"></p>
     </div>
+
+    <details id="summary-details" class="details-card">
+      <summary>概要（任意）</summary>
+      <textarea id="f-summary" rows="3" placeholder="（本文から自動生成されます）"></textarea>
+      <p id="summary-count" class="char-count"></p>
+    </details>
 
     <details class="details-card drafts">
       <summary>下書き（この端末のみ）</summary>
