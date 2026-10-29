@@ -179,3 +179,25 @@ a.chip:hover {
   color: var(--text-secondary);
   font-size: 0.85rem;
 }
+
+/* 検索: 待っている間は虫眼鏡が脈打ち、結果はページを開いたとき（.contents）と同じ動きで出る */
+.search-box.searching .fa-magnifying-glass {
+  animation: search-pulse 0.7s ease-in-out infinite;
+}
+
+#search-results {
+  animation: fade-in 0.2s ease-in-out;
+}
+
+@keyframes search-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-box.searching .fa-magnifying-glass,
+  #search-results {
+    animation: none;
+  }
+}
