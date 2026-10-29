@@ -234,3 +234,18 @@
     display: none;
   }
 }
+
+/* 見出しのアンカー（design.md §14.2）。hover・focus のときだけ表示する */
+.heading-anchor {
+  margin-left: 0.3em;
+  color: var(--text-secondary);
+  text-decoration: none;
+  opacity: 0;
+}
+
+h2:hover .heading-anchor,
+h3:hover .heading-anchor,
+h4:hover .heading-anchor,
+.heading-anchor:focus-visible {
+  opacity: 1;
+}

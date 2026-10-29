@@ -1,0 +1,2 @@
+{{- /* 見出し（h2〜h4）の末尾にアンカーを付ける。id は Hugo の自動生成のまま（design.md §14.2） */ -}}
+<h{{ .Level }} id="{{ .Anchor }}">{{ .Text | safeHTML }}{{ if and (ge .Level 2) (le .Level 4) }} <a class="heading-anchor" href="{{ printf "#%s" .Anchor | safeURL }}" aria-label="この見出しへのリンク">#</a>{{ end }}</h{{ .Level }}>
