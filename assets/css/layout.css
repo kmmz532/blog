@@ -333,3 +333,8 @@
   border-bottom-color: var(--link);
 }
 
+
+/* トップページの検索欄（サイドバーが下に回る幅でも、すぐ使えるよう一覧の上に置く） */
+.home-search {
+  margin-bottom: 1.25rem;
+}

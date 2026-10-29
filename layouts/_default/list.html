@@ -1,5 +1,9 @@
 {{ define "main" }}
 {{- $pag := .Paginate (where site.RegularPages "Section" "posts") }}
+<form class="search-box home-search" action="{{ "/search/" | relURL }}" method="get" role="search">
+  <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+  <input type="search" name="q" aria-label="検索キーワード" placeholder="タイトル・概要・タグ・本文から検索">
+</form>
 <div class="card-list">
   {{- range $pag.Pages }}
   {{- partial "post-card.html" . }}
