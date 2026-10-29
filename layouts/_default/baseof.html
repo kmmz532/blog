@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="{{ site.Language.LanguageCode }}">
+<head>
+  {{ partial "head.html" . }}
+</head>
+<body>
+  {{ partial "header.html" . }}
+  <main class="contents">
+    {{ block "main" . }}{{ end }}
+  </main>
+  {{ partial "footer.html" . }}
+  <script src="{{ "js/theme.js" | relURL }}" type="module"></script>
+  <script src="{{ "js/admin.js" | relURL }}" type="module"></script>
+  {{ block "scripts" . }}{{ end }}
+</body>
+</html>

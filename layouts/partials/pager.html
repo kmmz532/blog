@@ -1,0 +1,8 @@
+{{- /* 引数は Pager */}}
+{{- if gt .TotalPages 1 }}
+<nav class="pager" aria-label="ページネーション">
+  {{- with .Prev }}<a href="{{ .URL }}">← 新しい記事</a>{{ else }}<span></span>{{ end }}
+  <span class="pager-current">{{ .PageNumber }} / {{ .TotalPages }}</span>
+  {{- with .Next }}<a href="{{ .URL }}">古い記事 →</a>{{ else }}<span></span>{{ end }}
+</nav>
+{{- end }}

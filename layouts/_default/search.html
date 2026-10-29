@@ -1,0 +1,12 @@
+{{ define "main" }}
+<h1 class="page-title">検索</h1>
+<form id="search-form" role="search">
+  <input id="q" type="search" class="search-input" placeholder="タイトル・概要・タグ・本文から検索" aria-label="検索キーワード">
+</form>
+<p id="search-count" class="card-meta" aria-live="polite"></p>
+<div id="search-results" class="card-list" data-index-url="{{ "index.json" | relURL }}"></div>
+{{ end }}
+
+{{ define "scripts" }}
+<script type="module" src="{{ "js/search.js" | relURL }}"></script>
+{{ end }}

@@ -1,0 +1,19 @@
+<article class="carditem">
+  <h2 class="card-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+  <p class="card-meta">
+    <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006.01.02" }}</time>
+    {{- range .Params.categories }}
+    <a class="chip" href="{{ "/categories/" | relURL }}{{ . | urlize }}/">{{ . }}</a>
+    {{- end }}
+  </p>
+  {{- with .Params.summary }}
+  <p class="card-excerpt">{{ . }}</p>
+  {{- end }}
+  {{- with .Params.tags }}
+  <p class="card-tags">
+    {{- range . }}
+    <a class="chip" href="{{ "/tags/" | relURL }}{{ . | urlize }}/">#{{ . }}</a>
+    {{- end }}
+  </p>
+  {{- end }}
+</article>

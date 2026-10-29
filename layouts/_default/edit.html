@@ -1,0 +1,48 @@
+{{ define "main" }}
+<h1 class="page-title" id="edit-title">記事の編集</h1>
+<div class="editor">
+  <form id="post-form" class="editor-form" autocomplete="off">
+    <label>slug（英小文字・数字・ハイフン）
+      <input id="f-slug" required pattern="[a-z0-9\-]{1,80}" maxlength="80"></label>
+    <label>タイトル
+      <input id="f-title" required></label>
+    <label>投稿日時
+      <input id="f-date" type="datetime-local" required></label>
+    <label>カテゴリ
+      <select id="f-category">
+        <option value="tech">tech</option>
+        <option value="diary">diary</option>
+        <option value="misc">misc</option>
+        <option value="devlog">devlog</option>
+      </select></label>
+    <label>タグ（カンマ区切り）
+      <input id="f-tags"></label>
+    <label>概要
+      <textarea id="f-summary" rows="2"></textarea></label>
+    <label>本文（Markdown）
+      <textarea id="f-body" rows="24"></textarea></label>
+    <label class="image-upload">画像を挿入（WebP に変換して保存）
+      <input id="f-image" type="file" accept="image/*"></label>
+    <div class="editor-actions">
+      <button type="submit" id="save" class="btn primary">公開</button>
+      <button type="button" id="discard" class="btn">下書きを破棄</button>
+      <button type="button" id="delete" class="btn danger" hidden>削除</button>
+      <a id="view-link" class="btn" href="#" hidden>記事を見る</a>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </form>
+  <section class="preview-pane">
+    <h2>プレビュー</h2>
+    <div id="preview" class="post-body"></div>
+  </section>
+</div>
+<section class="drafts">
+  <h2>下書き（この端末のみ）</h2>
+  <ul id="drafts"></ul>
+</section>
+{{ end }}
+
+{{ define "scripts" }}
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js" integrity="sha384-H+hy9ULve6xfxRkWIh/YOtvDdpXgV2fmAGQkIDTxIgZwNoaoBal14Di2YTMR6MzR" crossorigin="anonymous"></script>
+<script type="module" src="{{ "js/editor.js" | relURL }}"></script>
+{{ end }}

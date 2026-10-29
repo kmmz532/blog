@@ -1,0 +1,37 @@
+baseURL = "https://blog.kmmz.jp/"
+languageCode = "ja"
+timeZone = "Asia/Tokyo"
+title = "Kmmz1127 Blog"
+enableRobotsTXT = true
+
+[pagination]
+  pagerSize = 10
+
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
+
+[markup.highlight]
+  noClasses = false
+
+[params]
+  description = "kmmz1127の個人ブログです！"
+  repo = "kmmz532/blog-article"
+  branch = "main"
+
+# 記事は別リポジトリ blog-article を posts/ に clone して取り込む
+[[module.mounts]]
+  source = "content"
+  target = "content"
+[[module.mounts]]
+  source = "posts/content"
+  target = "content"
+[[module.mounts]]
+  source = "static"
+  target = "static"
+[[module.mounts]]
+  source = "posts/static"
+  target = "static"

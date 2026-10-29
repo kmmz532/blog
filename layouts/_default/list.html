@@ -1,0 +1,16 @@
+{{ define "main" }}
+{{- $pages := .Pages -}}
+{{- if .IsHome -}}
+{{- $pages = where site.RegularPages "Section" "posts" -}}
+{{- end -}}
+{{- $pag := .Paginate $pages -}}
+<h1 class="page-title">{{ if .IsHome }}最新の記事{{ else }}{{ .Title }}{{ end }}</h1>
+<div class="card-list">
+  {{- range $pag.Pages }}
+  {{- partial "post-card.html" . }}
+  {{- else }}
+  <p>記事はまだありません。</p>
+  {{- end }}
+</div>
+{{- partial "pager.html" $pag }}
+{{ end }}
