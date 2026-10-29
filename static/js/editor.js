@@ -29,6 +29,8 @@ let slugInvalid = false;
 let pendingDraft = null;
 // カテゴリを選んだら、新規記事の件数順の既定値で上書きしない
 let categoryPicked = false;
+// 手動で設定したサムネイルの URL（空なら自動）
+let thumbImage = '';
 
 function debounce(fn, ms) {
   let timer;
@@ -266,6 +268,7 @@ function readForm() {
     body: $('f-body').value,
     url: $('f-external').value.trim(),
     source: $('f-source').value.trim(),
+    image: thumbImage,
   };
 }
 
@@ -280,6 +283,8 @@ function writeForm(fields) {
   renderTagSuggestions('');
   $('f-summary').value = fields.summary;
   $('summary-details').open = Boolean(fields.summary);
+  thumbImage = fields.image ?? '';
+  $('thumb-details').open = Boolean(thumbImage);
   $('f-body').value = fields.body;
   $('f-external').value = fields.url ?? '';
   $('f-source').value = fields.source ?? '';
@@ -460,9 +465,62 @@ function renderExternalCard(fields) {
   $('preview').replaceChildren(article);
 }
 
+// ---- サムネイル（手動設定があればそれ。無ければ自動。design.md §3・§11.6） ----
+
+const BODY_IMAGE_RE = /!\[[^\]]*\]\(([^)\s]+)[^)]*\)/g;
+
+// 今どう決まっているかを返す。自動の画像は本文の最初の画像（外部記事は OGP なのでプレビューなし）
+function thumbStatus() {
+  if (thumbImage) return { url: thumbImage, label: '手動' };
+  if (state.kind === 'external') return { url: '', label: '自動: OGP の画像（ビルド時に取得）' };
+  const first = [...$('f-body').value.matchAll(BODY_IMAGE_RE)][0];
+  if (first) return { url: first[1], label: '自動: 本文の最初の画像' };
+  return { url: '', label: 'なし' };
+}
+
+function renderThumb() {
+  const { url, label } = thumbStatus();
+  const preview = $('thumb-preview');
+  preview.hidden = !url;
+  preview.src = url;
+  $('thumb-state').textContent = label;
+  $('thumb-pick').hidden = state.kind === 'external';
+  $('thumb-choices').hidden = true;
+}
+
+// 本文中の画像を並べ、押したものを手動のサムネイルにする
+function showThumbChoices() {
+  const box = $('thumb-choices');
+  const urls = [...new Set([...$('f-body').value.matchAll(BODY_IMAGE_RE)].map((match) => match[1]))];
+  box.replaceChildren(
+    ...urls.map((url) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'thumb-choice';
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = '';
+      img.width = 64;
+      img.height = 64;
+      img.loading = 'lazy';
+      button.append(img);
+      button.addEventListener('click', () => {
+        thumbImage = url;
+        box.hidden = true;
+        renderThumb();
+        markDirty();
+      });
+      return button;
+    }),
+  );
+  if (!urls.length) box.textContent = '本文に画像がありません。';
+  box.hidden = false;
+}
+
 function refreshPreview() {
   const fields = readForm();
   updateSummaryHint();
+  renderThumb();
   if (fields.kind === 'external') renderExternalCard(fields);
   else renderPreview(fields.body, fields.title, $('preview'));
 }
@@ -775,6 +833,30 @@ function start() {
 
   $('draft-restore').addEventListener('click', restoreDraft);
   $('draft-discard').addEventListener('click', discardDraft);
+  $('thumb-auto').addEventListener('click', () => {
+    thumbImage = '';
+    renderThumb();
+    markDirty();
+  });
+  $('thumb-pick').addEventListener('click', () => {
+    if ($('thumb-choices').hidden) showThumbChoices();
+    else $('thumb-choices').hidden = true;
+  });
+  $('thumb-upload').addEventListener('click', () => $('thumb-file').click());
+  $('thumb-file').addEventListener('change', async () => {
+    const file = $('thumb-file').files[0];
+    $('thumb-file').value = '';
+    if (!file) return;
+    setStatus('画像をアップロードしています…');
+    try {
+      // 本文には挿入しない。URL だけを手動のサムネイルにする
+      thumbImage = await uploadImage(file);
+      renderThumb();
+      markDirty();
+    } catch (error) {
+      setStatus(error.message, true);
+    }
+  });
   $('delete').addEventListener('click', removePost);
   $('discard').addEventListener('click', () => {
     if (!confirm('この記事の下書きを破棄して、保存済みの内容を読み直します。')) return;

@@ -8,7 +8,7 @@
     {{- end }}
   </div>
   {{- with .Params.tags }}
-  <div class="card-tags">
+  <div class="card-tags post-tags">
     {{- range . }}
     <a class="chip" href="{{ "/tags/" | relURL }}{{ . | urlize }}/">#{{ . }}</a>
     {{- end }}

@@ -503,18 +503,19 @@ button {
 /* チップ（page.module.css の .skillTags span） */
 .chip {
   display: inline-block;
-  padding: 4px 10px;
-  border: 1px solid var(--text-secondary);
-  border-radius: 4px;
-  font-size: 0.9em;
-  line-height: 1.4;
-  color: var(--text-primary);
-  background: rgba(var(--foreground-rgb), 0.15);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  background: rgba(var(--foreground-rgb), 0.06);
+  transition: background 0.2s, color 0.2s;
 }
 
 a.chip:hover {
   text-decoration: none;
-  border-color: var(--link);
+  color: var(--text-primary);
+  background: rgba(var(--foreground-rgb), 0.12);
 }
 
 .term-list {
@@ -576,6 +577,15 @@ a.chip:hover {
   margin-bottom: 2rem;
   font-size: 0.9rem;
   color: var(--text-secondary);
+}
+
+/* タグがあるときは、メタ情報の下・本文の上にタグを置き、本文との間を空ける */
+.post-meta:has(+ .post-tags) {
+  margin-bottom: 0.75rem;
+}
+
+.post-tags {
+  margin: 0 0 2rem;
 }
 
 .post-body {
@@ -765,7 +775,8 @@ a.chip:hover {
 .login-form input,
 .field input,
 .field select,
-.field textarea {
+.field textarea,
+.details-card textarea {
   width: 100%;
   padding: 0.5rem 0.75rem;
   font: inherit;
@@ -867,14 +878,16 @@ a.chip:hover {
 
 .title-input {
   width: 100%;
-  padding: 0;
+  padding: 10px 14px;
   font-size: 28px;
   font-weight: 600;
   line-height: 1.3;
   color: var(--text-primary);
-  background: none;
-  border: none;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
   outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .title-input::placeholder {
@@ -885,7 +898,13 @@ a.chip:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
-  margin: 1rem 0 0.5rem;
+  margin-top: 1rem;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: rgba(var(--foreground-rgb), 0.03);
+  transition: border-color 0.2s;
 }
 
 .toolbar button {
@@ -909,16 +928,48 @@ a.chip:hover {
   display: block;
   width: 100%;
   min-height: 60vh;
-  padding: 0;
+  padding: 14px 16px;
   font-family: ui-monospace, SFMono-Regular, Consolas, "Courier New", monospace;
   font-size: 15px;
   line-height: 1.8;
   color: var(--text-primary);
-  background: none;
-  border: none;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 0 0 8px 8px;
   outline: none;
   resize: none;
   overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* 入力できる場所がわかるよう、hover で枠を濃く、focus で枠と影を付ける */
+.title-input:hover,
+.body-input:hover,
+.field input:hover,
+.field textarea:hover,
+.details-card textarea:hover {
+  border-color: var(--text-secondary);
+}
+
+.title-input:focus,
+.body-input:focus,
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.details-card textarea:focus {
+  border-color: var(--link);
+  box-shadow: 0 0 0 3px rgba(var(--foreground-rgb), 0.08);
+  outline: none;
+}
+
+/* 本文にフォーカスがあるときはツールバーの枠も同じ色にして、1 つの入力欄に見せる */
+.editor-main:has(.body-input:focus) .toolbar {
+  border-color: var(--link);
+}
+
+/* ツールバーが無い表示（外部記事・プレビュー）では本文欄の角をすべて丸める */
+.editor-main[data-kind="external"] .body-input {
+  border-radius: 8px;
 }
 
 .body-input.dragover {
@@ -1391,4 +1442,46 @@ a.chip:hover {
 
 .carditem[hidden] {
   display: none;
+}
+
+/* サムネイル欄（編集画面）。design.md §11.6 */
+.thumb-current {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.thumb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.thumb-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 64px);
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.thumb-choices:empty,
+.thumb-choices[hidden] {
+  display: none;
+}
+
+.thumb-choice {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.thumb-choice img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: 6px;
 }

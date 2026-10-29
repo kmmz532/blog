@@ -28,7 +28,14 @@
 <meta property="og:description" content="{{ $desc }}">
 <meta property="og:url" content="{{ .Permalink }}">
 <meta property="og:locale" content="ja_JP">
+{{- $image := "" }}
+{{- if .IsPage }}{{ $image = (partialCached "external-meta.html" . .File.Path | transform.Unmarshal).image }}{{ end }}
+{{- with $image }}
+<meta property="og:image" content="{{ . | absURL }}">
+<meta name="twitter:card" content="summary_large_image">
+{{- else }}
 <meta name="twitter:card" content="summary">
+{{- end }}
 {{- /* 管理画面の JS が読む設定値。JS にリポジトリ名を直書きしない */}}
 <meta name="blog-repo" content="{{ site.Params.repo }}">
 <meta name="blog-branch" content="{{ site.Params.branch }}">

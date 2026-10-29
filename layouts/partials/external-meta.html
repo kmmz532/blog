@@ -2,12 +2,15 @@
 {{- $title := .Params.title | default .Title -}}
 {{- /* 通常記事の概要: front matter が空なら本文から作る（<pre> を除き、空白をまとめ、120 字で切る） */ -}}
 {{- $summary := .Params.summary | default (.Content | replaceRE `(?s)<pre.*?</pre>` "" | plainify | replaceRE `\s+` " " | strings.TrimSpace | truncate 120 "…") -}}
-{{- $image := "" -}}
+{{- /* サムネイル: front matter の image（手動）が最優先。通常記事は本文の最初の画像、外部記事は OGP の画像 */ -}}
+{{- $image := .Params.image | default "" -}}
 {{- if .Params.external -}}
   {{- $html := "" -}}
   {{- $res := try (resources.GetRemote .Params.external) -}}
   {{- if not $res.Err -}}
     {{- with $res.Value -}}{{- $html = .Content -}}{{- end -}}
+  {{- else -}}
+    {{- warnf "external-meta: %s: %s" .Params.external $res.Err -}}
   {{- end -}}
   {{- $ogTitle := "" -}}
   {{- $ogDesc := "" -}}
@@ -25,6 +28,12 @@
   {{- end -}}
   {{- $title = .Params.title | default $ogTitle | default .Params.external -}}
   {{- $summary = .Params.summary | default $ogDesc -}}
-  {{- $image = $ogImage -}}
+  {{- $image = $image | default $ogImage -}}
+{{- else -}}
+  {{- if not $image -}}
+    {{- with findRESubmatch `<img[^>]+src="([^"]+)"` .Content -}}
+      {{- $image = index (index . 0) 1 -}}
+    {{- end -}}
+  {{- end -}}
 {{- end -}}
 {{- dict "title" $title "summary" $summary "image" $image | jsonify -}}

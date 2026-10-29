@@ -2,7 +2,7 @@
 import { dateToJstInput } from './time.js';
 
 // 画面で扱うキー。それ以外は raw 行のまま保持して書き戻す。build は読み込みで捨てて保存で作り直す
-const KNOWN_KEYS = ['title', 'date', 'categories', 'tags', 'summary', 'aliases', 'external', 'source', 'build'];
+const KNOWN_KEYS = ['title', 'date', 'categories', 'tags', 'summary', 'image', 'aliases', 'external', 'source', 'build'];
 const LIST_KEYS = ['categories', 'tags', 'aliases'];
 const EXTERNAL_BUILD = '{"render": "never", "list": "always"}';
 
@@ -78,6 +78,7 @@ export function parseArticle(text) {
       category: values.categories?.[0] ?? 'tech',
       tags: values.tags ?? [],
       summary: String(values.summary ?? ''),
+      image: String(values.image ?? ''),
       url: String(values.external ?? ''),
       source: String(values.source ?? ''),
       body,
@@ -95,6 +96,8 @@ function frontFields(fields) {
     `categories: ${JSON.stringify([fields.category])}`,
     `tags: ${JSON.stringify(fields.tags)}`,
     `summary: ${JSON.stringify(fields.summary)}`,
+    // 手動のサムネイルは設定したときだけ書く
+    ...(fields.image ? [`image: ${JSON.stringify(fields.image)}`] : []),
   ];
 }
 

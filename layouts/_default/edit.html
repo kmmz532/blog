@@ -78,6 +78,21 @@
       <p id="summary-count" class="char-count"></p>
     </details>
 
+    <details id="thumb-details" class="details-card">
+      <summary>サムネイル</summary>
+      <div class="thumb-current">
+        <img id="thumb-preview" class="card-thumb" alt="" width="96" height="96" loading="lazy" hidden>
+        <p id="thumb-state" class="card-meta"></p>
+      </div>
+      <div class="thumb-actions">
+        <button type="button" id="thumb-auto" class="btn">自動</button>
+        <button type="button" id="thumb-pick" class="btn">本文の画像から選ぶ</button>
+        <button type="button" id="thumb-upload" class="btn">画像をアップロード</button>
+        <input id="thumb-file" type="file" accept="image/*" hidden>
+      </div>
+      <div id="thumb-choices" class="thumb-choices" aria-label="本文の画像" hidden></div>
+    </details>
+
     <details class="details-card drafts">
       <summary>下書き（この端末のみ）</summary>
       <ul id="drafts"></ul>
