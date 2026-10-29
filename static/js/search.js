@@ -9,11 +9,17 @@ const homeList = document.getElementById('home-list');
 let posts = [];
 let loadError = false;
 
+// 大文字小文字・全角半角（NFKC）・カタカナとひらがなの違いを無視して比べる
+function normalize(text) {
+  return text
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[ァ-ヶ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+}
+
 function matches(post, words) {
-  const haystack = [post.title, post.summary, ...(post.tags ?? []), post.body ?? '']
-    .join('\n')
-    .toLowerCase();
-  return words.every((word) => haystack.includes(word));
+  post.haystack ??= normalize([post.title, post.summary, ...(post.tags ?? []), post.body ?? ''].join('\n'));
+  return words.every((word) => post.haystack.includes(word));
 }
 
 function card(post) {
@@ -58,7 +64,7 @@ function card(post) {
 }
 
 function render() {
-  const words = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const words = normalize(input.value.trim()).split(/\s+/).filter(Boolean);
   const params = new URLSearchParams(location.search);
   if (input.value.trim()) params.set('q', input.value.trim());
   else params.delete('q');
