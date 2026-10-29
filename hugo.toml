@@ -1,7 +1,7 @@
 baseURL = "https://blog.kmmz.jp/"
 languageCode = "ja"
 timeZone = "Asia/Tokyo"
-title = "Kmmz1127 Blog"
+title = "かみみずブログ"
 enableRobotsTXT = true
 
 [pagination]
@@ -21,10 +21,11 @@ enableRobotsTXT = true
   noClasses = false
 
 [params]
-  description = "kmmz1127の個人ブログです！"
+  description = "Kmmz1127の個人ブログです！"
+  headerTitle = "Kmmz1127 Blog"
   repo = "kmmz532/blog-article"
   branch = "main"
-  author = "Kmmz1127"
+  author = "Mizuto, Kaminakano"
   bio = "ウェブ開発やアプリ開発に興味のある大学生"
   footer = "© 2025-2026 Mizuto, Kaminakano | contact@kmmz.jp - Osaka, Japan"
 

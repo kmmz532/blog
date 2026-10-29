@@ -1,6 +1,6 @@
 <header class="header">
   <div class="header-inner">
-    <a class="title" href="{{ "/" | relURL }}">{{ site.Title }}</a>
+    <a class="title" href="{{ "/" | relURL }}">{{ site.Params.headerTitle | default site.Title }}</a>
     <div class="header-actions">
       <a class="icon-button" href="{{ "/search/" | relURL }}" aria-label="検索" title="検索">
         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
