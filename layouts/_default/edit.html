@@ -92,8 +92,13 @@
       <div id="thumb-choices" class="thumb-choices" aria-label="本文の画像" hidden></div>
     </details>
 
-    <details class="details-card drafts">
-      <summary>下書き（この端末のみ）</summary>
+    <details id="drafts-details" class="details-card drafts">
+      <summary id="drafts-summary">下書き（この端末のみ）</summary>
+      <div id="draft-pending" class="draft-pending" hidden>
+        <p id="draft-pending-text"></p>
+        <button type="button" id="draft-restore" class="btn primary">復元する</button>
+        <button type="button" id="draft-drop" class="btn">破棄する</button>
+      </div>
       <ul id="drafts"></ul>
       <button type="button" id="discard" class="btn">この下書きを破棄</button>
     </details>

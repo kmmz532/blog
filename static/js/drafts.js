@@ -1,6 +1,6 @@
 // 下書きはこの端末の localStorage にだけ保存する（公開リポジトリに未公開記事を置かないため）。
 import { getItem, setItem, removeItem, keys } from './storage.js';
-import { setSaveState, showNotice, hideNotice } from './notice.js';
+import { setSaveState, showNotice } from './notice.js';
 
 const PREFIX = 'blog_draft:';
 // slug は英小文字・数字・ハイフンのみなので、'_' で始めれば記事の slug と衝突しない
@@ -78,21 +78,31 @@ export function createDrafts({ state, readForm, writeForm, refreshPreview, updat
     renderDrafts($('drafts'));
   }
 
-  // 下書きのお知らせ。選ぶまでは保存済みの内容を出したままにする
+  // 下書きの案内は、上のお知らせ欄ではなく「下書き」の折りたたみの中に出す（本文の邪魔にならないように）。
+  // 選ぶまでは折りたたみを開いたままにし、見出しにも「復元待ち」と出して忘れないようにする
+  const SUMMARY = '下書き（この端末のみ）';
+
   function showDraftNotice(key, draft) {
     state.pendingDraft = { key, draft };
-    const time = new Date(draft.savedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-    // 選ぶまで消えない（お知らせ欄の [復元する] [破棄する]）
-    showNotice('info', `この記事の下書きがあります（${time} 保存）`, [
-      { label: '復元する', primary: true, onClick: restoreDraft },
-      { label: '破棄する', onClick: discardDraft },
-    ]);
+    const time = new Date(draft.savedAt).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    $('draft-pending-text').textContent = `この記事の下書きがあります（${time} 保存）。復元か破棄を選ぶまで、新しい下書きは保存されません。`;
+    $('draft-pending').hidden = false;
+    $('drafts-summary').textContent = `${SUMMARY}・復元待ち`;
+    $('drafts-details').classList.add('has-pending');
+    $('drafts-details').open = true;
+    // 記事設定が本文の下に回る狭い画面でも気づけるように、編集バーの保存状態にも短く出す
+    setSaveState('draft', '未復元の下書きあり');
   }
 
   function closeDraftNotice() {
     state.pendingDraft = null;
-    hideNotice();
+    $('draft-pending').hidden = true;
+    $('drafts-summary').textContent = SUMMARY;
+    $('drafts-details').classList.remove('has-pending');
   }
+
+  $('draft-restore').addEventListener('click', () => restoreDraft());
+  $('draft-drop').addEventListener('click', () => discardDraft());
 
   function restoreDraft() {
     if (!state.pendingDraft) return;

@@ -687,3 +687,24 @@ body:has(.editor) .footer {
   color: var(--text-secondary);
   font-size: 0.85rem;
 }
+
+/* 未復元の下書きの案内（drafts.js）。折りたたみの中に出し、見出しを強調して忘れないようにする */
+.drafts.has-pending summary {
+  color: var(--link);
+  font-weight: 600;
+}
+
+.draft-pending {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 10px 12px;
+  border: 1px solid var(--link);
+  border-radius: 8px;
+}
+
+.draft-pending p {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+}
