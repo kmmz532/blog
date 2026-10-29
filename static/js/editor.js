@@ -7,6 +7,7 @@ import { attachToolbar } from './toolbar.js';
 import { fetchExternalMeta } from './external.js';
 import { nowJst } from './time.js';
 import { recordSave, recordDelete } from './pending.js';
+import { setSaveState, showNotice, hideNotice } from './notice.js';
 
 const $ = (id) => document.getElementById(id);
 const SUMMARY_TARGET = 120;
@@ -22,9 +23,6 @@ let dirty = false;
 let autoSource = '';
 // 利用者が日時を触ったら、外部ページからの自動入力で上書きしない
 let dateTouched = false;
-// エラー表示は、公開が成功するか原因の入力欄が直るまで残す（未保存・下書きの表示で消さない）
-let errorShown = false;
-let slugInvalid = false;
 // 復元するか選ぶまで保持する下書き { key, draft }
 let pendingDraft = null;
 // カテゴリを選んだら、新規記事の件数順の既定値で上書きしない
@@ -47,11 +45,11 @@ let scheduleRefresh = () => {};
 // 公開・削除のあとに、待機中の下書き保存が走って下書きを復活させないよう止める
 const cancelDraft = () => scheduleDraft.cancel?.();
 
-function setStatus(message, isError = false) {
-  const el = $('status');
-  el.textContent = message;
-  el.classList.toggle('error', isError);
-  errorShown = isError;
+// slug 欄の直下のエラー。空文字で消す
+function setSlugError(message) {
+  $('f-slug').setAttribute('aria-invalid', String(Boolean(message)));
+  $('f-slug-error').textContent = message;
+  $('f-slug-error').hidden = !message;
 }
 
 function errorMessage(error, creating) {
@@ -65,7 +63,7 @@ function errorMessage(error, creating) {
 
 function markDirty() {
   dirty = true;
-  if (!errorShown) setStatus('未保存の変更があります');
+  setSaveState('unsaved', '未保存の変更あり');
   scheduleDraft();
   scheduleRefresh();
 }
@@ -121,7 +119,7 @@ function commitNewCategory() {
   $('category-new').hidden = true;
   if (!name) return;
   if (name.includes(',')) {
-    setStatus('カテゴリ名に , は使えません。', true);
+    showNotice('error', 'カテゴリ名に , は使えません。');
     return;
   }
   const existing = knownCategories.find((item) => item.name.toLowerCase() === name.toLowerCase());
@@ -196,7 +194,7 @@ function addTagFromEntry() {
   const name = normalizeTagName(raw);
   entry.value = '';
   if (name === null) {
-    if (raw.trim()) setStatus('タグ名に , は使えません。', true);
+    if (raw.trim()) showNotice('error', 'タグ名に , は使えません。');
     return;
   }
   if (!tags.includes(name)) {
@@ -293,16 +291,18 @@ function writeForm(fields) {
   autosize();
 }
 
+// 最初の誤りを { field（入力欄の id）, message } で返す。問題が無ければ null
 function validate(fields) {
+  const fail = (field, message) => ({ field, message });
   if (!isValidSlug(fields.slug)) {
-    return 'slug は英小文字・数字・ハイフンのみ（1〜80 文字）で入力してください。';
+    return fail('f-slug', 'slug は英小文字・数字・ハイフンのみ（1〜80 文字）で入力してください。');
   }
   // 外部記事のタイトルと概要は空でもよい（ビルド時に OGP で補う）
-  if (fields.kind !== 'external' && !fields.title) return 'タイトルを入力してください。';
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(fields.date)) return '投稿日時を入力してください。';
+  if (fields.kind !== 'external' && !fields.title) return fail('f-title', 'タイトルを入力してください。');
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(fields.date)) return fail('f-date', '投稿日時を入力してください。');
   if (fields.kind === 'external') {
-    if (!isHttps(fields.url)) return '外部記事の URL は https:// で始まるものを入れてください。';
-    if (!fields.source) return 'サイト名を入力してください。';
+    if (!isHttps(fields.url)) return fail('f-external', '外部記事の URL は https:// で始まるものを入れてください。');
+    if (!fields.source) return fail('f-source', 'サイト名を入力してください。');
   }
   return null;
 }
@@ -394,10 +394,10 @@ function onExternalUrlInput() {
 async function autofillExternal() {
   const url = $('f-external').value.trim();
   if (!isHttps(url)) return;
-  setStatus('外部ページから項目を取得しています…');
+  showNotice('info', '外部ページから項目を取得しています…');
   const meta = await fetchExternalMeta(url);
   if (!meta) {
-    setStatus('自動取得できませんでした（手入力してください）。');
+    showNotice('info', '自動取得できませんでした（手入力してください）。');
     return;
   }
 
@@ -419,7 +419,7 @@ async function autofillExternal() {
     autoSource = meta.source;
   }
   markDirty();
-  setStatus('外部ページから項目を取得しました。内容を確認してください。');
+  showNotice('info', '外部ページから項目を取得しました。内容を確認してください。');
   refreshPreview();
 }
 
@@ -441,12 +441,16 @@ function renderExternalCard(fields) {
   const heading = document.createElement('h2');
   heading.className = 'card-title';
   heading.textContent = fields.title || fields.url || '（無題）';
-
-  const source = document.createElement('p');
+  // 外部リンクの表示はタイトルの横に出す（一覧カードと同じ）
+  const source = document.createElement('span');
   source.className = 'card-external';
-  source.textContent = fields.source || '';
+  const icon = document.createElement('i');
+  icon.className = 'fa-solid fa-arrow-up-right-from-square';
+  icon.setAttribute('aria-hidden', 'true');
+  source.append(icon, ` ${fields.source || ''}`);
+  heading.append(source);
 
-  article.append(meta, heading, source);
+  article.append(meta, heading);
   if (fields.summary) {
     const excerpt = document.createElement('p');
     excerpt.className = 'card-excerpt';
@@ -540,10 +544,10 @@ function saveDraft() {
     savedAt: new Date().toISOString(),
   };
   if (!writeDraft(draftKey(state.originalSlug), payload)) {
-    setStatus('下書きを保存できませんでした。', true);
-  } else if (!errorShown) {
+    showNotice('error', '下書きを保存できませんでした。');
+  } else {
     const time = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-    setStatus(`下書きを保存しました ${time}`);
+    setSaveState('draft', `下書き保存 ${time}`);
   }
   renderDrafts($('drafts'));
 }
@@ -552,13 +556,16 @@ function saveDraft() {
 function showDraftNotice(key, draft) {
   pendingDraft = { key, draft };
   const time = new Date(draft.savedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-  $('draft-notice-text').textContent = `この記事の下書きがあります（${time} 保存）`;
-  $('draft-notice').hidden = false;
+  // 選ぶまで消えない（お知らせ欄の [復元する] [破棄する]）
+  showNotice('info', `この記事の下書きがあります（${time} 保存）`, [
+    { label: '復元する', primary: true, onClick: restoreDraft },
+    { label: '破棄する', onClick: discardDraft },
+  ]);
 }
 
 function closeDraftNotice() {
   pendingDraft = null;
-  $('draft-notice').hidden = true;
+  hideNotice();
 }
 
 function restoreDraft() {
@@ -573,7 +580,7 @@ function restoreDraft() {
   dirty = true;
   updateChrome();
   refreshPreview();
-  setStatus('下書きを復元しました。');
+  showNotice('info', '下書きを復元しました。');
 }
 
 function discardDraft() {
@@ -581,7 +588,7 @@ function discardDraft() {
   removeDraft(pendingDraft.key);
   closeDraftNotice();
   renderDrafts($('drafts'));
-  setStatus('下書きを破棄しました。');
+  showNotice('info', '下書きを破棄しました。');
 }
 
 // ---- 画面状態 ----
@@ -596,7 +603,7 @@ function updateChrome() {
 }
 
 function failStart(message) {
-  setStatus(message, true);
+  showNotice('error', message);
   $('save').disabled = true;
   $('danger-details').hidden = true;
 }
@@ -634,7 +641,9 @@ async function publish(event) {
   const fields = readForm();
   const invalid = validate(fields);
   if (invalid) {
-    setStatus(invalid, true);
+    if (invalid.field === 'f-slug') setSlugError(invalid.message);
+    showNotice('error', `入力に誤りがあります。${invalid.message}`);
+    $(invalid.field).focus();
     return;
   }
 
@@ -645,7 +654,7 @@ async function publish(event) {
 
   $('save').disabled = true;
   cancelDraft();
-  setStatus('公開しています…');
+  setSaveState('publishing', '公開中…');
   try {
     let warning = null;
     if (slugChanged) {
@@ -673,13 +682,12 @@ async function publish(event) {
     updateChrome();
     renderDrafts($('drafts'));
 
-    if (warning) {
-      setStatus(warning, true);
-    } else {
-      setStatus('公開しました。1〜2分後に反映されます。');
-    }
+    setSaveState('published', `公開済み ${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}`);
+    if (warning) showNotice('error', warning);
+    else showNotice('success', '公開しました。1〜2分後に反映されます。');
   } catch (error) {
-    setStatus(errorMessage(error, creating || slugChanged), true);
+    showNotice('error', errorMessage(error, creating || slugChanged));
+    setSaveState('unsaved', '未保存の変更あり');
   } finally {
     $('save').disabled = false;
   }
@@ -691,7 +699,7 @@ async function removePost() {
   const typed = prompt(`この記事を削除します。確認のため slug「${slug}」を入力してください。`);
   if (typed === null) return;
   if (typed !== slug) {
-    setStatus('slug が一致しないため削除しませんでした。', true);
+    showNotice('error', 'slug が一致しないため削除しませんでした。');
     return;
   }
 
@@ -704,7 +712,7 @@ async function removePost() {
     dirty = false;
     location.assign('/');
   } catch (error) {
-    setStatus(errorMessage(error, false), true);
+    showNotice('error', errorMessage(error, false));
     $('delete').disabled = false;
   }
 }
@@ -799,10 +807,7 @@ function start() {
   $('f-slug').addEventListener('input', () => {
     const slug = $('f-slug').value;
     const invalid = Boolean(slug) && !isValidSlug(slug);
-    $('f-slug').setAttribute('aria-invalid', String(invalid));
-    if (invalid) setStatus('slug は英小文字・数字・ハイフンのみ使えます。', true);
-    else if (slugInvalid) setStatus('');
-    slugInvalid = invalid;
+    setSlugError(invalid ? 'slug は英小文字・数字・ハイフンのみ使えます。' : '');
   });
 
   for (const button of document.querySelectorAll('#kind-tabs button')) {
@@ -830,7 +835,7 @@ function start() {
     toolbar: $('toolbar'),
     fileInput: $('f-image'),
     upload: uploadImage,
-    onError: (message) => setStatus(message, true),
+    onError: (message) => showNotice('error', message),
   });
 
   $('draft-restore').addEventListener('click', restoreDraft);
@@ -849,14 +854,14 @@ function start() {
     const file = $('thumb-file').files[0];
     $('thumb-file').value = '';
     if (!file) return;
-    setStatus('画像をアップロードしています…');
+    showNotice('info', '画像をアップロードしています…');
     try {
       // 本文には挿入しない。URL だけを手動のサムネイルにする
       thumbImage = await uploadImage(file);
       renderThumb();
       markDirty();
     } catch (error) {
-      setStatus(error.message, true);
+      showNotice('error', error.message);
     }
   });
   $('delete').addEventListener('click', removePost);

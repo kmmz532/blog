@@ -149,9 +149,15 @@ function renderCard(slug, fields) {
     link.rel = 'noopener';
   }
   heading.append(link);
+  if (external) {
+    const source = el('span', 'card-external');
+    const icon = el('i', 'fa-solid fa-arrow-up-right-from-square');
+    icon.setAttribute('aria-hidden', 'true');
+    source.append(icon, ` ${fields.source || ''}`);
+    heading.append(source);
+  }
   body.append(meta, heading);
 
-  if (external) body.append(el('p', 'card-external', fields.source || ''));
   if (fields.summary) body.append(el('p', 'card-excerpt', fields.summary));
   if (fields.tags?.length) {
     const tags = el('div', 'card-tags');

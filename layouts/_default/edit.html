@@ -3,20 +3,16 @@
   <a class="icon-button" id="back-link" href="{{ "/" | relURL }}" aria-label="戻る" title="戻る">
     <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
   </a>
-  <span id="status" class="save-state" role="status" aria-live="polite"></span>
   <span class="spacer"></span>
   <div class="tabs" role="group" aria-label="表示切替">
     <button type="button" id="view-edit" aria-pressed="true">編集</button>
     <button type="button" id="view-preview" aria-pressed="false">プレビュー</button>
     <button type="button" id="view-split" aria-pressed="false" hidden>両方</button>
   </div>
+  <span id="save-state" class="save-state" aria-live="polite"></span>
   <button type="submit" form="post-form" id="save" class="btn primary">公開</button>
 </div>
-<div id="draft-notice" class="draft-notice" role="status" hidden>
-  <span id="draft-notice-text" class="draft-notice-text"></span>
-  <button type="button" id="draft-restore" class="btn primary">復元する</button>
-  <button type="button" id="draft-discard" class="btn">破棄する</button>
-</div>
+<div id="notice" class="notice" role="status" hidden></div>
 
 <form id="post-form" class="editor" autocomplete="off" data-index-url="{{ "index.json" | relURL }}">
   <div class="editor-main" id="editor-main" data-view="edit" data-kind="article">
@@ -55,6 +51,7 @@
       <h2>記事設定</h2>
       <label class="field">slug
         <input id="f-slug" required pattern="[a-z0-9\-]{1,80}" maxlength="80"></label>
+      <p id="f-slug-error" class="field-error" hidden></p>
       <label class="field">投稿日時
         <input id="f-date" type="datetime-local" required></label>
       <div class="field">

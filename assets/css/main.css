@@ -480,6 +480,17 @@ button {
   color: var(--text-secondary);
 }
 
+/* 外部記事のラベルはタイトルの横に出す（カードの 1 行目と同じ行） */
+.card-title .card-external {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  margin-left: 0.6em;
+  font-weight: 400;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
 /* 編集ボタンは全面リンクより前に出す */
 .card-edit {
   position: absolute;
@@ -790,16 +801,12 @@ a.chip:hover {
   border-color: var(--danger);
 }
 
-#login-status,
-#status {
+#login-status {
   font-size: 0.9rem;
   color: var(--text-secondary);
 }
 
 #login-status.error,
-#status.error {
-  color: var(--danger);
-}
 
 /* 編集画面 */
 .editor-bar {
@@ -824,24 +831,72 @@ a.chip:hover {
   color: var(--text-secondary);
 }
 
-.draft-notice {
+/* お知らせ欄（編集バーの直下・全幅）。design.md §11.6 */
+.notice {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.5rem;
-  padding: 0.6rem 0.8rem;
+  padding: 0.6rem 1rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 0.9rem;
 }
 
-.draft-notice[hidden] {
+.notice[hidden] {
   display: none;
 }
 
-.draft-notice-text {
+.notice.error {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+
+.notice.success {
+  border-color: var(--text-secondary);
+}
+
+.notice > i {
+  flex-shrink: 0;
+}
+
+.notice-text {
   flex: 1;
+  min-width: 0;
+}
+
+.notice-close {
+  padding: 0 0.3rem;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 入力欄のエラー（slug など）。欄の直下に出す */
+.field-error {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: var(--danger);
+}
+
+.field-error[hidden] {
+  display: none;
+}
+
+/* 保存状態（編集バー。幅 600px 以下では文言を隠し、アイコンだけ） */
+.save-state i {
+  margin-right: 0.35em;
+}
+
+@media (max-width: 600px) {
+  .save-state-text {
+    display: none;
+  }
 }
 
 .tabs {
@@ -980,6 +1035,21 @@ a.chip:hover {
 
 .preview-pane {
   min-height: 60vh;
+  margin-top: 1rem;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* 並べて表示では、本文欄（ツールバーの下）と上端をそろえる */
+.editor-main.split .preview-pane {
+  margin-top: 0;
+}
+
+/* 外部記事のプレビューはカード自体に枠があるので、外枠は付けない */
+.editor-main[data-kind="external"] .preview-pane {
+  padding: 0;
+  border: none;
 }
 
 .editor-main[data-view="edit"] .preview-pane,
@@ -1225,6 +1295,11 @@ a.chip:hover {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 2rem;
+  }
+
+  /* ツールバーは本文欄の幅だけにして、本文欄と 1 つの枠に見せる */
+  .editor-main.split .toolbar {
+    width: calc(50% - 1rem);
   }
 }
 

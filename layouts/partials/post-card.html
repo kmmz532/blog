@@ -14,10 +14,10 @@
   </div>
   <h2 class="card-title">
     <a href="{{ $url }}" {{ if $external }}target="_blank" rel="noopener"{{ end }}>{{ $meta.title }}</a>
+    {{- if $external }}
+    <span class="card-external"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> {{ .Params.source }}</span>
+    {{- end }}
   </h2>
-  {{- if $external }}
-  <p class="card-external"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> {{ .Params.source }}</p>
-  {{- end }}
   {{- with $meta.summary }}
   <p class="card-excerpt">{{ . }}</p>
   {{- end }}
