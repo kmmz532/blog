@@ -5,13 +5,26 @@ name: trigger-article-deploy
 on:
   push:
     branches: [main]
+    # サイトの見た目・挙動に関わるファイルだけで起動する（memo/docs/README の変更では再ビルドしない）
+    paths:
+      - assets/**
+      - content/**
+      - layouts/**
+      - static/**
+      - hugo.toml
   workflow_dispatch:
 
 permissions: {}
 
+# 連続 push では最新の 1 回だけ起動すればよい
+concurrency:
+  group: trigger-article-deploy
+  cancel-in-progress: true
+
 jobs:
   trigger:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Dispatch blog-article deploy
         env:
