@@ -161,9 +161,12 @@ a.chip:hover {
   text-decoration: none;
 }
 
+/* 今のページは塗りつぶして、ほかのページ（枠だけ）と見分けがつくようにする */
 .pager .current {
   font-weight: 700;
+  background: var(--foreground);
   border-color: var(--foreground);
+  color: var(--background);
 }
 
 .pager .disabled {
