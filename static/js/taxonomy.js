@@ -39,9 +39,14 @@ export function createTaxonomy({ state, markDirty }) {
       if (current !== undefined && !options.some((node) => node.name === current)) {
         options.unshift({ name: current });
       }
-      if (!options.length) continue;
       const row = document.createElement('div');
       row.className = 'category-row';
+      // 行の末尾の「＋」は、この段に新しいカテゴリを作る（1 段目なら最上位、2 段目以降は上で選んだものの子）
+      const add = choice(depth === 0 ? '＋ 新規' : '＋ 子カテゴリ', false, () => {
+        newPrefix = prefix;
+        $('category-new').hidden = false;
+        $('f-category-new').focus();
+      });
       row.append(
         ...options.map((node) =>
           choice(node.name, node.name === current, () => {
@@ -52,18 +57,16 @@ export function createTaxonomy({ state, markDirty }) {
             markDirty();
           }),
         ),
+        add,
       );
       rows.push(row);
     }
-    const add = choice('＋ 新規', false, () => {
-      $('category-new').hidden = false;
-      $('f-category-new').focus();
-    });
-    rows.push(add);
     box.replaceChildren(...rows);
   }
 
-  // 「＋ 新規」は今の階層の子として作る（同じ名前が子にあれば、それを使う）
+  // 「＋」を押した段（newPrefix）の子として作る（同じ名前が既にあれば、それを使う）
+  let newPrefix = [];
+
   function commitNewCategory() {
     const name = $('f-category-new').value.trim();
     $('f-category-new').value = '';
@@ -73,8 +76,8 @@ export function createTaxonomy({ state, markDirty }) {
       showNotice('error', 'カテゴリ名に , は使えません。');
       return;
     }
-    const existing = childrenOf(state.categories).find((node) => node.name.toLowerCase() === name.toLowerCase());
-    state.categories = [...state.categories, existing?.name ?? name];
+    const existing = childrenOf(newPrefix).find((node) => node.name.toLowerCase() === name.toLowerCase());
+    state.categories = [...newPrefix, existing?.name ?? name];
     state.categoryPicked = true;
     renderCategories();
     markDirty();
