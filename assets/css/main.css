@@ -1366,3 +1366,29 @@ a.chip:hover {
 /* GenericTraceback */ html.dark .chroma .gt { color: #ff7b72 }
 /* GenericUnderline */ html.dark .chroma .gl { text-decoration: underline }
 /* TextWhitespace */ html.dark .chroma .w { color: #6e7681 }
+
+/* 反映待ち（公開した端末だけの表示）。design.md §12 */
+.pending-band {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+  padding: 0.2rem 0.7rem;
+  border: 1px dashed var(--border);
+  border-radius: 128px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.pending-notice {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--danger);
+}
+
+.carditem[hidden] {
+  display: none;
+}

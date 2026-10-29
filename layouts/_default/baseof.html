@@ -2,6 +2,8 @@
 <html lang="{{ site.Language.LanguageCode }}">
 <head>
   {{ partial "head.html" . }}
+  {{- /* 反映待ちの控えを消す基準（design.md §12）。このページを作ったビルドの時刻 */}}
+  <meta name="build-time" content="{{ now.Unix }}">
 </head>
 <body>
   {{ partial "header.html" . }}

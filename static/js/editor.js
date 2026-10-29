@@ -6,6 +6,7 @@ import { renderPreview } from './preview.js';
 import { attachToolbar } from './toolbar.js';
 import { fetchExternalMeta } from './external.js';
 import { nowJst } from './time.js';
+import { recordSave, recordDelete } from './pending.js';
 
 const $ = (id) => document.getElementById(id);
 const SUMMARY_TARGET = 120;
@@ -580,6 +581,7 @@ async function publish(event) {
   const creating = state.originalSlug === null;
   const slugChanged = !creating && fields.slug !== state.originalSlug;
   const oldKey = draftKey(state.originalSlug);
+  const oldSlug = state.originalSlug;
 
   $('save').disabled = true;
   cancelDraft();
@@ -599,6 +601,13 @@ async function publish(event) {
     state.originalSlug = fields.slug;
     removeDraft(oldKey);
     closeDraftNotice();
+    // 反映待ちの控え。slug を変えた場合は旧 slug を削除の控えにする（旧ファイルの削除に失敗していなければ）
+    recordSave(fields.slug, {
+      fields,
+      isNew: creating || slugChanged,
+      oldSlug: slugChanged ? oldSlug : null,
+    });
+    if (slugChanged && !warning) recordDelete(oldSlug);
     dirty = false;
     history.replaceState(null, '', `/edit/?slug=${encodeURIComponent(fields.slug)}`);
     updateChrome();
@@ -630,6 +639,7 @@ async function removePost() {
   cancelDraft();
   try {
     await deletePost(slug, state.sha);
+    recordDelete(slug);
     removeDraft(draftKey(slug));
     dirty = false;
     location.assign('/');

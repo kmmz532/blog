@@ -1,6 +1,7 @@
 // ログイン状態に応じて管理者向けの表示を切り替える。
 // 表示制御は UX のためだけ。実際の権限は GitHub 側が判定する。
 import { getToken, clearSession, ensureDevSession, isLocalHost } from './github.js';
+import { applyPending } from './pending.js';
 
 await ensureDevSession();
 
@@ -39,3 +40,6 @@ if (authLink) {
     authLink.href = `/login/?return=${ret}`;
   }
 }
+
+// 公開・削除の直後の反映待ち表示（ログインしている端末だけ）
+applyPending();
