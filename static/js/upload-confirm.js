@@ -1,4 +1,4 @@
-// 貼り付け・ドロップで画像を上げる前の確認（design.md §19）。blog-article は public なので、上げた時点で誰でも見られる。
+// 貼り付け・ドロップで画像を上げる前の確認。blog-article は public なので、上げた時点で誰でも見られる。
 // ダイアログの中身は textContent と属性だけで作る
 const $ = (id) => document.getElementById(id);
 

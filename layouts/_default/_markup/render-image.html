@@ -1,4 +1,4 @@
-{{- /* ![alt|480](url) の末尾の |数字 を表示幅（px）にする（design.md §19）。それ以外は標準の img と同じ */ -}}
+{{- /* ![alt|480](url) の末尾の |数字 を表示幅（px）にする。それ以外は標準の img と同じ */ -}}
 {{- $alt := .Text -}}
 {{- $width := "" -}}
 {{- with findRESubmatch `^(.*)\|(\d{2,4})$` .Text 1 -}}
@@ -6,4 +6,3 @@
   {{- $width = index . 0 2 -}}
 {{- end -}}
 <img src="{{ .Destination | safeURL }}" alt="{{ $alt }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ with $width }} width="{{ . }}"{{ end }}>
-{{- /* trim */ -}}

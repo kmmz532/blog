@@ -715,7 +715,7 @@ body:has(.editor) .footer {
   outline-offset: -2px;
 }
 
-/* 画像の管理（design.md §19） */
+/* 画像の管理 */
 .admin-nav {
   display: flex;
   gap: 1rem;

@@ -1,4 +1,4 @@
-// /admin/images/ の画像の管理（design.md §19）
+// /admin/images/ の画像の管理
 import { ensureDevSession, getToken } from './github.js';
 import { mountImageManager } from './images.js';
 

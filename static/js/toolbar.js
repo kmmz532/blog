@@ -38,7 +38,7 @@ export function altFrom(file) {
   return file.name ? file.name.replace(/\.[^.]+$/, '').replace(/[[\]|]/g, '') : 'image';
 }
 
-// 表示幅（px）は alt の末尾に |数字 で付ける（design.md §19）。空なら元のまま
+// 表示幅（px）は alt の末尾に |数字 で付ける。空なら元のまま
 export const withWidth = (alt, width) => (width ? `${alt}|${width}` : alt);
 
 // 仮テキストを置き、保存が終わったら差し替える。すべて textarea の input イベントで通知する

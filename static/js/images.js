@@ -1,4 +1,4 @@
-// 画像の一覧・アップロード・削除（design.md §19）。編集画面の「画像」と /admin/images/ で使う。
+// 画像の一覧・アップロード・削除。編集画面の「画像」と /admin/images/ で使う。
 // ユーザー由来の文字列は textContent で描画する。GitHub API は github.js 経由。
 import { listImages, deleteImage } from './github.js';
 import { uploadImage, imageSrc } from './image.js';
