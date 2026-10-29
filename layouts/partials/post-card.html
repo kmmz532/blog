@@ -1,6 +1,6 @@
 {{- $url := partial "post-url.html" . }}
 {{- $external := .Params.external }}
-{{- $meta := partialCached "external-meta.html" . .File.Path | transform.Unmarshal }}
+{{- $meta := partialCached "external-meta.html" . .File.Path }}
 <article class="carditem{{ if $meta.image }} has-thumb{{ end }}">
   {{- with $meta.image }}
   <img class="card-thumb" src="{{ . }}" width="96" height="96" alt="" loading="lazy">
@@ -13,7 +13,7 @@
     {{- end }}
   </div>
   <h2 class="card-title">
-    <a href="{{ $url }}" {{ if $external }}target="_blank" rel="noopener"{{ end }}>{{ $meta.title }}</a>
+    <a href="{{ $url }}" {{ partial "post-link-attrs.html" . | safeHTMLAttr }}>{{ $meta.title }}</a>
     {{- if $external }}
     <span class="card-external"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> {{ .Params.source }}</span>
     {{- end }}

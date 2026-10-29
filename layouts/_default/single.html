@@ -17,14 +17,14 @@
   <div class="post-body">{{ .Content }}</div>
   <nav class="post-nav" aria-label="前後の記事">
     {{- with .NextInSection }}
-    <a class="prev" href="{{ partial "post-url.html" . }}" {{ with .Params.external }}target="_blank" rel="noopener"{{ end }}>
+    <a class="prev" href="{{ partial "post-url.html" . }}" {{ partial "post-link-attrs.html" . | safeHTMLAttr }}>
       <small>← 前の記事</small>{{ .Title }}
     </a>
     {{- else }}
     <span></span>
     {{- end }}
     {{- with .PrevInSection }}
-    <a class="next" href="{{ partial "post-url.html" . }}" {{ with .Params.external }}target="_blank" rel="noopener"{{ end }}>
+    <a class="next" href="{{ partial "post-url.html" . }}" {{ partial "post-link-attrs.html" . | safeHTMLAttr }}>
       <small>次の記事 →</small>{{ .Title }}
     </a>
     {{- else }}

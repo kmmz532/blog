@@ -6,7 +6,7 @@
   {{- range .Pages }}
   <li>
     <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "01/02" }}</time>
-    <a href="{{ partial "post-url.html" . }}" {{ with .Params.external }}target="_blank" rel="noopener"{{ end }}>{{ (partialCached "external-meta.html" . .File.Path | transform.Unmarshal).title }}</a>
+    <a href="{{ partial "post-url.html" . }}" {{ partial "post-link-attrs.html" . | safeHTMLAttr }}>{{ (partialCached "external-meta.html" . .File.Path).title }}</a>
   </li>
   {{- end }}
 </ul>

@@ -1,4 +1,4 @@
-{{- /* 記事のタイトル・概要・サムネイルを JSON で返す。外部記事は front matter を優先し、空の項目だけ OGP で補う。取得に失敗したら front matter だけ */ -}}
+{{- /* 記事のタイトル・概要・サムネイルを dict で返す。外部記事は front matter を優先し、空の項目だけ OGP で補う。取得に失敗したら front matter だけ */ -}}
 {{- $title := .Params.title | default .Title -}}
 {{- /* 通常記事の概要: front matter が空なら本文から作る（<pre> を除き、空白をまとめ、120 字で切る） */ -}}
 {{- $summary := .Params.summary | default (.Content | replaceRE `(?s)<pre.*?</pre>` "" | plainify | replaceRE `\s+` " " | strings.TrimSpace | truncate 120 "…") -}}
@@ -36,4 +36,4 @@
     {{- end -}}
   {{- end -}}
 {{- end -}}
-{{- dict "title" $title "summary" $summary "image" $image | jsonify -}}
+{{- return (dict "title" $title "summary" $summary "image" $image) -}}

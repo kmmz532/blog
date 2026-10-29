@@ -46,7 +46,7 @@
     <ul class="sidebar-list">
       {{- range first 5 (where site.RegularPages "Section" "posts") }}
       <li>
-        <a href="{{ partial "post-url.html" . }}" {{ with .Params.external }}target="_blank" rel="noopener"{{ end }}>{{ (partialCached "external-meta.html" . .File.Path | transform.Unmarshal).title }}</a>
+        <a href="{{ partial "post-url.html" . }}" {{ partial "post-link-attrs.html" . | safeHTMLAttr }}>{{ (partialCached "external-meta.html" . .File.Path).title }}</a>
         <span class="count">{{ .Date.Format "2006.01.02" }}</span>
       </li>
       {{- end }}

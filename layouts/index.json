@@ -1,6 +1,6 @@
 {{- $index := slice -}}
 {{- range where site.RegularPages "Section" "posts" -}}
-{{- $meta := partialCached "external-meta.html" . .File.Path | transform.Unmarshal -}}
+{{- $meta := partialCached "external-meta.html" . .File.Path -}}
 {{- $index = $index | append (dict "title" $meta.title "url" (partial "post-url.html" .) "date" (.Date.Format "2006-01-02") "summary" $meta.summary "tags" .Params.tags "categories" .Params.categories "source" (.Params.source | default "") "body" .Plain) -}}
 {{- end -}}
 {{- $index | jsonify -}}
