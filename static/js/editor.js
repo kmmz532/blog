@@ -9,6 +9,7 @@ import { nowJst } from './time.js';
 import { recordSave, recordDelete } from './pending.js';
 import { setSaveState, showNotice, hideNotice } from './notice.js';
 import { createTaxonomy } from './taxonomy.js';
+import { createSlug } from './slug.js';
 
 const $ = (id) => document.getElementById(id);
 const SUMMARY_TARGET = 120;
@@ -47,6 +48,7 @@ const state = {
 };
 const AUTO_SLUG_TRIES = 5;
 const taxonomy = createTaxonomy({ state, markDirty });
+const slugs = createSlug({ state });
 
 function debounce(fn, ms) {
   let timer;
@@ -60,38 +62,6 @@ function debounce(fn, ms) {
 
 // 公開・削除のあとに、待機中の下書き保存が走って下書きを復活させないよう止める
 const cancelDraft = () => state.schedule.draft.cancel?.();
-
-// slug 欄の直下のエラー。空文字で消す
-function setSlugError(message) {
-  $('f-slug').setAttribute('aria-invalid', String(Boolean(message)));
-  $('f-slug-error').textContent = message;
-  $('f-slug-error').hidden = !message;
-}
-
-// 自動の slug: 通常記事は YYYY-MM-DD-NN、外部記事は ext-YYYY-MM-DD-NN（NN は 00〜99 の乱数）
-const AUTO_SLUG_RE = /^(?:ext-)?\d{4}-\d{2}-\d{2}-(\d{2})$/;
-
-function randomNumber() {
-  return String(Math.floor(Math.random() * 100)).padStart(2, '0');
-}
-
-function autoSlugFor(fields) {
-  state.autoNumber ??= randomNumber();
-  return `${fields.kind === 'external' ? 'ext-' : ''}${fields.date.slice(0, 10)}-${state.autoNumber}`;
-}
-
-function updateSlugAuto() {
-  $('slug-auto').hidden = state.originalSlug !== null || !state.slugAuto;
-}
-
-// 自動のままなら、投稿日時か記事の種類が変わったときに slug を作り直す（保存はしない）
-function syncAutoSlug() {
-  if (state.originalSlug !== null || !state.slugAuto) return;
-  const date = $('f-date').value;
-  if (!/^\d{4}-\d{2}-\d{2}T/.test(date)) return;
-  $('f-slug').value = autoSlugFor({ kind: state.kind, date });
-  setSlugError('');
-}
 
 function errorMessage(error, creating) {
   if (error instanceof ConflictError) {
@@ -143,10 +113,10 @@ function writeForm(fields) {
   // 新規は、空か自動の形のままなら自動のまま。保存済みの記事は触らない
   if (state.originalSlug === null) {
     // 自動の形の slug（下書きの復元を含む）は、その番号を引き継いで自動のままにする
-    const match = AUTO_SLUG_RE.exec(fields.slug);
+    const match = slugs.AUTO_SLUG_RE.exec(fields.slug);
     state.slugAuto = !fields.slug || Boolean(match);
     state.autoNumber = match ? match[1] : null;
-    syncAutoSlug();
+    slugs.syncAutoSlug();
   }
   taxonomy.renderCategories(fields.category);
   state.tags = [...fields.tags];
@@ -287,7 +257,7 @@ async function autofillExternal() {
   }
   if (!state.dateTouched && meta.date) {
     $('f-date').value = meta.date;
-    syncAutoSlug();
+    slugs.syncAutoSlug();
   }
   const source = $('f-source');
   if (meta.source && (source.value === '' || source.value === state.autoSource)) {
@@ -472,7 +442,7 @@ function discardDraft() {
 function updateChrome() {
   const saved = state.originalSlug !== null;
   $('save').textContent = saved ? '更新' : '公開';
-  updateSlugAuto();
+  slugs.updateSlugAuto();
   $('kind-tabs').hidden = saved;
   $('danger-details').hidden = !saved;
   const back = $('back-link');
@@ -518,8 +488,8 @@ async function saveNewPost(fields, auto) {
   const attempts = auto ? AUTO_SLUG_TRIES : 1;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     if (auto) {
-      if (attempt > 1) state.autoNumber = randomNumber();
-      fields.slug = autoSlugFor(fields);
+      if (attempt > 1) state.autoNumber = slugs.randomNumber();
+      fields.slug = slugs.autoSlugFor(fields);
     }
     try {
       return { slug: fields.slug, sha: await savePost(fields.slug, serialize(fields, state.aliases)) };
@@ -535,7 +505,7 @@ async function publish(event) {
   const fields = readForm();
   const invalid = validate(fields);
   if (invalid) {
-    if (invalid.field === 'f-slug') setSlugError(invalid.message);
+    if (invalid.field === 'f-slug') slugs.setSlugError(invalid.message);
     showNotice('error', `入力に誤りがあります。${invalid.message}`);
     $(invalid.field).focus();
     return;
@@ -660,7 +630,7 @@ async function load() {
       url: '',
       source: '',
     };
-    server.slug = autoSlugFor(server);
+    server.slug = slugs.autoSlugFor(server);
   }
 
   writeForm(server);
@@ -689,31 +659,19 @@ function start() {
     if (event.target.id === 'f-external') onExternalUrlInput();
     if (event.target.id === 'f-date') {
       state.dateTouched = true;
-      syncAutoSlug();
+      slugs.syncAutoSlug();
     }
     if (event.target.id === 'f-summary') updateSummaryCount();
     if (event.target.id === 'f-body') autosize();
     markDirty();
   });
   $('f-external').addEventListener('change', autofillExternal);
-  $('f-slug').addEventListener('input', () => {
-    // 手で書き換えたら自動を止める。空にしたら自動に戻し、すぐ作り直す
-    if (state.originalSlug === null) {
-      state.slugAuto = $('f-slug').value === '';
-      // 空に戻したら番号も振り直す
-      if (state.slugAuto) state.autoNumber = null;
-    }
-    syncAutoSlug();
-    updateSlugAuto();
-    const slug = $('f-slug').value;
-    const invalid = Boolean(slug) && !isValidSlug(slug);
-    setSlugError(invalid ? 'slug は英小文字・数字・ハイフンのみ使えます。' : '');
-  });
+  slugs.attach();
 
   for (const button of document.querySelectorAll('#kind-tabs button')) {
     button.addEventListener('click', () => {
       setKind(button.dataset.kind);
-      syncAutoSlug();
+      slugs.syncAutoSlug();
       markDirty();
     });
   }
