@@ -3,6 +3,8 @@ const input = document.getElementById('q');
 const results = document.getElementById('search-results');
 const count = document.getElementById('search-count');
 const indexUrl = results.dataset.indexUrl;
+// トップページでは、検索中だけ記事の一覧とページ送りを隠して結果を出す（検索ページには無い）
+const homeList = document.getElementById('home-list');
 
 let posts = [];
 let loadError = false;
@@ -64,6 +66,7 @@ function render() {
   history.replaceState(null, '', query ? `?${query}` : location.pathname);
 
   results.replaceChildren();
+  if (homeList) homeList.hidden = words.length > 0 && !loadError;
   if (loadError) {
     count.textContent = '検索インデックスを読み込めませんでした。';
     return;
@@ -77,16 +80,30 @@ function render() {
   results.replaceChildren(...hits.map(card));
 }
 
-input.addEventListener('input', render);
+// 本文まで入った索引は大きいので、トップページでは検索を始めるまで読まない
+let loading = null;
+function loadIndex() {
+  loading ??= fetch(indexUrl)
+    .then((res) => {
+      if (!res.ok) throw new Error(String(res.status));
+      return res.json();
+    })
+    .then((json) => {
+      posts = json;
+    })
+    .catch(() => {
+      loadError = true;
+    });
+  return loading;
+}
+
+input.addEventListener('input', async () => {
+  await loadIndex();
+  render();
+});
 document.getElementById('search-form').addEventListener('submit', (event) => event.preventDefault());
 
 input.value = new URLSearchParams(location.search).get('q') ?? '';
 
-try {
-  const res = await fetch(indexUrl);
-  if (!res.ok) throw new Error(String(res.status));
-  posts = await res.json();
-} catch {
-  loadError = true;
-}
+if (!homeList || input.value.trim()) await loadIndex();
 render();

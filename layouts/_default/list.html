@@ -1,15 +1,23 @@
 {{ define "main" }}
 {{- $pag := .Paginate (where site.RegularPages "Section" "posts") }}
-<form class="search-box home-search" action="{{ "/search/" | relURL }}" method="get" role="search">
+<form id="search-form" class="search-box home-search" action="{{ "/search/" | relURL }}" method="get" role="search">
   <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-  <input type="search" name="q" aria-label="検索キーワード" placeholder="タイトル・概要・タグ・本文から検索">
+  <input id="q" type="search" name="q" aria-label="検索キーワード" placeholder="タイトル、タグ、本文から検索" autocomplete="off">
 </form>
-<div class="card-list">
-  {{- range $pag.Pages }}
-  {{- partial "post-card.html" . }}
-  {{- else }}
-  <p>記事はまだありません。</p>
-  {{- end }}
+<p id="search-count" class="card-meta" aria-live="polite"></p>
+<div id="search-results" class="card-list" data-index-url="{{ "index.json" | relURL }}"></div>
+<div id="home-list">
+  <div class="card-list">
+    {{- range $pag.Pages }}
+    {{- partial "post-card.html" . }}
+    {{- else }}
+    <p>記事はまだありません。</p>
+    {{- end }}
+  </div>
+  {{- partial "pager.html" $pag }}
 </div>
-{{- partial "pager.html" $pag }}
+{{ end }}
+
+{{ define "scripts" }}
+<script type="module" src="{{ "js/search.js" | relURL }}"></script>
 {{ end }}
