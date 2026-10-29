@@ -61,6 +61,23 @@ async function insertImage(textarea, file, upload, onError) {
   }
 }
 
+// 1 行の URL だけ（前後の空白は可）。" を含むと記法が壊れるので除く
+const URL_ONLY = /^\s*(https?:\/\/[^\s"]+)\s*$/;
+
+// execCommand で入れると、ブラウザの undo に載る（value に代入すると undo が効かない）
+function insertText(textarea, text) {
+  document.execCommand('insertText', false, text);
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+// URL を入れてから、その URL をカード記法に置き換える。2 回に分けるので、Ctrl+Z 1 回で URL に戻る（design.md §18）
+function insertCardFromUrl(textarea, url) {
+  const start = textarea.selectionStart;
+  insertText(textarea, url);
+  textarea.setSelectionRange(start, start + url.length);
+  insertText(textarea, `{{< link-card url="${url}" >}}`);
+}
+
 export function attachToolbar({ textarea, toolbar, fileInput, upload, onError }) {
   toolbar.addEventListener('click', (event) => {
     const button = event.target.closest('button[data-action]');
@@ -81,12 +98,18 @@ export function attachToolbar({ textarea, toolbar, fileInput, upload, onError })
     if (file) insertImage(textarea, file, upload, onError);
   });
 
-  // テキストの貼り付けは通常どおり。画像があるときだけ横取りする
+  // テキストの貼り付けは通常どおり。画像と URL 1 つだけのときは横取りする
   textarea.addEventListener('paste', (event) => {
     const file = imageFile(event.clipboardData?.files);
-    if (!file) return;
+    if (file) {
+      event.preventDefault();
+      insertImage(textarea, file, upload, onError);
+      return;
+    }
+    const url = URL_ONLY.exec(event.clipboardData?.getData('text/plain') ?? '')?.[1];
+    if (!url) return;
     event.preventDefault();
-    insertImage(textarea, file, upload, onError);
+    insertCardFromUrl(textarea, url);
   });
 
   textarea.addEventListener('dragover', (event) => {
