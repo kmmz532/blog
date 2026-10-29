@@ -267,6 +267,12 @@
   translate: 1px 0px;
 }
 
+/* Font Awesome のアイコンは SVG と同じ大きさにそろえる（link-icon.html の else） */
+.profile-links i {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
 .sidebar-list {
   list-style: none;
   display: grid;

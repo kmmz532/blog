@@ -50,6 +50,14 @@ enableRobotsTXT = true
   name = "X.com"
   url = "https://x.com/kmmz1127"
   icon = "fa-brands fa-x-twitter"
+[[params.links]]
+  name = "Facebook"
+  url = "https://www.facebook.com/profile.php?id=61572863020497&ref=_ig_profile_ac"
+  icon = "fa-brands fa-facebook"
+[[params.links]]
+  name = "Instagram"
+  url = "https://www.instagram.com/_miz210/"
+  icon = "fa-brands fa-instagram"
 
 # 記事は別リポジトリ blog-article を posts/ に clone して取り込む
 [[module.mounts]]
