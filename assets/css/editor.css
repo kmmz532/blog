@@ -1,0 +1,574 @@
+/* ログイン */
+.steps {
+  padding-left: 1.25rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.login-form {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 32rem;
+}
+
+.login-form label,
+.field {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.login-form input,
+.field input,
+.field select,
+.field textarea,
+.details-card textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.field input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+#login-status {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+#login-status.error,
+
+/* 編集画面 */
+.editor-bar {
+  position: sticky;
+  top: 3.5rem;
+  z-index: 900;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0;
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+.editor-bar .spacer {
+  flex: 1;
+}
+
+.editor-bar .save-state {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* お知らせ欄（編集バーの直下・全幅）。design.md §11.6 */
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.notice[hidden] {
+  display: none;
+}
+
+.notice.error {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+
+.notice.success {
+  border-color: var(--text-secondary);
+}
+
+.notice > i {
+  flex-shrink: 0;
+}
+
+.notice-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.notice-close {
+  padding: 0 0.3rem;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* 入力欄のエラー（slug など）。欄の直下に出す */
+.field-error {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: var(--danger);
+}
+
+.field-error[hidden] {
+  display: none;
+}
+
+/* slug 欄と「自動」の表示（design.md §11.6） */
+.slug-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slug-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.slug-auto {
+  flex: none;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* 保存状態（編集バー。幅 600px 以下では文言を隠し、アイコンだけ） */
+.save-state i {
+  margin-right: 0.35em;
+}
+
+@media (max-width: 600px) {
+  .save-state-text {
+    display: none;
+  }
+}
+
+.tabs {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 128px;
+  overflow: hidden;
+}
+
+.tabs button {
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.tabs button[aria-pressed="true"] {
+  background: var(--text-primary);
+  color: var(--background);
+}
+
+.editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.editor-main {
+  min-width: 0;
+}
+
+.title-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.title-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 1rem;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: rgba(var(--foreground-rgb), 0.03);
+  transition: border-color 0.2s;
+}
+
+.toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  color: var(--foreground);
+}
+
+.toolbar button:hover {
+  background: rgba(var(--foreground-rgb), 0.1);
+}
+
+.body-input {
+  display: block;
+  width: 100%;
+  min-height: 60vh;
+  padding: 14px 16px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Courier New", monospace;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text-primary);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 0 0 8px 8px;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* 入力できる場所がわかるよう、hover で枠を濃く、focus で枠と影を付ける */
+.title-input:hover,
+.body-input:hover,
+.field input:hover,
+.field textarea:hover,
+.details-card textarea:hover {
+  border-color: var(--text-secondary);
+}
+
+.title-input:focus,
+.body-input:focus,
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.details-card textarea:focus {
+  border-color: var(--link);
+  box-shadow: 0 0 0 3px rgba(var(--foreground-rgb), 0.08);
+  outline: none;
+}
+
+/* 本文にフォーカスがあるときはツールバーの枠も同じ色にして、1 つの入力欄に見せる */
+.editor-main:has(.body-input:focus) .toolbar {
+  border-color: var(--link);
+}
+
+/* ツールバーが無い表示（外部記事・プレビュー）では本文欄の角をすべて丸める */
+.editor-main[data-kind="external"] .body-input {
+  border-radius: 8px;
+}
+
+.body-input.dragover {
+  outline: 2px dashed var(--link);
+  outline-offset: 6px;
+  border-radius: 6px;
+}
+
+.preview-pane {
+  min-height: 60vh;
+  margin-top: 1rem;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* 並べて表示では、本文欄（ツールバーの下）と上端をそろえる */
+.editor-main.split .preview-pane {
+  margin-top: 0;
+}
+
+/* 外部記事のプレビューはカード自体に枠があるので、外枠は付けない */
+.editor-main[data-kind="external"] .preview-pane {
+  padding: 0;
+  border: none;
+}
+
+.editor-main[data-view="edit"] .preview-pane,
+.editor-main[data-view="preview"] .body-input,
+.editor-main[data-view="preview"] .toolbar {
+  display: none;
+}
+
+.preview-pane h2 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.settings {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.settings-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+}
+
+.settings-card h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented span {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid var(--text-secondary);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.segmented input:checked + span {
+  background: var(--text-primary);
+  color: var(--background);
+  border-color: transparent;
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.tag-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+}
+
+/* 既存のカテゴリ・タグから選ぶチップ（押すと選択、もう一度押すと解除） */
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--foreground);
+  background: none;
+  border: 1px solid var(--text-secondary);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.choice:hover {
+  border-color: var(--link);
+}
+
+.choice[aria-pressed="true"] {
+  background: var(--text-primary);
+  color: var(--background);
+  border-color: transparent;
+}
+
+.new-choice {
+  margin-top: 0.5rem;
+}
+
+.tag-selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-selected .chip button {
+  margin-left: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+.tag-input .chip button {
+  margin-left: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.tag-input input {
+  flex: 1;
+  min-width: 6rem;
+  padding: 2px 0;
+  border: none;
+  outline: none;
+  font: inherit;
+  color: var(--foreground);
+  background: none;
+}
+
+.save-state.error {
+  color: var(--danger);
+}
+
+.char-count {
+  justify-self: end;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.char-count.warn {
+  color: var(--danger);
+}
+
+.details-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.details-card summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.details-card > * + * {
+  margin-top: 0.75rem;
+}
+
+.kind-tabs {
+  display: inline-flex;
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 128px;
+  overflow: hidden;
+}
+
+.kind-tabs .btn {
+  height: 34px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.kind-tabs .btn:hover {
+  color: var(--text-primary);
+}
+
+.kind-tabs .btn[aria-pressed="true"] {
+  background: var(--text-primary);
+  color: var(--background);
+}
+
+.external-fields {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.drafts ul {
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.drafts h2 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.image-upload input[type="file"] {
+  font: inherit;
+  color: var(--text-secondary);
+}
+
+@media (min-width: 960px) {
+  .editor {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    align-items: start;
+  }
+
+  .settings {
+    position: sticky;
+    top: 8rem;
+  }
+}
+
+/* 並べて表示は幅 1400px 以上のときだけ。本文とプレビューだけを左右に分ける */
+@media (min-width: 1400px) {
+  .editor-main.split .editor-panes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  /* ツールバーは本文欄の幅だけにして、本文欄と 1 つの枠に見せる */
+  .editor-main.split .toolbar {
+    width: calc(50% - 1rem);
+  }
+}
+
+@media (max-width: 600px) {
+  .post-title {
+    font-size: 32px;
+    letter-spacing: -1.92px;
+  }
+
+  .post-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .header .title {
+    font-size: 1.1rem;
+  }
+}
+

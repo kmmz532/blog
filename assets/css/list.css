@@ -1,0 +1,172 @@
+/* カード */
+.card-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.carditem {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--background);
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.card-title {
+  margin: 0.4rem 0 0.4rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* カード全体をクリック可能にする */
+.card-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.card-title a:hover {
+  text-decoration: underline;
+}
+
+.card-excerpt {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+/* サムネイル付きカード（外部記事で og:image があるとき） */
+.carditem.has-thumb {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.card-thumb {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* タグは全面リンクより前に出して、それぞれ押せるようにする */
+.card-tags {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 0.75rem;
+}
+
+.card-external {
+  font-size: 0.8em;
+  color: var(--text-secondary);
+}
+
+/* 外部記事のラベルはタイトルの横に出す（カードの 1 行目と同じ行） */
+.card-title .card-external {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  margin-left: 0.6em;
+  font-weight: 400;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* 編集ボタンは全面リンクより前に出す */
+.card-edit {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  color: var(--text-secondary);
+}
+
+.card-edit:hover {
+  background: rgba(var(--foreground-rgb), 0.1);
+  color: var(--foreground);
+}
+
+/* チップ（page.module.css の .skillTags span） */
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  background: rgba(var(--foreground-rgb), 0.06);
+  transition: background 0.2s, color 0.2s;
+}
+
+a.chip:hover {
+  text-decoration: none;
+  color: var(--text-primary);
+  background: rgba(var(--foreground-rgb), 0.12);
+}
+
+.term-list {
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* ページネーション */
+.pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.pager a,
+.pager span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.pager a:hover {
+  background: rgba(var(--foreground-rgb), 0.08);
+  text-decoration: none;
+}
+
+.pager .current {
+  font-weight: 700;
+  border-color: var(--foreground);
+}
+
+.pager .disabled {
+  opacity: 0.4;
+}
+

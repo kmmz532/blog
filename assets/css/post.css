@@ -1,0 +1,191 @@
+/* 記事 */
+.post-title {
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -2.4px;
+  margin-bottom: 0.75rem;
+}
+
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* タグがあるときは、メタ情報の下・本文の上にタグを置き、本文との間を空ける */
+.post-meta:has(+ .post-tags) {
+  margin-bottom: 0.75rem;
+}
+
+.post-tags {
+  margin: 0 0 2rem;
+}
+
+.post-body {
+  overflow-wrap: anywhere;
+  line-height: 1.9;
+}
+
+.post-body p,
+.post-body ul,
+.post-body ol,
+.post-body blockquote,
+.post-body pre,
+.post-body table {
+  margin-bottom: 1.25em;
+}
+
+.post-body h2 {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+  letter-spacing: -1.68px;
+  margin: 2.5rem 0 1rem;
+}
+
+.post-body h3 {
+  font-size: 1.2rem;
+  margin: 2rem 0 0.75rem;
+}
+
+.post-body ul,
+.post-body ol {
+  padding-left: 1.5rem;
+}
+
+.post-body blockquote {
+  padding-left: 1rem;
+  border-left: 3px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.post-body img {
+  max-width: 100%;
+  height: auto;
+}
+
+.post-body pre {
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.post-body code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+}
+
+.post-body :not(pre) > code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: rgba(var(--foreground-rgb), 0.1);
+}
+
+.post-body table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+}
+
+.post-body th,
+.post-body td {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border);
+}
+
+.post-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 3rem;
+  font-size: 0.95rem;
+}
+
+.post-nav a {
+  display: block;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.post-nav a:hover {
+  border-color: var(--text-secondary);
+}
+
+.post-nav .next {
+  text-align: right;
+}
+
+.post-nav small {
+  display: block;
+  color: var(--text-secondary);
+}
+
+/* アーカイブ */
+.archive-year {
+  margin-top: 2rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.archive-list {
+  list-style: none;
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.archive-list time {
+  color: var(--text-secondary);
+  margin-right: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ボタン（kmmz.jp の .ctas a と同じ見た目） */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--button-secondary-border);
+  border-radius: 128px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: var(--button-secondary-hover);
+  text-decoration: none;
+}
+
+.btn.primary {
+  color: var(--background);
+  background: var(--text-primary);
+  border-color: transparent;
+}
+
+.btn.primary:hover {
+  background: var(--button-primary-hover);
+}
+
+.btn.danger {
+  color: var(--danger);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+

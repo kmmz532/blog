@@ -1,0 +1,309 @@
+/* ヘッダー */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 3.5rem;
+  background-color: rgba(var(--background-rgb), 0.8);
+  backdrop-filter: blur(3px);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  height: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.header .title {
+  font-family: var(--font-logo);
+  font-weight: bold;
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+/* ヘッダーの文字ナビ（kmmz.jp の nav ul と同じ） */
+.header nav ul {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1.2rem;
+}
+
+.header nav a {
+  color: var(--foreground);
+  text-decoration: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.header nav a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .header nav .wide {
+    display: none;
+  }
+
+  .header nav ul {
+    gap: 1rem;
+    font-size: 1rem;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: rgba(var(--foreground-rgb), 0.1);
+}
+
+/* ダークモード切替（右下固定） */
+.options {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}
+
+.options button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  background: rgba(var(--foreground-rgb), 0.2);
+  border: 1px solid var(--foreground);
+  border-radius: 50%;
+  backdrop-filter: blur(3px);
+  cursor: pointer;
+}
+
+.options .icon {
+  font-size: 1.5rem;
+  color: var(--foreground);
+  opacity: 0.75;
+  transition: all 0.3s ease-in-out;
+}
+
+/* 本体: 本文（main）とサイドバー */
+.layout {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.5rem;
+}
+
+.contents {
+  min-width: 0;
+  animation: fade-in 0.2s ease-in-out;
+}
+
+/* 半分の画面幅（1920 の半分は 960）でも横並びにする */
+@media (min-width: 720px) {
+  .layout:has(> .sidebar) {
+    grid-template-columns: minmax(0, 760px) 260px;
+    justify-content: center;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 4.5rem;
+    align-self: start;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contents {
+    animation: none;
+  }
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+  letter-spacing: -1.68px;
+  margin-bottom: 1.5rem;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem 1rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+  font-size: 0.9rem;
+  color: var(--foreground);
+  opacity: 0.75;
+}
+
+.footer-admin {
+  color: var(--text-secondary);
+}
+
+.footer-admin:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+/* サイドバー */
+.sidebar {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.sidebar-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--background);
+}
+
+.sidebar-title {
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.profile-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.profile-bio {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.profile-links {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.profile-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  font-size: 1.1rem;
+}
+
+.profile-links a:hover {
+  background: rgba(var(--foreground-rgb), 0.1);
+}
+
+.sidebar-list {
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+}
+
+.sidebar-list .count {
+  color: var(--text-secondary);
+}
+
+.sidebar-list .current {
+  font-weight: 700;
+}
+
+.sidebar-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sidebar-more {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--link);
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-box .fa-magnifying-glass {
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+/* 検索欄は .btn と同じ高さ（40px）と角丸（128px）。サイドバーでも同じ */
+.search-box input {
+  width: 100%;
+  height: 40px;
+  padding: 0 1rem 0 2.75rem;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--foreground);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--foreground);
+  border-radius: 0;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-bottom-color: var(--link);
+}
+
