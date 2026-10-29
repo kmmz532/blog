@@ -388,14 +388,15 @@ button {
   font: inherit;
   font-size: 0.95rem;
   color: var(--foreground);
-  background: var(--background);
-  border: 1px solid var(--button-secondary-border);
-  border-radius: 128px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--foreground);
+  border-radius: 0;
 }
 
 .search-box input:focus {
   outline: none;
-  border-color: var(--text-secondary);
+  border-bottom-color: var(--link);
 }
 
 /* カード */

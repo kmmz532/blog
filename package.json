@@ -1,0 +1,9 @@
+{
+  "name": "blog",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "check": "node scripts/dev.mjs --check",
+    "build": "hugo --minify"
+  }
+}
