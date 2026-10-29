@@ -50,7 +50,10 @@
     <div class="settings-card">
       <h2>記事設定</h2>
       <label class="field">slug
-        <input id="f-slug" required pattern="[a-z0-9\-]{1,80}" maxlength="80"></label>
+        <span class="slug-row">
+          <input id="f-slug" required pattern="[a-z0-9\-]{1,80}" maxlength="80">
+          <span id="slug-auto" class="slug-auto" hidden>自動</span>
+        </span></label>
       <p id="f-slug-error" class="field-error" hidden></p>
       <label class="field">投稿日時
         <input id="f-date" type="datetime-local" required></label>

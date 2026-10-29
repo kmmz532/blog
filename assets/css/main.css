@@ -888,6 +888,24 @@ a.chip:hover {
   display: none;
 }
 
+/* slug 欄と「自動」の表示（design.md §11.6） */
+.slug-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slug-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.slug-auto {
+  flex: none;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
 /* 保存状態（編集バー。幅 600px 以下では文言を隠し、アイコンだけ） */
 .save-state i {
   margin-right: 0.35em;

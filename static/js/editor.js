@@ -29,6 +29,9 @@ let pendingDraft = null;
 let categoryPicked = false;
 // 手動で設定したサムネイルの URL（空なら自動）
 let thumbImage = '';
+// 新規記事の slug が自動（投稿日時と種類から作る）か。手で書き換えたら false
+let slugAuto = false;
+const AUTO_SLUG_MAX = 9;
 
 function debounce(fn, ms) {
   let timer;
@@ -50,6 +53,25 @@ function setSlugError(message) {
   $('f-slug').setAttribute('aria-invalid', String(Boolean(message)));
   $('f-slug-error').textContent = message;
   $('f-slug-error').hidden = !message;
+}
+
+// 自動の slug: 通常記事は YYYYMMDD、外部記事は ext-YYYYMMDD
+function autoSlugFor(fields) {
+  const day = fields.date.slice(0, 10).replace(/-/g, '');
+  return `${fields.kind === 'external' ? 'ext-' : ''}${day}`;
+}
+
+function updateSlugAuto() {
+  $('slug-auto').hidden = state.originalSlug !== null || !slugAuto;
+}
+
+// 自動のままなら、投稿日時か記事の種類が変わったときに slug を作り直す（保存はしない）
+function syncAutoSlug() {
+  if (state.originalSlug !== null || !slugAuto) return;
+  const date = $('f-date').value;
+  if (!/^\d{4}-\d{2}-\d{2}T/.test(date)) return;
+  $('f-slug').value = autoSlugFor({ kind: state.kind, date });
+  setSlugError('');
 }
 
 function errorMessage(error, creating) {
@@ -275,6 +297,11 @@ function writeForm(fields) {
   $('f-slug').value = fields.slug;
   $('f-title').value = fields.title;
   $('f-date').value = fields.date;
+  // 新規は、空か自動の形のままなら自動のまま。保存済みの記事は触らない
+  if (state.originalSlug === null) {
+    slugAuto = !fields.slug || fields.slug === autoSlugFor(fields);
+    syncAutoSlug();
+  }
   renderCategories(fields.category);
   tags = [...fields.tags];
   renderSelectedTags();
@@ -412,7 +439,10 @@ async function autofillExternal() {
     renderSelectedTags();
     renderTagSuggestions('');
   }
-  if (!dateTouched && meta.date) $('f-date').value = meta.date;
+  if (!dateTouched && meta.date) {
+    $('f-date').value = meta.date;
+    syncAutoSlug();
+  }
   const source = $('f-source');
   if (meta.source && (source.value === '' || source.value === autoSource)) {
     source.value = meta.source;
@@ -596,6 +626,7 @@ function discardDraft() {
 function updateChrome() {
   const saved = state.originalSlug !== null;
   $('save').textContent = saved ? '更新' : '公開';
+  updateSlugAuto();
   $('kind-tabs').hidden = saved;
   $('danger-details').hidden = !saved;
   const back = $('back-link');
@@ -636,6 +667,23 @@ async function renameSlug(fields) {
   }
 }
 
+// 新規の保存。自動の slug が既存と重なったら -2 〜 -9 を付けて再試行する。手入力の slug は付け直さない
+async function saveNewPost(fields, auto) {
+  const base = fields.slug;
+  const candidates = auto
+    ? [base, ...Array.from({ length: AUTO_SLUG_MAX - 1 }, (_, index) => `${base}-${index + 2}`)]
+    : [base];
+  for (const slug of candidates) {
+    try {
+      fields.slug = slug;
+      return { slug, sha: await savePost(slug, serialize(fields, state.aliases)) };
+    } catch (error) {
+      if (!auto || !(error instanceof ConflictError)) throw error;
+    }
+  }
+  throw new Error(`同じ日付の記事が ${AUTO_SLUG_MAX} 本あるため、slug を自動で決められませんでした。slug を手で入力してください。`);
+}
+
 async function publish(event) {
   event.preventDefault();
   const fields = readForm();
@@ -648,6 +696,7 @@ async function publish(event) {
   }
 
   const creating = state.originalSlug === null;
+  const auto = creating && slugAuto;
   const slugChanged = !creating && fields.slug !== state.originalSlug;
   const oldKey = draftKey(state.originalSlug);
   const oldSlug = state.originalSlug;
@@ -659,12 +708,12 @@ async function publish(event) {
     let warning = null;
     if (slugChanged) {
       warning = await renameSlug(fields);
+    } else if (creating) {
+      const saved = await saveNewPost(fields, auto);
+      state.sha = saved.sha;
+      $('f-slug').value = saved.slug;
     } else {
-      state.sha = await savePost(
-        fields.slug,
-        serialize(fields, state.aliases),
-        creating ? undefined : state.sha,
-      );
+      state.sha = await savePost(fields.slug, serialize(fields, state.aliases), state.sha);
     }
 
     state.originalSlug = fields.slug;
@@ -765,6 +814,7 @@ async function load() {
       url: '',
       source: '',
     };
+    server.slug = autoSlugFor(server);
   }
 
   writeForm(server);
@@ -791,7 +841,10 @@ function start() {
   form.addEventListener('submit', publish);
   form.addEventListener('input', (event) => {
     if (event.target.id === 'f-external') onExternalUrlInput();
-    if (event.target.id === 'f-date') dateTouched = true;
+    if (event.target.id === 'f-date') {
+      dateTouched = true;
+      syncAutoSlug();
+    }
     if (event.target.id === 'f-summary') updateSummaryCount();
     if (event.target.id === 'f-body') autosize();
     markDirty();
@@ -805,6 +858,10 @@ function start() {
   });
   $('f-category-new').addEventListener('blur', commitNewCategory);
   $('f-slug').addEventListener('input', () => {
+    // 手で書き換えたら自動を止める。空にしたら自動に戻し、すぐ作り直す
+    if (state.originalSlug === null) slugAuto = $('f-slug').value === '';
+    syncAutoSlug();
+    updateSlugAuto();
     const slug = $('f-slug').value;
     const invalid = Boolean(slug) && !isValidSlug(slug);
     setSlugError(invalid ? 'slug は英小文字・数字・ハイフンのみ使えます。' : '');
@@ -812,9 +869,8 @@ function start() {
 
   for (const button of document.querySelectorAll('#kind-tabs button')) {
     button.addEventListener('click', () => {
-      if (button.dataset.kind === 'external' && $('f-slug').value === '') $('f-slug').value = 'ext-';
-      if (button.dataset.kind === 'article' && $('f-slug').value === 'ext-') $('f-slug').value = '';
       setKind(button.dataset.kind);
+      syncAutoSlug();
       markDirty();
     });
   }
@@ -838,8 +894,6 @@ function start() {
     onError: (message) => showNotice('error', message),
   });
 
-  $('draft-restore').addEventListener('click', restoreDraft);
-  $('draft-discard').addEventListener('click', discardDraft);
   $('thumb-auto').addEventListener('click', () => {
     thumbImage = '';
     renderThumb();
