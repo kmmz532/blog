@@ -138,6 +138,35 @@ export async function deletePost(slug, sha) {
   });
 }
 
+// 複数の記事を 1 コミットにまとめる（design.md §17）。changes は { slug: text | null }（null は削除）。
+// 参照（ブランチ）が他で進んでいたら ConflictError。強制更新はしないので、失敗時は何も変わらない
+export async function commitChanges(changes, message) {
+  const ref = await api(`/repos/${repo}/git/ref/heads/${branch}`);
+  const headSha = ref.object.sha;
+  const head = await api(`/repos/${repo}/git/commits/${headSha}`);
+
+  const entries = [];
+  for (const [slug, text] of Object.entries(changes)) {
+    const path = postPath(slug);
+    if (text === null) {
+      entries.push({ path, mode: '100644', type: 'blob', sha: null });
+    } else {
+      const blob = await api(`/repos/${repo}/git/blobs`, { method: 'POST', body: { content: text, encoding: 'utf-8' } });
+      entries.push({ path, mode: '100644', type: 'blob', sha: blob.sha });
+    }
+  }
+  const tree = await api(`/repos/${repo}/git/trees`, {
+    method: 'POST',
+    body: { base_tree: head.tree.sha, tree: entries },
+  });
+  const commit = await api(`/repos/${repo}/git/commits`, {
+    method: 'POST',
+    body: { message, tree: tree.sha, parents: [headSha] },
+  });
+  await api(`/repos/${repo}/git/refs/heads/${branch}`, { method: 'PATCH', body: { sha: commit.sha } });
+  return commit.sha;
+}
+
 // base64 は呼び出し側で作る（バイナリを扱うため）。既存パスは ConflictError
 export async function saveImage(path, base64) {
   if (!IMAGE_PATH_RE.test(path)) throw new Error('画像の保存先が正しくありません。');
