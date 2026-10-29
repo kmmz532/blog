@@ -4,6 +4,7 @@ import { buildArticle, buildExternal } from './frontmatter.js';
 import { draftKey, removeDraft, renderDrafts } from './drafts.js';
 import { setSaveState, showNotice } from './notice.js';
 import { recordSave, recordDelete } from './pending.js';
+import { nowJst } from './time.js';
 
 const $ = (id) => document.getElementById(id);
 const AUTO_SLUG_TRIES = 5;
@@ -75,6 +76,8 @@ export function createSave({ state, readForm, validate, slugs, drafts, cancelDra
     }
 
     const creating = state.originalSlug === null;
+    // 既存記事の更新は更新日を今にする（新規公開では付けない）
+    if (!creating) fields.lastmod = `${nowJst()}:00+09:00`;
     const auto = creating && state.slugAuto;
     const slugChanged = !creating && fields.slug !== state.originalSlug;
     const oldKey = draftKey(state.originalSlug);

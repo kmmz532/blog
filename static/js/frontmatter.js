@@ -2,7 +2,7 @@
 import { dateToJstInput } from './time.js';
 
 // 画面で扱うキー。それ以外は raw 行のまま保持して書き戻す。build は読み込みで捨てて保存で作り直す
-const KNOWN_KEYS = ['title', 'date', 'categories', 'tags', 'summary', 'image', 'aliases', 'external', 'source', 'build'];
+const KNOWN_KEYS = ['title', 'date', 'lastmod', 'categories', 'tags', 'summary', 'image', 'aliases', 'external', 'source', 'build'];
 const LIST_KEYS = ['categories', 'tags', 'aliases'];
 const EXTERNAL_BUILD = '{"render": "never", "list": "always"}';
 
@@ -81,6 +81,8 @@ export function parseArticle(text) {
       image: String(values.image ?? ''),
       url: String(values.external ?? ''),
       source: String(values.source ?? ''),
+      // 更新日。画面では扱わず、更新のたびに保存時の値で上書きする（design.md §14.4）
+      lastmod: String(values.lastmod ?? ''),
       body,
     },
     aliases: values.aliases ?? [],
@@ -104,6 +106,7 @@ function frontFields(fields) {
 export function buildArticle(fields, aliases, extra) {
   const lines = [
     ...frontFields(fields),
+    ...(fields.lastmod ? [`lastmod: ${fields.lastmod}`] : []),
     ...(aliases.length ? [`aliases: ${JSON.stringify(aliases)}`] : []),
     ...extra,
   ];

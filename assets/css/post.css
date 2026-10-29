@@ -276,3 +276,8 @@ h4:hover .heading-anchor,
 .copy-code:focus-visible {
   color: var(--foreground);
 }
+
+/* 記事詳細の更新日（design.md §14.4）。投稿日の横に小さく出す */
+.post-updated {
+  color: var(--text-secondary);
+}
