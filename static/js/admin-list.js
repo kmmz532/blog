@@ -1,6 +1,7 @@
-// /admin/ の一覧・絞り込み・選択・一括操作の選び方（design.md §17）。
+// /admin/ の一覧・絞り込み・選択・一括操作（design.md §17）。
 // 一覧は index.json（公開済みの記事）から作る。ユーザー由来の文字列は textContent で描画する。
-import { ensureDevSession, getToken } from './github.js';
+import { ensureDevSession, getToken, getPost, commitChanges, ConflictError } from './github.js';
+import { applyBulk } from './frontmatter.js';
 
 const $ = (id) => document.getElementById(id);
 const ACTION_LABELS = {
@@ -30,9 +31,8 @@ function visibleArticles() {
   });
 }
 
-function cell(text, className) {
+function cell(text) {
   const td = document.createElement('td');
-  if (className) td.className = className;
   td.textContent = text;
   return td;
 }
@@ -43,7 +43,7 @@ function row(item) {
   const check = document.createElement('input');
   check.type = 'checkbox';
   check.checked = selected.has(item.slug);
-  check.setAttribute('aria-label', `${item.title} を選ぶ`);
+  check.setAttribute('aria-label', `${item.title || item.slug} を選ぶ`);
   check.addEventListener('change', () => {
     if (check.checked) selected.add(item.slug);
     else selected.delete(item.slug);
@@ -73,8 +73,7 @@ function renderRows() {
   const visible = visibleArticles();
   $('admin-rows').replaceChildren(...visible.map(row));
   $('admin-count').textContent = `${visible.length} 件（全 ${articles.length} 件）`;
-  const all = $('admin-all');
-  all.checked = visible.length > 0 && visible.every((item) => selected.has(item.slug));
+  $('admin-all').checked = visible.length > 0 && visible.every((item) => selected.has(item.slug));
   updateBar();
 }
 
@@ -101,8 +100,7 @@ function categoryPaths() {
 }
 
 function fillCategoryOptions() {
-  const select = $('bulk-category');
-  select.replaceChildren(
+  $('bulk-category').replaceChildren(
     ...categoryPaths().map((path) => {
       const option = document.createElement('option');
       option.value = JSON.stringify(path);
@@ -112,15 +110,87 @@ function fillCategoryOptions() {
   );
 }
 
-// 押すと一括操作の内容を確かめるだけ（実行は T47）
-function describeBulk() {
+// 選んだ操作の中身。入力に問題があれば文字列でエラーを返す
+function bulkOptions(action) {
+  if (action === 'category') {
+    const value = $('bulk-category').value;
+    if (!value) return '設定するカテゴリを選んでください。';
+    return { categories: JSON.parse(value) };
+  }
+  if (action === 'addTags' || action === 'removeTags') {
+    const tags = splitTags($('bulk-tags').value);
+    if (!tags.length) return 'タグを入力してください。';
+    return action === 'addTags' ? { addTags: tags } : { removeTags: tags };
+  }
+  return {};
+}
+
+const setStatus = (text) => {
+  $('admin-status').textContent = text;
+};
+
+// 一括操作を実行する。確認 → 記事を読む → 変換 → 1 コミット。途中で失敗したら何も変えない
+async function apply() {
   const action = $('bulk-action').value;
-  const count = selected.size;
-  let detail = '';
-  if (action === 'category') detail = `カテゴリを「${$('bulk-category').selectedOptions[0]?.textContent ?? ''}」にする`;
-  if (action === 'addTags') detail = `タグ ${splitTags($('bulk-tags').value).join(', ')} を追加する`;
-  if (action === 'removeTags') detail = `タグ ${splitTags($('bulk-tags').value).join(', ')} を外す`;
-  $('bulk-status').textContent = `${count} 件を対象に「${ACTION_LABELS[action]}」${detail ? `（${detail}）` : ''}。`;
+  const slugs = [...selected];
+  if (!slugs.length) return;
+  const options = bulkOptions(action);
+  if (typeof options === 'string') {
+    setStatus(options);
+    return;
+  }
+
+  const count = slugs.length;
+  if (action === 'delete') {
+    const typed = prompt(`${count} 件の記事を削除します。確認のため件数「${count}」を入力してください。`);
+    if (typed !== String(count)) {
+      setStatus('削除を取り消しました。');
+      return;
+    }
+  } else if (!confirm(`${count} 件に「${ACTION_LABELS[action]}」を行い、1 つのコミットにします。よろしいですか？`)) {
+    setStatus('取り消しました。');
+    return;
+  }
+
+  $('bulk-apply').disabled = true;
+  setStatus('保存しています…');
+  try {
+    const changes = {};
+    if (action === 'delete') {
+      for (const slug of slugs) changes[slug] = null;
+    } else {
+      const posts = await Promise.all(slugs.map((slug) => getPost(slug)));
+      slugs.forEach((slug, index) => {
+        if (!posts[index]) throw new Error(`記事「${slug}」が見つかりません。何も変えていません。`);
+        changes[slug] = applyBulk(posts[index].text, options);
+      });
+    }
+    await commitChanges(changes, `一括操作: ${ACTION_LABELS[action]} ${count} 件`);
+
+    // 一覧も変更後の内容に合わせる（index.json は次の反映で更新される）
+    if (action === 'delete') {
+      articles = articles.filter((item) => !slugs.includes(item.slug));
+    } else {
+      for (const item of articles) {
+        if (!slugs.includes(item.slug)) continue;
+        if (options.categories) item.categories = options.categories;
+        if (options.addTags) item.tags = [...new Set([...(item.tags ?? []), ...options.addTags])];
+        if (options.removeTags) item.tags = (item.tags ?? []).filter((tag) => !options.removeTags.includes(tag));
+      }
+    }
+    selected.clear();
+    fillCategoryOptions();
+    renderRows();
+    setStatus(`${count} 件を保存しました。1〜2 分後に反映されます。`);
+  } catch (error) {
+    setStatus(
+      error instanceof ConflictError
+        ? '他で更新されています。再読み込みしてからもう一度行ってください（何も変えていません）。'
+        : error.message,
+    );
+  } finally {
+    $('bulk-apply').disabled = selected.size === 0;
+  }
 }
 
 function attach() {
@@ -134,14 +204,14 @@ function attach() {
     renderRows();
   });
   $('bulk-action').addEventListener('change', updateBar);
-  $('bulk-apply').addEventListener('click', describeBulk);
+  $('bulk-apply').addEventListener('click', apply);
 }
 
 async function load() {
   const indexUrl = document.querySelector('script[data-index-url]').dataset.indexUrl;
   const res = await fetch(indexUrl, { cache: 'no-store' });
   if (!res.ok) {
-    $('admin-status').textContent = '記事の一覧を読み込めませんでした。';
+    setStatus('記事の一覧を読み込めませんでした。');
     return;
   }
   articles = (await res.json()).sort((a, b) => b.date.localeCompare(a.date));
