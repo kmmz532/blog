@@ -5,6 +5,7 @@ import { draftKey, hasDraft, readDraft, removeDraft, renderDrafts } from './draf
 import { renderPreview } from './preview.js';
 import { attachToolbar, insertImageMarkdown, altFrom } from './toolbar.js';
 import { mountImageManager } from './images.js';
+import { confirmImageUpload, attachUploadConfirm } from './upload-confirm.js';
 import { createExternalForm, isHttps } from './external.js';
 import { nowJst } from './time.js';
 import { setSaveState, showNotice } from './notice.js';
@@ -390,7 +391,9 @@ function start() {
     fileInput: $('f-image'),
     upload: uploadImage,
     onError: (message) => showNotice('error', message),
+    confirmUpload: confirmImageUpload,
   });
+  attachUploadConfirm();
 
   const images = mountImageManager($('image-manager'), {
     onPick: (url) => insertImageMarkdown($('f-body'), url),

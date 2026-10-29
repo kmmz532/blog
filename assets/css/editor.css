@@ -821,3 +821,28 @@ body:has(.editor) .footer {
   margin: 0;
   font-size: 1.1rem;
 }
+
+/* 貼り付け・ドロップの前の確認 */
+.upload-confirm {
+  width: min(460px, calc(100vw - 32px));
+}
+
+.upload-confirm h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+.upload-confirm-image {
+  display: block;
+  max-width: 100%;
+  max-height: 40vh;
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.upload-confirm-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}

@@ -113,6 +113,17 @@
   </aside>
 </form>
 
+<dialog id="upload-confirm" class="images-dialog upload-confirm" aria-labelledby="upload-confirm-title">
+  <h2 id="upload-confirm-title">この画像をアップロードしますか？</h2>
+  <img id="upload-confirm-image" class="upload-confirm-image" alt="アップロードする画像">
+  <p id="upload-confirm-name" class="image-status"></p>
+  <p class="admin-note">記事の公開リポジトリに保存されます。上げた時点で誰でも見られるようになるので、個人情報などが写っていないか確認してください。</p>
+  <div class="upload-confirm-actions">
+    <button type="button" id="upload-confirm-ok" class="btn primary">アップロード</button>
+    <button type="button" id="upload-confirm-cancel" class="btn">やめる</button>
+  </div>
+</dialog>
+
 <dialog id="images-dialog" class="images-dialog" aria-labelledby="images-title">
   <div class="images-dialog-head">
     <h2 id="images-title">画像</h2>

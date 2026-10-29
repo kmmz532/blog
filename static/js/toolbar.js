@@ -86,7 +86,13 @@ export function insertImageMarkdown(textarea, url, alt = 'image') {
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-export function attachToolbar({ textarea, toolbar, fileInput, upload, onError }) {
+export function attachToolbar({ textarea, toolbar, fileInput, upload, onError, confirmUpload = async () => true }) {
+  // 貼り付け・ドロップは誤爆しやすいので、上げる前に確認する。画像ボタンは自分でファイルを選ぶので確認しない
+  async function insertConfirmed(file) {
+    if (await confirmUpload(file)) insertImage(textarea, file, upload, onError);
+    textarea.focus();
+  }
+
   toolbar.addEventListener('click', (event) => {
     const button = event.target.closest('button[data-action]');
     if (!button) return;
@@ -122,7 +128,7 @@ export function attachToolbar({ textarea, toolbar, fileInput, upload, onError })
     const file = imageFile(event.clipboardData?.files);
     if (file) {
       event.preventDefault();
-      insertImage(textarea, file, upload, onError);
+      insertConfirmed(file);
       return;
     }
     const url = URL_ONLY.exec(event.clipboardData?.getData('text/plain') ?? '')?.[1];
@@ -142,6 +148,6 @@ export function attachToolbar({ textarea, toolbar, fileInput, upload, onError })
     const file = imageFile(event.dataTransfer?.files);
     if (!file) return;
     event.preventDefault();
-    insertImage(textarea, file, upload, onError);
+    insertConfirmed(file);
   });
 }
