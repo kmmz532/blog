@@ -1,8 +1,20 @@
 {{ define "main" }}
 <h1 class="page-title">{{ .Title }}</h1>
+{{- if eq .Kind "term" }}
+{{- $pag := .Paginate .Pages }}
+<div class="card-list">
+  {{- range $pag.Pages }}
+  {{- partial "post-card.html" . }}
+  {{- else }}
+  <p>記事はまだありません。</p>
+  {{- end }}
+</div>
+{{- partial "pager.html" $pag }}
+{{- else }}
 <ul class="term-list">
   {{- range .Data.Terms.Alphabetical }}
   <li><a href="{{ .Page.RelPermalink }}">{{ .Page.Title }}</a> <span class="card-meta">({{ .Count }})</span></li>
   {{- end }}
 </ul>
+{{- end }}
 {{ end }}
