@@ -2,7 +2,7 @@
 // ダイアログの中身は textContent と属性だけで作る
 const $ = (id) => document.getElementById(id);
 
-// 上げてよければ true。やめる・Esc・枠の外なら false
+// 上げてよければ選んだ表示幅（'' は元のまま）。やめる・Esc・枠の外なら null
 export function confirmImageUpload(file) {
   const dialog = $('upload-confirm');
   const url = URL.createObjectURL(file);
@@ -13,7 +13,7 @@ export function confirmImageUpload(file) {
     const finish = () => {
       URL.revokeObjectURL(url);
       $('upload-confirm-image').removeAttribute('src');
-      resolve(dialog.returnValue === 'upload');
+      resolve(dialog.returnValue === 'upload' ? $('upload-confirm-size').value : null);
     };
     dialog.returnValue = '';
     dialog.addEventListener('close', finish, { once: true });

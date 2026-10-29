@@ -35,18 +35,21 @@ function imageFile(list) {
 }
 
 export function altFrom(file) {
-  return file.name ? file.name.replace(/\.[^.]+$/, '').replace(/[[\]]/g, '') : 'image';
+  return file.name ? file.name.replace(/\.[^.]+$/, '').replace(/[[\]|]/g, '') : 'image';
 }
 
+// 表示幅（px）は alt の末尾に |数字 で付ける（design.md §19）。空なら元のまま
+export const withWidth = (alt, width) => (width ? `${alt}|${width}` : alt);
+
 // 仮テキストを置き、保存が終わったら差し替える。すべて textarea の input イベントで通知する
-async function insertImage(textarea, file, upload, onError) {
+async function insertImage(textarea, file, upload, onError, width = '') {
   // 仮テキストに番号を付け、同時に複数の画像を貼っても差し替え先を取り違えないようにする
   const placeholder = `![アップロード中…(${++uploadCount})]()`;
   const start = textarea.selectionStart;
   textarea.setRangeText(placeholder, start, textarea.selectionEnd, 'end');
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
 
-  const alt = altFrom(file);
+  const alt = withWidth(altFrom(file), width);
   const replaceWith = (text) => {
     const index = textarea.value.indexOf(placeholder);
     if (index === -1) return;
@@ -81,15 +84,17 @@ function insertCardFromUrl(textarea, url) {
 }
 
 // 本文のカーソル位置に画像を入れる（画像の一覧から選んだとき・一覧から上げたとき）
-export function insertImageMarkdown(textarea, url, alt = 'image') {
-  textarea.setRangeText(`![${alt}](${url})`, textarea.selectionStart, textarea.selectionEnd, 'end');
+export function insertImageMarkdown(textarea, url, alt = 'image', width = '') {
+  textarea.setRangeText(`![${withWidth(alt, width)}](${url})`, textarea.selectionStart, textarea.selectionEnd, 'end');
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-export function attachToolbar({ textarea, toolbar, fileInput, upload, onError, confirmUpload = async () => true }) {
+export function attachToolbar({ textarea, toolbar, fileInput, upload, onError, confirmUpload = async () => '' }) {
   // 貼り付け・ドロップは誤爆しやすいので、上げる前に確認する。画像ボタンは自分でファイルを選ぶので確認しない
   async function insertConfirmed(file) {
-    if (await confirmUpload(file)) insertImage(textarea, file, upload, onError);
+    // 確認の戻り値は表示幅（'' は元のまま）。やめるなら null
+    const width = await confirmUpload(file);
+    if (width !== null) insertImage(textarea, file, upload, onError, width);
     textarea.focus();
   }
 

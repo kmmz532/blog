@@ -31,6 +31,13 @@ export function mountImageManager(container, { onPick, onUploaded } = {}) {
   fileInput.multiple = true;
   fileInput.hidden = true;
 
+  // 挿入・アップロードで本文に入れるときの表示幅（空は元のまま）。alt の末尾の |数字 になる
+  const size = el('select');
+  size.setAttribute('aria-label', '本文に入れるときの表示サイズ');
+  for (const [value, label] of [['', '元のまま'], ['320', '小 320px'], ['480', '中 480px'], ['720', '大 720px']]) {
+    size.append(new Option(label, value));
+  }
+
   const status = el('p', 'image-status');
   status.setAttribute('role', 'status');
   const grid = el('div', 'image-grid');
@@ -52,7 +59,7 @@ export function mountImageManager(container, { onPick, onUploaded } = {}) {
     const name = el('figcaption', 'image-name', `${item.publicPath.replace('/images/', '')}（${formatSize(item.size)}）`);
 
     const actions = el('div', 'image-actions');
-    if (onPick) actions.append(button('挿入', 'fa-plus', () => onPick(item.publicPath)));
+    if (onPick) actions.append(button('挿入', 'fa-plus', () => onPick(item.publicPath, size.value)));
     actions.append(
       button('URL', 'fa-copy', async () => {
         try {
@@ -109,7 +116,7 @@ export function mountImageManager(container, { onPick, onUploaded } = {}) {
       say(`アップロードしています…（${done + 1}/${images.length}）`);
       try {
         const url = await uploadImage(file);
-        onUploaded?.(url, file);
+        onUploaded?.(url, file, size.value);
         done += 1;
       } catch (error) {
         say(`${file.name}: ${error.message}`);
@@ -144,6 +151,11 @@ export function mountImageManager(container, { onPick, onUploaded } = {}) {
     button('アップロード', 'fa-upload', () => fileInput.click(), 'btn primary'),
     button('再読み込み', 'fa-rotate', load),
   );
+  if (onPick || onUploaded) {
+    const label = el('label', 'image-size', '本文に入れるサイズ ');
+    label.append(size);
+    bar.append(label);
+  }
   container.append(bar, fileInput, status, grid);
   return { load };
 }

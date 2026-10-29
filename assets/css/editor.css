@@ -846,3 +846,29 @@ body:has(.editor) .footer {
   gap: 0.5rem;
   margin-top: 0.75rem;
 }
+
+/* スクロール同期の切り替えは、並べて表示のときだけ出す。押されている（オン）間は色を付ける */
+.toolbar .split-only {
+  display: none;
+  margin-left: auto;
+}
+
+.editor-main[data-view="split"] .toolbar .split-only {
+  display: inline-flex;
+}
+
+.toolbar button[aria-pressed="true"] {
+  background: rgba(var(--foreground-rgb), 0.12);
+}
+
+.image-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.upload-confirm .field {
+  margin-top: 0.75rem;
+}

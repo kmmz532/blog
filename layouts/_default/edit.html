@@ -39,7 +39,8 @@
       <button type="button" data-action="quote" aria-label="引用" title="引用"><i class="fa-solid fa-quote-left" aria-hidden="true"></i></button>
       <button type="button" data-action="code" aria-label="コード" title="コード"><i class="fa-solid fa-code" aria-hidden="true"></i></button>
       <button type="button" data-action="image" aria-label="画像を挿入" title="画像を挿入"><i class="fa-solid fa-image" aria-hidden="true"></i></button>
-      <button type="button" id="open-images" aria-label="画像の一覧" title="画像の一覧"><i class="fa-solid fa-images" aria-hidden="true"></i></button>
+      <button type="button" id="scroll-sync-toggle" class="split-only" aria-pressed="true" aria-label="スクロール同期" title="スクロール同期"><i class="fa-solid fa-arrows-up-down" aria-hidden="true"></i></button>
+      <button type="button" id="open-images"aria-label="画像の一覧" title="画像の一覧"><i class="fa-solid fa-images" aria-hidden="true"></i></button>
       <input id="f-image" type="file" accept="image/*" hidden>
     </div>
 
@@ -117,6 +118,13 @@
   <h2 id="upload-confirm-title">この画像をアップロードしますか？</h2>
   <img id="upload-confirm-image" class="upload-confirm-image" alt="アップロードする画像">
   <p id="upload-confirm-name" class="image-status"></p>
+  <label class="field">表示サイズ
+    <select id="upload-confirm-size">
+      <option value="">元のまま（最大 1600px）</option>
+      <option value="320">小（幅 320px）</option>
+      <option value="480">中（幅 480px）</option>
+      <option value="720">大（幅 720px）</option>
+    </select></label>
   <p class="admin-note">記事の公開リポジトリに保存されます。上げた時点で誰でも見られるようになるので、個人情報などが写っていないか確認してください。</p>
   <div class="upload-confirm-actions">
     <button type="button" id="upload-confirm-ok" class="btn primary">アップロード</button>

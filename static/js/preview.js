@@ -238,6 +238,14 @@ export function renderPreview(markdown, title, container) {
     }
   }
 
+  // alt の末尾の |数字 は表示幅（公開側は render-image.html が同じ変換をする）
+  content.querySelectorAll('img[alt]').forEach((img) => {
+    const match = /^(.*)\|(\d{2,4})$/.exec(img.alt);
+    if (!match) return;
+    img.alt = match[1];
+    img.width = Number(match[2]);
+  });
+
   // 公開前や手元の確認では /images/... が開けないので、見られる URL に差し替える
   content.querySelectorAll('img[src^="/images/"]').forEach((img) => {
     img.src = imageSrc(img.getAttribute('src'));

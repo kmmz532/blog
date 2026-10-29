@@ -5,6 +5,7 @@ import { draftKey, hasDraft, readDraft, removeDraft, renderDrafts } from './draf
 import { renderPreview } from './preview.js';
 import { attachToolbar, insertImageMarkdown, altFrom } from './toolbar.js';
 import { mountImageManager } from './images.js';
+import { getItem, setItem } from './storage.js';
 import { confirmImageUpload, attachUploadConfirm } from './upload-confirm.js';
 import { createExternalForm, isHttps } from './external.js';
 import { nowJst } from './time.js';
@@ -230,12 +231,27 @@ function autosize() {
 
 // 並べて表示のとき、本文欄とプレビューのスクロール位置を割合で合わせる。
 // 片方を動かすと、もう片方の scroll イベントが返ってくるので、そのときは無視する
+const SYNC_KEY = 'blog_scroll_sync';
+
 function attachScrollSync() {
   const body = $('f-body');
   const preview = $('preview');
   let moving = false;
+  // ツールバーのボタンで切り替える。選んだ状態はこの端末に覚える（並べて表示のときだけボタンが出る）
+  let enabled = getItem(SYNC_KEY) !== 'off';
+  const toggle = $('scroll-sync-toggle');
+  const showState = () => {
+    toggle.setAttribute('aria-pressed', String(enabled));
+    toggle.title = enabled ? 'スクロール同期: オン（押すとオフ）' : 'スクロール同期: オフ（押すとオン）';
+  };
+  showState();
+  toggle.addEventListener('click', () => {
+    enabled = !enabled;
+    setItem(SYNC_KEY, enabled ? 'on' : 'off');
+    showState();
+  });
   const follow = (from, to) => () => {
-    if (moving) return;
+    if (moving || !enabled) return;
     const range = from.scrollHeight - from.clientHeight;
     if (range <= 0) return;
     moving = true;
@@ -396,8 +412,8 @@ function start() {
   attachUploadConfirm();
 
   const images = mountImageManager($('image-manager'), {
-    onPick: (url) => insertImageMarkdown($('f-body'), url),
-    onUploaded: (url, file) => insertImageMarkdown($('f-body'), url, altFrom(file)),
+    onPick: (url, width) => insertImageMarkdown($('f-body'), url, 'image', width),
+    onUploaded: (url, file, width) => insertImageMarkdown($('f-body'), url, altFrom(file), width),
   });
   // 画像の一覧はダイアログ。初めて開いたときに読み込む。挿入しても閉じない（続けて入れられる）
   let imagesLoaded = false;
