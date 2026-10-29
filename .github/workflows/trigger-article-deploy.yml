@@ -1,0 +1,24 @@
+name: trigger-article-deploy
+
+# 本体（blog）を更新したら、記事リポジトリ（blog-article）の deploy を起動する。
+# blog-article 側は Hugo が本体を取り込んでビルドするため、本体の変更を反映するには再ビルドが要る。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch blog-article deploy
+        env:
+          GH_TOKEN: ${{ secrets.ARTICLE_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "ARTICLE_DEPLOY_TOKEN が未設定です。Settings → Secrets and variables → Actions で登録してください。"
+            exit 1
+          fi
+          gh workflow run deploy.yml --repo kmmz532/blog-article --ref main
