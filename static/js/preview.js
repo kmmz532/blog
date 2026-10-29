@@ -13,8 +13,10 @@ export function renderPreview(markdown, title, container) {
   content.querySelectorAll(DROP).forEach((el) => el.remove());
   for (const el of content.querySelectorAll('*')) {
     for (const { name, value } of [...el.attributes]) {
-      const isUrl = name === 'href' || name === 'src';
-      if (name.startsWith('on') || (isUrl && /^\s*javascript:/i.test(value))) {
+      const isUrl = name === 'href' || name === 'src' || name === 'xlink:href' || name === 'formaction';
+      // ブラウザは URL 中のタブ・改行・制御文字を無視するので、除いてから判定する
+      const url = value.replace(/[\u0000- \u007f]/g, '');
+      if (name.startsWith('on') || (isUrl && /^javascript:/i.test(url))) {
         el.removeAttribute(name);
       }
     }

@@ -13,6 +13,12 @@
       <a class="icon-button admin-only" href="{{ "/edit/" | relURL }}" aria-label="新規記事" title="新規記事" hidden>
         <i class="fa-solid fa-plus" aria-hidden="true"></i>
       </a>
+      <a class="icon-button guest-only" href="{{ "/login/" | relURL }}" aria-label="ログイン" title="ログイン" hidden>
+        <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+      </a>
+      <a class="icon-button logout-only" href="#" aria-label="ログアウト" title="ログアウト" hidden>
+        <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+      </a>
     </div>
   </div>
 </header>

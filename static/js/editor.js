@@ -1,4 +1,4 @@
-import { getPost, savePost, deletePost, getToken, isValidSlug, ConflictError } from './github.js';
+import { getPost, savePost, deletePost, getToken, ensureDevSession, isValidSlug, ConflictError } from './github.js';
 import { uploadImage } from './image.js';
 import { parseArticle, buildArticle, buildExternal } from './frontmatter.js';
 import { draftKey, hasDraft, readDraft, writeDraft, removeDraft, renderDrafts } from './drafts.js';
@@ -24,14 +24,18 @@ let dateTouched = false;
 
 function debounce(fn, ms) {
   let timer;
-  return (...args) => {
+  const run = (...args) => {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), ms);
   };
+  run.cancel = () => clearTimeout(timer);
+  return run;
 }
 
 let scheduleDraft = () => {};
 let scheduleRefresh = () => {};
+// 公開・削除のあとに、待機中の下書き保存が走って下書きを復活させないよう止める
+const cancelDraft = () => scheduleDraft.cancel?.();
 
 function setStatus(message, isError = false) {
   const el = $('status');
@@ -521,6 +525,7 @@ async function publish(event) {
   const oldKey = draftKey(state.originalSlug);
 
   $('save').disabled = true;
+  cancelDraft();
   setStatus('公開しています…');
   try {
     let warning = null;
@@ -564,6 +569,7 @@ async function removePost() {
   }
 
   $('delete').disabled = true;
+  cancelDraft();
   try {
     await deletePost(slug, state.sha);
     removeDraft(draftKey(slug));
@@ -685,6 +691,13 @@ function start() {
   $('view-edit').addEventListener('click', () => setView('edit'));
   $('view-preview').addEventListener('click', () => setView('preview'));
   $('view-split').addEventListener('click', () => setView('split'));
+  // 幅が足りなくなったら並べて表示を解除する（ボタンも隠れて戻せなくなるため）
+  const wide = window.matchMedia('(min-width: 1400px)');
+  wide.addEventListener('change', () => {
+    if (state.kind === 'external') return;
+    $('view-split').hidden = !wide.matches;
+    if (!wide.matches && $('editor-main').dataset.view === 'split') setView('edit');
+  });
 
   attachTagInput();
   attachToolbar({
@@ -723,6 +736,7 @@ function start() {
   load();
 }
 
+await ensureDevSession();
 if (getToken()) {
   start();
 } else {
