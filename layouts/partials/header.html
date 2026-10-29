@@ -1,18 +1,17 @@
 <header class="header">
   <div class="header-inner">
     <a class="title" href="{{ "/" | relURL }}">{{ site.Title }}</a>
-    <div class="header-actions">
-      <a class="icon-button" href="{{ "/search/" | relURL }}" aria-label="検索" title="検索">
-        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-      </a>
-      {{- if and (eq .Kind "page") (eq .Section "posts") }}
-      <a class="icon-button admin-only" href="{{ "/edit/" | relURL }}?slug={{ .File.ContentBaseName | urlquery }}" aria-label="この記事を編集" title="この記事を編集" hidden>
-        <i class="fa-solid fa-pen" aria-hidden="true"></i>
-      </a>
-      {{- end }}
-      <a class="icon-button admin-only" href="{{ "/edit/" | relURL }}" aria-label="新規記事" title="新規記事" hidden>
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-      </a>
-    </div>
+    <nav>
+      <ul>
+        <li class="wide"><a href="{{ "/tags/" | relURL }}">Tags</a></li>
+        <li class="wide"><a href="{{ "/categories/" | relURL }}">Categories</a></li>
+        <li><a href="{{ "/search/" | relURL }}">Search</a></li>
+        <li><a href="https://kmmz.jp/" rel="noopener">kmmz.jp</a></li>
+        {{- if and (eq .Kind "page") (eq .Section "posts") }}
+        <li class="admin-only" hidden><a href="{{ "/edit/" | relURL }}?slug={{ .File.ContentBaseName | urlquery }}">Edit</a></li>
+        {{- end }}
+        <li class="admin-only" hidden><a href="{{ "/edit/" | relURL }}">New</a></li>
+      </ul>
+    </nav>
   </div>
 </header>

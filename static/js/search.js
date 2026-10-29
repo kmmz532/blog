@@ -27,12 +27,11 @@ function card(post) {
 
   const meta = document.createElement('p');
   meta.className = 'card-meta';
-  meta.textContent = post.date;
+  meta.textContent = post.date.replaceAll('-', '.');
   for (const category of post.categories ?? []) {
-    const chip = document.createElement('span');
-    chip.className = 'chip';
-    chip.textContent = category;
-    meta.append(' ', chip);
+    const label = document.createElement('span');
+    label.textContent = category;
+    meta.append(label);
   }
 
   article.append(title, meta);
@@ -41,6 +40,17 @@ function card(post) {
     excerpt.className = 'card-excerpt';
     excerpt.textContent = post.summary;
     article.append(excerpt);
+  }
+  if (post.tags?.length) {
+    const tagBox = document.createElement('div');
+    tagBox.className = 'card-tags';
+    for (const tag of post.tags) {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = `#${tag}`;
+      tagBox.append(chip);
+    }
+    article.append(tagBox);
   }
   return article;
 }
