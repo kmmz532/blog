@@ -29,6 +29,13 @@ function el(tag, className, text) {
   return node;
 }
 
+// 装飾のアイコン（読み上げない）
+function icon(className) {
+  const node = el('i', className);
+  node.setAttribute('aria-hidden', 'true');
+  return node;
+}
+
 // 壊れた控えや形の合わない控えは null
 function parseControl(raw) {
   try {
@@ -74,9 +81,7 @@ function sweep() {
 
 function pendingBand(text = '反映待ち（この端末だけの表示）') {
   const band = el('p', 'pending-band');
-  const icon = el('i', 'fa-solid fa-clock');
-  icon.setAttribute('aria-hidden', 'true');
-  band.append(icon, ` ${text}`);
+  band.append(icon('fa-solid fa-clock'), ` ${text}`);
   return band;
 }
 
@@ -151,9 +156,7 @@ function renderCard(slug, fields) {
   heading.append(link);
   if (external) {
     const source = el('span', 'card-external');
-    const icon = el('i', 'fa-solid fa-arrow-up-right-from-square');
-    icon.setAttribute('aria-hidden', 'true');
-    source.append(icon, ` ${fields.source || ''}`);
+    source.append(icon('fa-solid fa-arrow-up-right-from-square'), ` ${fields.source || ''}`);
     heading.append(source);
   }
   body.append(meta, heading);
@@ -169,9 +172,7 @@ function renderCard(slug, fields) {
   edit.href = `/edit/?slug=${encodeURIComponent(slug)}`;
   edit.setAttribute('aria-label', '編集');
   edit.title = '編集';
-  const icon = el('i', 'fa-solid fa-pen');
-  icon.setAttribute('aria-hidden', 'true');
-  edit.append(icon);
+  edit.append(icon('fa-solid fa-pen'));
 
   article.append(body, edit);
   return article;
