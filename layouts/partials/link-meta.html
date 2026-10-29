@@ -1,0 +1,36 @@
+{{- /* URL の OGP（title・desc・image）を dict で返す。http(s) 以外・取得失敗のときは title が空（design.md §18） */ -}}
+{{- $url := . -}}
+{{- $title := "" -}}
+{{- $desc := "" -}}
+{{- $image := "" -}}
+{{- if or (strings.HasPrefix $url "https://") (strings.HasPrefix $url "http://") -}}
+  {{- $res := try (resources.GetRemote $url) -}}
+  {{- if not $res.Err -}}
+    {{- with $res.Value -}}
+      {{- $html := .Content -}}
+      {{- with findRESubmatch `<meta[^>]+property="og:title"[^>]+content="([^"]*)"|<meta[^>]+content="([^"]*)"[^>]+property="og:title"` $html -}}
+        {{- $title = htmlUnescape (or (index (index . 0) 1) (index (index . 0) 2)) -}}
+      {{- end -}}
+      {{- with findRESubmatch `<meta[^>]+property="og:description"[^>]+content="([^"]*)"|<meta[^>]+content="([^"]*)"[^>]+property="og:description"` $html -}}
+        {{- $desc = htmlUnescape (or (index (index . 0) 1) (index (index . 0) 2)) -}}
+      {{- end -}}
+      {{- with findRESubmatch `<meta[^>]+property="og:image"[^>]+content="([^"]*)"|<meta[^>]+content="([^"]*)"[^>]+property="og:image"` $html -}}
+        {{- $image = htmlUnescape (or (index (index . 0) 1) (index (index . 0) 2)) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- warnf "link-meta: %s: %s" $url $res.Err -}}
+  {{- end -}}
+{{- end -}}
+{{- /* og:image が無い・取れないときはサイトのアイコン（params.appleIcon）を使い、それも無ければ付けない */ -}}
+{{- $fallback := "" -}}
+{{- with site.Params.appleIcon -}}{{- $fallback = absURL . -}}{{- end -}}
+{{- if $image -}}
+  {{- $img := try (resources.GetRemote $image) -}}
+  {{- if $img.Err -}}
+    {{- $image = $fallback -}}
+  {{- end -}}
+{{- else -}}
+  {{- $image = $fallback -}}
+{{- end -}}
+{{- return (dict "title" $title "desc" $desc "image" $image) -}}

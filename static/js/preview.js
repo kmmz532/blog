@@ -8,8 +8,8 @@ const DROP = 'script, iframe, object, embed, style, link, meta, base, form';
 const SHORTCODE_LINE = /\{\{<\s*(link-card|tweet|youtube)\s+(?:url|id)="([^"]+)"\s*>\}\}/g;
 const TWEET_URL = /^https:\/\/(?:x|twitter)\.com\/([A-Za-z0-9_]{1,15})\/status\/\d+/;
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
-// 同じ URL を入力のたびに取り直さないための、メモリ上のキャッシュ（Promise を入れる）
-const cardCache = new Map();
+// ビルド時に取った OGP（/ogp/index.json、design.md §18）。読めたら一度だけ読み、以後は同じ Promise を使う
+let ogpIndex = null;
 
 function isHttpUrl(value) {
   try {
@@ -34,29 +34,15 @@ function withSlots(markdown) {
     .join('');
 }
 
-// OGP を読む。CORS で拒否されたり、og:title が無かったりしたら null
-async function fetchOgp(url) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
-    const meta = (key) => doc.querySelector(`meta[property="${key}"]`)?.getAttribute('content') ?? '';
-    const title = meta('og:title');
-    if (!title) return null;
-    const image = meta('og:image');
-    return {
-      title,
-      desc: meta('og:description'),
-      image: image ? new URL(image, url).href : '',
-    };
-  } catch {
-    return null;
+// URL → { title, desc, image } の Map。読めなければ空の Map（仮の見た目で出す）
+function loadOgpIndex() {
+  if (!ogpIndex) {
+    ogpIndex = fetch(new URL('/ogp/index.json', location.origin))
+      .then((res) => (res.ok ? res.json() : []))
+      .catch(() => [])
+      .then((items) => new Map(items.map((item) => [item.url, item])));
   }
-}
-
-function loadCard(url) {
-  if (!cardCache.has(url)) cardCache.set(url, fetchOgp(url));
-  return cardCache.get(url);
+  return ogpIndex;
 }
 
 // 取得した値は textContent と属性にだけ入れる（HTML として描画しない）
@@ -84,6 +70,8 @@ function buildCard(url, card) {
     img.height = 96;
     img.alt = '';
     img.loading = 'lazy';
+    // 壊れた画像は出さない（公開後の表示と同じ）
+    img.addEventListener('error', () => img.remove());
     link.append(img);
   }
   return link;
@@ -99,12 +87,14 @@ function plainLink(url) {
   return link;
 }
 
-// 最初は通常のリンクを出し、OGP が取れたらカードに差し替える
+// 最初は通常のリンクを出し、ビルド時の OGP があればカードに差し替える。無い URL は仮の見た目（公開後に OGP で表示）
 function fillLinkCard(slot, url) {
   slot.replaceChildren(plainLink(url));
   if (!isHttpUrl(url)) return;
-  loadCard(url).then((card) => {
-    if (card) slot.replaceChildren(buildCard(url, card));
+  loadOgpIndex().then((map) => {
+    const card = map.get(url);
+    if (card?.title) slot.replaceChildren(buildCard(url, card));
+    else slot.replaceChildren(buildCard(url, { title: url, desc: '公開すると OGP から表示されます', image: '' }));
   });
 }
 

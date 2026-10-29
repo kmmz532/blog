@@ -1,0 +1,13 @@
+{{- /* 記事中の link-card の URL を集め、ビルド時に取った OGP を配列にする。編集画面のプレビューが読む（design.md §18） */ -}}
+{{- $urls := slice -}}
+{{- range site.RegularPages -}}
+  {{- range findRESubmatch `\{\{<\s*link-card\s+url="([^"]+)"` .RawContent -}}
+    {{- $urls = $urls | append (index . 1) -}}
+  {{- end -}}
+{{- end -}}
+{{- $items := slice -}}
+{{- range $urls | uniq -}}
+  {{- $meta := partial "link-meta.html" . -}}
+  {{- $items = $items | append (dict "url" . "title" $meta.title "desc" $meta.desc "image" $meta.image) -}}
+{{- end -}}
+{{- $items | jsonify -}}
