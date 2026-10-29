@@ -1,16 +1,17 @@
-import { getPost, savePost, deletePost, getToken, ensureDevSession, isValidSlug, ConflictError } from './github.js';
+import { getPost, getToken, ensureDevSession, isValidSlug } from './github.js';
 import { uploadImage } from './image.js';
-import { parseArticle, buildArticle, buildExternal } from './frontmatter.js';
-import { draftKey, hasDraft, readDraft, writeDraft, removeDraft, renderDrafts } from './drafts.js';
+import { parseArticle } from './frontmatter.js';
+import { draftKey, hasDraft, readDraft, removeDraft, renderDrafts } from './drafts.js';
 import { renderPreview } from './preview.js';
 import { attachToolbar } from './toolbar.js';
 import { createExternalForm, isHttps } from './external.js';
 import { nowJst } from './time.js';
-import { recordSave, recordDelete } from './pending.js';
-import { setSaveState, showNotice, hideNotice } from './notice.js';
+import { setSaveState, showNotice } from './notice.js';
 import { createTaxonomy } from './taxonomy.js';
 import { createSlug } from './slug.js';
 import { createThumb } from './thumb.js';
+import { createDrafts } from './drafts.js';
+import { createSave } from './save.js';
 
 const $ = (id) => document.getElementById(id);
 const SUMMARY_TARGET = 120;
@@ -46,7 +47,6 @@ const state = {
   // 入力のあとに実行する処理。start() で差し込む
   schedule: { draft: () => {}, refresh: () => {} },
 };
-const AUTO_SLUG_TRIES = 5;
 const taxonomy = createTaxonomy({ state, markDirty });
 const slugs = createSlug({ state });
 const externals = createExternalForm({ state, markDirty, slugs, taxonomy, updateSummaryCount, refreshPreview });
@@ -64,15 +64,8 @@ function debounce(fn, ms) {
 
 // 公開・削除のあとに、待機中の下書き保存が走って下書きを復活させないよう止める
 const cancelDraft = () => state.schedule.draft.cancel?.();
-
-function errorMessage(error, creating) {
-  if (error instanceof ConflictError) {
-    return creating
-      ? '同じ slug の記事が既にあります。別の slug にしてください。'
-      : '他で更新されています。再読み込みしてください（上書きはしていません）。';
-  }
-  return error.message;
-}
+const drafts = createDrafts({ state, readForm, writeForm, refreshPreview, updateChrome });
+const save = createSave({ state, readForm, validate, slugs, drafts, cancelDraft, updateChrome });
 
 function markDirty() {
   state.dirty = true;
@@ -214,66 +207,6 @@ function refreshPreview() {
   else renderPreview(fields.body, fields.title, $('preview'));
 }
 
-// ---- 下書き ----
-
-function saveDraft() {
-  // 復元か破棄を選ぶまでは、残っている下書きを上書きしない
-  if (state.pendingDraft) return;
-  const payload = {
-    ...readForm(),
-    sha: state.sha,
-    aliases: state.aliases,
-    extra: state.extra,
-    savedAt: new Date().toISOString(),
-  };
-  if (!writeDraft(draftKey(state.originalSlug), payload)) {
-    showNotice('error', '下書きを保存できませんでした。');
-  } else {
-    const time = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-    setSaveState('draft', `下書き保存 ${time}`);
-  }
-  renderDrafts($('drafts'));
-}
-
-// 下書きのお知らせ。選ぶまでは保存済みの内容を出したままにする
-function showDraftNotice(key, draft) {
-  state.pendingDraft = { key, draft };
-  const time = new Date(draft.savedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-  // 選ぶまで消えない（お知らせ欄の [復元する] [破棄する]）
-  showNotice('info', `この記事の下書きがあります（${time} 保存）`, [
-    { label: '復元する', primary: true, onClick: restoreDraft },
-    { label: '破棄する', onClick: discardDraft },
-  ]);
-}
-
-function closeDraftNotice() {
-  state.pendingDraft = null;
-  hideNotice();
-}
-
-function restoreDraft() {
-  if (!state.pendingDraft) return;
-  const { draft } = state.pendingDraft;
-  closeDraftNotice();
-  writeForm(draft);
-  state.categoryPicked = true;
-  state.sha = draft.sha ?? null;
-  state.aliases = draft.aliases ?? [];
-  state.extra = draft.extra ?? [];
-  state.dirty = true;
-  updateChrome();
-  refreshPreview();
-  showNotice('info', '下書きを復元しました。');
-}
-
-function discardDraft() {
-  if (!state.pendingDraft) return;
-  removeDraft(state.pendingDraft.key);
-  closeDraftNotice();
-  renderDrafts($('drafts'));
-  showNotice('info', '下書きを破棄しました。');
-}
-
 // ---- 画面状態 ----
 
 function updateChrome() {
@@ -290,133 +223,6 @@ function failStart(message) {
   showNotice('error', message);
   $('save').disabled = true;
   $('danger-details').hidden = true;
-}
-
-// ---- 保存・削除 ----
-
-function serialize(fields, aliases) {
-  return fields.kind === 'external'
-    ? buildExternal(fields, state.extra)
-    : buildArticle(fields, aliases, state.extra);
-}
-
-// slug 変更: 新 slug を作ってから旧ファイルを消す。旧ファイルの削除に失敗したら警告を返す
-async function renameSlug(fields) {
-  const oldSlug = state.originalSlug;
-  const oldSha = state.sha;
-  // 外部記事は本文がないので aliases も付けない
-  const aliases = fields.kind === 'external' ? [] : [...new Set([...state.aliases, `/posts/${oldSlug}/`])];
-
-  // sha を付けない。同名があれば ConflictError で中止される
-  const sha = await savePost(fields.slug, serialize(fields, aliases));
-  state.aliases = aliases;
-  state.sha = sha;
-
-  try {
-    await deletePost(oldSlug, oldSha);
-    return null;
-  } catch (error) {
-    return `旧ファイル（${oldSlug}）を削除できませんでした。手動で削除してください。（${error.message}）`;
-  }
-}
-
-// 新規の保存。自動の slug が既存と重なったら番号を振り直して再試行する。手入力の slug は付け直さない
-async function saveNewPost(fields, auto) {
-  const attempts = auto ? AUTO_SLUG_TRIES : 1;
-  for (let attempt = 1; attempt <= attempts; attempt++) {
-    if (auto) {
-      if (attempt > 1) state.autoNumber = slugs.randomNumber();
-      fields.slug = slugs.autoSlugFor(fields);
-    }
-    try {
-      return { slug: fields.slug, sha: await savePost(fields.slug, serialize(fields, state.aliases)) };
-    } catch (error) {
-      if (!auto || !(error instanceof ConflictError)) throw error;
-    }
-  }
-  throw new Error(`自動の slug が ${AUTO_SLUG_TRIES} 回続けて既存と重なったため決められませんでした。slug を手で入力してください。`);
-}
-
-async function publish(event) {
-  event.preventDefault();
-  const fields = readForm();
-  const invalid = validate(fields);
-  if (invalid) {
-    if (invalid.field === 'f-slug') slugs.setSlugError(invalid.message);
-    showNotice('error', `入力に誤りがあります。${invalid.message}`);
-    $(invalid.field).focus();
-    return;
-  }
-
-  const creating = state.originalSlug === null;
-  const auto = creating && state.slugAuto;
-  const slugChanged = !creating && fields.slug !== state.originalSlug;
-  const oldKey = draftKey(state.originalSlug);
-  const oldSlug = state.originalSlug;
-
-  $('save').disabled = true;
-  cancelDraft();
-  setSaveState('publishing', '公開中…');
-  try {
-    let warning = null;
-    if (slugChanged) {
-      warning = await renameSlug(fields);
-    } else if (creating) {
-      const saved = await saveNewPost(fields, auto);
-      state.sha = saved.sha;
-      $('f-slug').value = saved.slug;
-    } else {
-      state.sha = await savePost(fields.slug, serialize(fields, state.aliases), state.sha);
-    }
-
-    state.originalSlug = fields.slug;
-    removeDraft(oldKey);
-    closeDraftNotice();
-    // 反映待ちの控え。slug を変えた場合は旧 slug を削除の控えにする（旧ファイルの削除に失敗していなければ）
-    recordSave(fields.slug, {
-      fields,
-      isNew: creating || slugChanged,
-      oldSlug: slugChanged ? oldSlug : null,
-    });
-    if (slugChanged && !warning) recordDelete(oldSlug);
-    state.dirty = false;
-    history.replaceState(null, '', `/edit/?slug=${encodeURIComponent(fields.slug)}`);
-    updateChrome();
-    renderDrafts($('drafts'));
-
-    setSaveState('published', `公開済み ${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}`);
-    if (warning) showNotice('error', warning);
-    else showNotice('success', '公開しました。1〜2分後に反映されます。');
-  } catch (error) {
-    showNotice('error', errorMessage(error, creating || slugChanged));
-    setSaveState('unsaved', '未保存の変更あり');
-  } finally {
-    $('save').disabled = false;
-  }
-}
-
-async function removePost() {
-  const slug = state.originalSlug;
-  if (slug === null) return;
-  const typed = prompt(`この記事を削除します。確認のため slug「${slug}」を入力してください。`);
-  if (typed === null) return;
-  if (typed !== slug) {
-    showNotice('error', 'slug が一致しないため削除しませんでした。');
-    return;
-  }
-
-  $('delete').disabled = true;
-  cancelDraft();
-  try {
-    await deletePost(slug, state.sha);
-    recordDelete(slug);
-    removeDraft(draftKey(slug));
-    state.dirty = false;
-    location.assign('/');
-  } catch (error) {
-    showNotice('error', errorMessage(error, false));
-    $('delete').disabled = false;
-  }
 }
 
 // ---- 初期化 ----
@@ -476,7 +282,7 @@ async function load() {
   if (hasDraft(key)) {
     const draft = readDraft(key);
     // 壊れた下書きは捨てる。まともな下書きは復元か破棄を選ばれるまで残す
-    if (draft) showDraftNotice(key, draft);
+    if (draft) drafts.showDraftNotice(key, draft);
     else removeDraft(key);
   }
 
@@ -488,10 +294,10 @@ async function load() {
 
 function start() {
   const form = $('post-form');
-  state.schedule.draft = debounce(saveDraft, 1000);
+  state.schedule.draft = debounce(drafts.saveDraft, 1000);
   state.schedule.refresh = debounce(refreshPreview, 300);
 
-  form.addEventListener('submit', publish);
+  form.addEventListener('submit', save.publish);
   form.addEventListener('input', (event) => {
     if (event.target.id === 'f-external') externals.onExternalUrlInput();
     if (event.target.id === 'f-date') {
@@ -533,7 +339,7 @@ function start() {
   });
 
   thumbs.attach();
-  $('delete').addEventListener('click', removePost);
+  $('delete').addEventListener('click', save.removePost);
   $('discard').addEventListener('click', () => {
     if (!confirm('この記事の下書きを破棄して、保存済みの内容を読み直します。')) return;
     removeDraft(draftKey(state.originalSlug));
@@ -545,7 +351,7 @@ function start() {
     if (!(event.ctrlKey || event.metaKey)) return;
     if (event.key === 's' || event.key === 'S') {
       event.preventDefault();
-      saveDraft();
+      drafts.saveDraft();
     } else if (event.key === 'Enter') {
       event.preventDefault();
       form.requestSubmit();
