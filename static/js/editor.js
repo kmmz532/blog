@@ -209,7 +209,7 @@ function refreshPreview() {
   updateSummaryHint();
   thumbs.renderThumb();
   if (fields.kind === 'external') externals.renderExternalCard(fields);
-  else renderPreview(fields.body, fields.title, $('preview'));
+  else renderPreview(fields.body, null, $('preview'));
 }
 
 // ---- 画面状態 ----
