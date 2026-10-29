@@ -14,6 +14,12 @@
     {{- end }}
   </div>
   {{- end }}
+  {{- if ge (len (findRE "<h[23][ >]" .Content)) 3 }}
+  <details class="toc-mobile">
+    <summary>目次</summary>
+    {{ .TableOfContents | replaceRE `id="TableOfContents"` `class="toc"` | safeHTML }}
+  </details>
+  {{- end }}
   <div class="post-body">{{ .Content }}</div>
   <nav class="post-nav" aria-label="前後の記事">
     {{- with .NextInSection }}

@@ -20,6 +20,10 @@ enableRobotsTXT = true
 [markup.highlight]
   noClasses = false
 
+[markup.tableOfContents]
+  startLevel = 2
+  endLevel = 3
+
 [params]
   description = "Kmmz1127の個人ブログです！"
   headerTitle = "Kmmz1127 Blog"
