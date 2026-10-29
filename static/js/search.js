@@ -103,9 +103,15 @@ function loadIndex() {
   return loading;
 }
 
-input.addEventListener('input', async () => {
-  await loadIndex();
-  render();
+// 入力が止まってから検索する（1 文字ごとに全記事を調べ直さない）
+const DEBOUNCE_MS = 200;
+let timer = 0;
+input.addEventListener('input', () => {
+  clearTimeout(timer);
+  timer = setTimeout(async () => {
+    await loadIndex();
+    render();
+  }, DEBOUNCE_MS);
 });
 document.getElementById('search-form').addEventListener('submit', (event) => event.preventDefault());
 
