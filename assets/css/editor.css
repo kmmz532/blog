@@ -794,3 +794,30 @@ body:has(.editor) .footer {
   padding: 0.2rem 0.5rem;
   font-size: 0.75rem;
 }
+
+/* 編集画面の画像ダイアログ */
+.images-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.images-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.images-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.images-dialog-head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}

@@ -80,11 +80,6 @@
       <p id="summary-count" class="char-count"></p>
     </details>
 
-    <details id="images-details" class="details-card">
-      <summary>画像</summary>
-      <div id="image-manager" class="image-manager"></div>
-    </details>
-
     <details id="thumb-details" class="details-card">
       <summary>サムネイル</summary>
       <div class="thumb-current">
@@ -117,6 +112,14 @@
     </details>
   </aside>
 </form>
+
+<dialog id="images-dialog" class="images-dialog" aria-labelledby="images-title">
+  <div class="images-dialog-head">
+    <h2 id="images-title">画像</h2>
+    <button type="button" id="images-close" class="icon-button" aria-label="閉じる" title="閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+  </div>
+  <div id="image-manager" class="image-manager"></div>
+</dialog>
 {{ end }}
 
 

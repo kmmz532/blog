@@ -396,11 +396,17 @@ function start() {
     onPick: (url) => insertImageMarkdown($('f-body'), url),
     onUploaded: (url, file) => insertImageMarkdown($('f-body'), url, altFrom(file)),
   });
-  // 一覧は初めて開いたときに読む。ツールバーの画像一覧ボタンからも開ける
-  $('images-details').addEventListener('toggle', () => images.load(), { once: true });
+  // 画像の一覧はダイアログ。初めて開いたときに読み込む。挿入しても閉じない（続けて入れられる）
+  let imagesLoaded = false;
   $('open-images').addEventListener('click', () => {
-    $('images-details').open = true;
-    $('images-details').scrollIntoView({ block: 'nearest' });
+    $('images-dialog').showModal();
+    if (!imagesLoaded) images.load();
+    imagesLoaded = true;
+  });
+  $('images-close').addEventListener('click', () => $('images-dialog').close());
+  // 枠の外（背景）を押したら閉じる
+  $('images-dialog').addEventListener('click', (event) => {
+    if (event.target === $('images-dialog')) $('images-dialog').close();
   });
 
   thumbs.attach();
