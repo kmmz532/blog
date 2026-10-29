@@ -330,6 +330,8 @@ function setKind(kind) {
 
 function setView(view) {
   $('editor-main').dataset.view = view;
+  // 記事はプレビューだけの表示ではタイトル欄を出さない（タイトルはプレビューの見出しで確認できる）。外部記事は手で直すので残す
+  $('f-title').hidden = view === 'preview' && state.kind === 'article';
   $('editor-main').classList.toggle('split', view === 'split');
   $('view-edit').setAttribute('aria-pressed', String(view === 'edit'));
   $('view-preview').setAttribute('aria-pressed', String(view === 'preview'));

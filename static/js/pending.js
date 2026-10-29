@@ -124,6 +124,16 @@ function renderDeleted(container) {
 function renderCard(slug, fields) {
   const external = fields.kind === 'external';
   const article = el('article', 'carditem');
+  if (fields.image) {
+    article.classList.add('has-thumb');
+    const thumb = el('img', 'card-thumb');
+    thumb.src = fields.image;
+    thumb.width = 96;
+    thumb.height = 96;
+    thumb.alt = '';
+    thumb.loading = 'lazy';
+    article.append(thumb);
+  }
   const body = el('div', 'card-body');
   body.append(pendingBand());
 
