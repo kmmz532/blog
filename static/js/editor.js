@@ -198,10 +198,21 @@ function updateSummaryHint() {
   $('f-summary').placeholder = autoSummary($('f-body').value) || '（本文から自動生成されます）';
 }
 
+// 取っ手で手動に変えた高さ（px）。autosize が書いた値とは違う高さになったときだけ覚える
+let manualHeight = null;
+let autoHeight = null;
+
+function rememberManualHeight() {
+  const body = $('f-body');
+  if (body.style.height !== autoHeight) manualHeight = body.offsetHeight;
+}
+
 function autosize() {
   const body = $('f-body');
   body.style.height = 'auto';
-  body.style.height = `${body.scrollHeight}px`;
+  // 手動の高さがあればそれを使う（内容が多ければ本文欄の中でスクロールする）。無ければ内容の高さ
+  autoHeight = `${manualHeight ?? body.scrollHeight}px`;
+  body.style.height = autoHeight;
 }
 
 // 並べて表示のとき、本文欄とプレビューのスクロール位置を割合で合わせる。
@@ -336,6 +347,7 @@ function start() {
   externals.attach();
   slugs.attach();
   attachScrollSync();
+  new ResizeObserver(rememberManualHeight).observe($('f-body'));
 
   for (const button of document.querySelectorAll('#kind-tabs button')) {
     button.addEventListener('click', () => {
