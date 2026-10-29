@@ -247,7 +247,7 @@
   border: 1px solid var(--border);
   border-radius: 0 0 8px 8px;
   outline: none;
-  resize: none;
+  resize: vertical;
   overflow-y: auto;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
