@@ -12,7 +12,7 @@
     <div class="profile-links">
       {{- range site.Params.links }}
       {{- if .url }}
-      <a href="{{ .url }}" target="_blank" rel="noopener" aria-label="{{ .name }}" title="{{ .name }}"><i class="{{ .icon }}" aria-hidden="true"></i></a>
+      <a href="{{ .url }}" target="_blank" rel="noopener" aria-label="{{ .name }}" title="{{ .name }}">{{ partial "link-icon.html" .icon }}</a>
       {{- end }}
       {{- end }}
     </div>

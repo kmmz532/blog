@@ -247,9 +247,10 @@
   background: rgba(var(--foreground-rgb), 0.1);
 }
 
-/* fa-house はグリフの左右の余白が非対称で、丸の中心より左に見えるため補正する */
-.profile-links .fa-house {
-  translate: 0.05em 0;
+.profile-links svg {
+  height: 1.25rem;
+  width: auto;
+  translate: 1px 0px;
 }
 
 .sidebar-list {
