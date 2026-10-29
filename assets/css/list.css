@@ -170,3 +170,9 @@ a.chip:hover {
   opacity: 0.4;
 }
 
+
+/* カテゴリは階層を「/」区切りの文字で出す。タグのチップとは見分けがつくようにする（design.md §16） */
+.card-category {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}

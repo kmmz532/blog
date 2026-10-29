@@ -26,8 +26,10 @@ const state = {
   extra: [],
   // 選択中のタグ
   tags: [],
-  // 既存の記事から集計したもの。{ name, count } の配列（件数の多い順）
-  knownCategories: [],
+  // 選択中のカテゴリ（階層の順。先頭が一番上）
+  categories: [],
+  // 既存の記事から集計したカテゴリの階層。{ path, name, count } の配列（design.md §16）
+  categoryNodes: [],
   knownTags: [],
   dirty: false,
   // 外部ページから自動で入れたサイト名（利用者が書き換えたら上書きしない）
@@ -82,7 +84,7 @@ function readForm() {
     slug: $('f-slug').value.trim(),
     title: $('f-title').value.trim(),
     date: $('f-date').value.slice(0, 16),
-    category: taxonomy.currentCategory(),
+    categories: [...state.categories],
     tags: [...state.tags],
     summary: $('f-summary').value.trim(),
     body: $('f-body').value,
@@ -105,7 +107,9 @@ function writeForm(fields) {
     state.autoNumber = match ? match[1] : null;
     slugs.syncAutoSlug();
   }
-  taxonomy.renderCategories(fields.category);
+  // 旧形式の下書き（category が 1 つだけ）も読める
+  state.categories = [...(fields.categories ?? [fields.category ?? 'tech'])];
+  taxonomy.renderCategories();
   state.tags = [...fields.tags];
   taxonomy.renderSelectedTags();
   taxonomy.renderTagSuggestions('');
@@ -129,6 +133,7 @@ function validate(fields) {
   }
   // 外部記事のタイトルと概要は空でもよい（ビルド時に OGP で補う）
   if (fields.kind !== 'external' && !fields.title) return fail('f-title', 'タイトルを入力してください。');
+  if (!fields.categories.length) return fail('category-chips', 'カテゴリを選んでください。');
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(fields.date)) return fail('f-date', '投稿日時を入力してください。');
   if (fields.kind === 'external') {
     if (!isHttps(fields.url)) return fail('f-external', '外部記事の URL は https:// で始まるものを入れてください。');
@@ -266,7 +271,7 @@ async function load() {
       slug: '',
       title: '',
       date: nowJst(),
-      category: 'tech',
+      categories: ['tech'],
       tags: [],
       summary: '',
       body: '',

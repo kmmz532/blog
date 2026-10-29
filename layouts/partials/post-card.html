@@ -8,8 +8,8 @@
   <div class="card-body">
   <div class="card-meta">
     <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006.01.02" }}</time>
-    {{- range .Params.categories }}
-    <span>{{ . }}</span>
+    {{- with .Params.categories }}
+    <span class="card-category">{{ delimit . " / " }}</span>
     {{- end }}
   </div>
   <h2 class="card-title">

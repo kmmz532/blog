@@ -115,11 +115,23 @@ async function renderArticle(container, fields) {
   const heading = container.querySelector('h1');
   const meta = el('div', 'post-meta');
   meta.append(dateEl(fields.date));
-  if (fields.category) meta.append(el('span', 'chip', fields.category));
   const tags = el('div', 'card-tags');
   for (const tag of fields.tags ?? []) tags.append(el('span', 'chip', `#${tag}`));
   heading.after(meta, ...(tags.childElementCount ? [tags] : []));
+  container.prepend(breadcrumb(fields));
   container.prepend(pendingBand());
+}
+
+// 記事詳細のパンくず（design.md §16）。保留中の表示なのでリンクは付けない
+function breadcrumb(fields) {
+  const nav = el('nav', 'breadcrumb');
+  nav.setAttribute('aria-label', 'パンくず');
+  const list = el('ol');
+  for (const name of ['トップ', ...(fields.categories ?? []), fields.title || '（無題）']) {
+    list.append(el('li', '', name));
+  }
+  nav.append(list);
+  return nav;
 }
 
 function renderDeleted(container) {
@@ -144,7 +156,7 @@ function renderCard(slug, fields) {
 
   const meta = el('div', 'card-meta');
   meta.append(dateEl(fields.date));
-  if (fields.category) meta.append(el('span', '', fields.category));
+  if (fields.categories?.length) meta.append(el('span', 'card-category', fields.categories.join(' / ')));
 
   const heading = el('h2', 'card-title');
   const link = el('a', '', fields.title || fields.url || '（無題）');

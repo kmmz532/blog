@@ -590,3 +590,15 @@ body:has(.editor) .footer {
   }
 }
 
+
+/* カテゴリの選んだ階層（design.md §16）。押すとその段までに戻る */
+.category-path {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.category-sep {
+  color: var(--text-secondary);
+}

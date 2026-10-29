@@ -281,3 +281,30 @@ h4:hover .heading-anchor,
 .post-updated {
   color: var(--text-secondary);
 }
+
+/* パンくず（design.md §16）。記事詳細の一番上に出す */
+.breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.breadcrumb li + li::before {
+  content: "›";
+  margin-right: 0.25rem;
+}
+
+.breadcrumb a {
+  color: inherit;
+}

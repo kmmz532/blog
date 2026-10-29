@@ -1,47 +1,84 @@
-// カテゴリとタグ（design.md §11.6）。カテゴリは既存から 1 つ選ぶ、タグは複数選ぶ。どちらも「新規」で作れる。
+// カテゴリとタグ（design.md §11.6・§16）。カテゴリは階層を親から順に選ぶ、タグは複数選ぶ。どちらも「新規」で作れる。
 // 画面の状態（state）と、変更を知らせる関数（markDirty）は引数で受け取る。editor.js は import しない
 import { showNotice } from './notice.js';
 
 const $ = (id) => document.getElementById(id);
 
-export function createTaxonomy({ state, markDirty }) {
-  // ---- カテゴリ（既存から 1 つ選ぶ。「＋ 新規」で作る） ----
+// ボタンを 1 つ作る。class は choice、aria-pressed で選択中かを示す
+function choice(text, pressed, onClick) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'choice';
+  button.textContent = text;
+  button.setAttribute('aria-pressed', String(pressed));
+  button.addEventListener('click', onClick);
+  return button;
+}
 
-  function currentCategory() {
-    return $('category-chips').querySelector('[aria-pressed="true"]')?.dataset.value ?? 'tech';
+export function createTaxonomy({ state, markDirty }) {
+  // ---- カテゴリ（階層。親から順に選ぶ。design.md §16） ----
+
+  // 今の階層の子の候補。件数の多い順
+  function childrenOf(prefix) {
+    return state.categoryNodes
+      .filter((node) => node.path.length === prefix.length + 1 && prefix.every((name, i) => node.path[i] === name))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
   }
 
-  function renderCategories(selected) {
-    const names = state.knownCategories.map((item) => item.name);
-    if (selected && !names.includes(selected)) names.push(selected);
+  // 今の選択（state.categories）を描き直す。上の段は、押すとその段までに戻る
+  function renderCategories() {
+    const path = state.categories;
     const box = $('category-chips');
-    box.replaceChildren(
-      ...names.map((name) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'choice';
-        button.dataset.value = name;
-        button.textContent = name;
-        button.setAttribute('aria-pressed', String(name === selected));
-        button.addEventListener('click', () => {
-          state.categoryPicked = true;
-          renderCategories(name);
-          markDirty();
-        });
-        return button;
+    const levels = path.map((name, index) => {
+      const isLast = index === path.length - 1;
+      return choice(name, true, () => {
+        if (isLast) return;
+        state.categories = path.slice(0, index + 1);
+        state.categoryPicked = true;
+        renderCategories();
+        markDirty();
+      });
+    });
+    const row = document.createElement('span');
+    row.className = 'category-path';
+    path.forEach((_, index) => {
+      if (index > 0) {
+        const sep = document.createElement('span');
+        sep.className = 'category-sep';
+        sep.setAttribute('aria-hidden', 'true');
+        sep.textContent = '›';
+        row.append(sep);
+      }
+      row.append(levels[index]);
+    });
+    if (path.length) {
+      const clear = choice('×', false, () => {
+        state.categories = [];
+        state.categoryPicked = true;
+        renderCategories();
+        markDirty();
+      });
+      clear.setAttribute('aria-label', 'カテゴリを選び直す');
+      clear.title = 'カテゴリを選び直す';
+      row.append(clear);
+    }
+
+    const candidates = childrenOf(path).map((node) =>
+      choice(node.name, false, () => {
+        state.categories = [...path, node.name];
+        state.categoryPicked = true;
+        renderCategories();
+        markDirty();
       }),
     );
-    const add = document.createElement('button');
-    add.type = 'button';
-    add.className = 'choice';
-    add.textContent = '＋ 新規';
-    add.addEventListener('click', () => {
+    const add = choice('＋ 新規', false, () => {
       $('category-new').hidden = false;
       $('f-category-new').focus();
     });
-    box.append(add);
+    box.replaceChildren(...(path.length ? [row] : []), ...candidates, add);
   }
 
+  // 「＋ 新規」は今の階層の子として作る（同じ名前が子にあれば、それを使う）
   function commitNewCategory() {
     const name = $('f-category-new').value.trim();
     $('f-category-new').value = '';
@@ -51,10 +88,10 @@ export function createTaxonomy({ state, markDirty }) {
       showNotice('error', 'カテゴリ名に , は使えません。');
       return;
     }
-    const existing = state.knownCategories.find((item) => item.name.toLowerCase() === name.toLowerCase());
-    if (!existing) state.knownCategories.push({ name, count: 0 });
+    const existing = childrenOf(state.categories).find((node) => node.name.toLowerCase() === name.toLowerCase());
+    state.categories = [...state.categories, existing?.name ?? name];
     state.categoryPicked = true;
-    renderCategories(existing?.name ?? name);
+    renderCategories();
     markDirty();
   }
 
@@ -153,28 +190,35 @@ export function createTaxonomy({ state, markDirty }) {
     });
   }
 
-  // 既存の記事から、カテゴリとタグの件数を集計する。失敗しても手入力は続けられる
+  // 既存の記事から、カテゴリの階層とタグの件数を集計する。失敗しても手入力は続けられる
   async function loadIndex() {
     try {
       const res = await fetch($('post-form').dataset.indexUrl, { cache: 'no-store' });
       if (!res.ok) return;
       const posts = await res.json();
-      const categoryCounts = new Map();
+      // 階層の各段（先頭から k 段目まで）を 1 つの節として数える
+      const nodes = new Map();
       const tagCounts = new Map();
       for (const post of posts) {
-        for (const category of post.categories ?? []) {
-          categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
+        const path = post.categories ?? [];
+        for (let k = 1; k <= path.length; k++) {
+          const prefix = path.slice(0, k);
+          const key = JSON.stringify(prefix);
+          const node = nodes.get(key) ?? { path: prefix, name: prefix.at(-1), count: 0 };
+          node.count += 1;
+          nodes.set(key, node);
         }
         for (const tag of post.tags ?? []) {
           tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
         }
       }
+      state.categoryNodes = [...nodes.values()];
       const byCount = (a, b) => b.count - a.count || a.name.localeCompare(b.name);
-      state.knownCategories = [...categoryCounts].map(([name, count]) => ({ name, count })).sort(byCount);
       state.knownTags = [...tagCounts].map(([name, count]) => ({ name, count })).sort(byCount);
-      // 新規記事は件数が一番多いカテゴリを初期値にする（既存が無ければ tech）
+      // 新規記事は件数が一番多い最上位のカテゴリを初期値にする（既存が無ければ tech）
       const keepCurrent = state.originalSlug !== null || state.categoryPicked;
-      renderCategories(keepCurrent ? currentCategory() : (state.knownCategories[0]?.name ?? 'tech'));
+      if (!keepCurrent) state.categories = [childrenOf([])[0]?.name ?? 'tech'];
+      renderCategories();
       renderTagSuggestions($('f-tag-entry').value);
     } catch {
       // 一覧が出なくても、新規に入力すれば使える
@@ -193,5 +237,5 @@ export function createTaxonomy({ state, markDirty }) {
     attachTagInput();
   }
 
-  return { currentCategory, renderCategories, renderSelectedTags, renderTagSuggestions, loadIndex, attach };
+  return { renderCategories, renderSelectedTags, renderTagSuggestions, loadIndex, attach };
 }

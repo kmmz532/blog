@@ -179,9 +179,10 @@ export function createExternalForm({ state, markDirty, slugs, taxonomy, updateSu
     const date = document.createElement('time');
     date.textContent = fields.date.slice(0, 10).replaceAll('-', '.');
     meta.append(date);
-    if (fields.category) {
+    if (fields.categories?.length) {
       const category = document.createElement('span');
-      category.textContent = fields.category;
+      category.className = 'card-category';
+      category.textContent = fields.categories.join(' / ');
       meta.append(category);
     }
 

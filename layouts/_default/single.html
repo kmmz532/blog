@@ -1,14 +1,21 @@
 {{ define "main" }}
 <article class="post" data-slug="{{ .File.ContentBaseName }}">
+  {{- /* パンくず: トップ > カテゴリの各段 > 記事（design.md §16）。カテゴリは階層の順のリスト */}}
+  <nav class="breadcrumb" aria-label="パンくず">
+    <ol>
+      <li><a href="{{ "/" | relURL }}">トップ</a></li>
+      {{- range .Params.categories }}
+      <li><a href="{{ "/categories/" | relURL }}{{ . | urlize }}/">{{ . }}</a></li>
+      {{- end }}
+      <li aria-current="page">{{ .Title }}</li>
+    </ol>
+  </nav>
   <h1 class="post-title">{{ .Title }}</h1>
   <div class="post-meta">
     <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006.01.02" }}</time>
     {{- /* 更新日は、投稿日と違う日のときだけ出す（design.md §14.4） */}}
     {{- if and .Params.lastmod (ne (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02")) }}
     <time class="post-updated" datetime="{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}"><i class="fa-solid fa-rotate" aria-hidden="true"></i> 更新 {{ .Lastmod.Format "2006.01.02" }}</time>
-    {{- end }}
-    {{- range .Params.categories }}
-    <a class="chip" href="{{ "/categories/" | relURL }}{{ . | urlize }}/">{{ . }}</a>
     {{- end }}
   </div>
   {{- with .Params.tags }}

@@ -75,7 +75,8 @@ export function parseArticle(text) {
       slug: '',
       title: String(values.title ?? ''),
       date: dateToJstInput(date),
-      category: values.categories?.[0] ?? 'tech',
+      // 階層の順のリスト（先頭が一番上）。旧形式の 1 つだけのリストもそのまま読める（design.md §16）
+      categories: values.categories?.length ? values.categories : ['tech'],
       tags: values.tags ?? [],
       summary: String(values.summary ?? ''),
       image: String(values.image ?? ''),
@@ -95,7 +96,7 @@ function frontFields(fields) {
   return [
     `title: ${JSON.stringify(fields.title)}`,
     `date: ${fields.date}:00+09:00`,
-    `categories: ${JSON.stringify([fields.category])}`,
+    `categories: ${JSON.stringify(fields.categories)}`,
     `tags: ${JSON.stringify(fields.tags)}`,
     `summary: ${JSON.stringify(fields.summary)}`,
     // 手動のサムネイルは設定したときだけ書く
