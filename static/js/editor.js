@@ -31,7 +31,9 @@ let categoryPicked = false;
 let thumbImage = '';
 // 新規記事の slug が自動（投稿日時と種類から作る）か。手で書き換えたら false
 let slugAuto = false;
-const AUTO_SLUG_MAX = 9;
+// 自動の slug の末尾の番号（2 桁）。自動のときだけ使う
+let autoNumber = null;
+const AUTO_SLUG_TRIES = 5;
 
 function debounce(fn, ms) {
   let timer;
@@ -55,10 +57,16 @@ function setSlugError(message) {
   $('f-slug-error').hidden = !message;
 }
 
-// 自動の slug: 通常記事は YYYYMMDD、外部記事は ext-YYYYMMDD
+// 自動の slug: 通常記事は YYYY-MM-DD-NN、外部記事は ext-YYYY-MM-DD-NN（NN は 00〜99 の乱数）
+const AUTO_SLUG_RE = /^(?:ext-)?\d{4}-\d{2}-\d{2}-(\d{2})$/;
+
+function randomNumber() {
+  return String(Math.floor(Math.random() * 100)).padStart(2, '0');
+}
+
 function autoSlugFor(fields) {
-  const day = fields.date.slice(0, 10).replace(/-/g, '');
-  return `${fields.kind === 'external' ? 'ext-' : ''}${day}`;
+  autoNumber ??= randomNumber();
+  return `${fields.kind === 'external' ? 'ext-' : ''}${fields.date.slice(0, 10)}-${autoNumber}`;
 }
 
 function updateSlugAuto() {
@@ -299,7 +307,10 @@ function writeForm(fields) {
   $('f-date').value = fields.date;
   // 新規は、空か自動の形のままなら自動のまま。保存済みの記事は触らない
   if (state.originalSlug === null) {
-    slugAuto = !fields.slug || fields.slug === autoSlugFor(fields);
+    // 自動の形の slug（下書きの復元を含む）は、その番号を引き継いで自動のままにする
+    const match = AUTO_SLUG_RE.exec(fields.slug);
+    slugAuto = !fields.slug || Boolean(match);
+    autoNumber = match ? match[1] : null;
     syncAutoSlug();
   }
   renderCategories(fields.category);
@@ -667,21 +678,21 @@ async function renameSlug(fields) {
   }
 }
 
-// 新規の保存。自動の slug が既存と重なったら -2 〜 -9 を付けて再試行する。手入力の slug は付け直さない
+// 新規の保存。自動の slug が既存と重なったら番号を振り直して再試行する。手入力の slug は付け直さない
 async function saveNewPost(fields, auto) {
-  const base = fields.slug;
-  const candidates = auto
-    ? [base, ...Array.from({ length: AUTO_SLUG_MAX - 1 }, (_, index) => `${base}-${index + 2}`)]
-    : [base];
-  for (const slug of candidates) {
+  const attempts = auto ? AUTO_SLUG_TRIES : 1;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    if (auto) {
+      if (attempt > 1) autoNumber = randomNumber();
+      fields.slug = autoSlugFor(fields);
+    }
     try {
-      fields.slug = slug;
-      return { slug, sha: await savePost(slug, serialize(fields, state.aliases)) };
+      return { slug: fields.slug, sha: await savePost(fields.slug, serialize(fields, state.aliases)) };
     } catch (error) {
       if (!auto || !(error instanceof ConflictError)) throw error;
     }
   }
-  throw new Error(`同じ日付の記事が ${AUTO_SLUG_MAX} 本あるため、slug を自動で決められませんでした。slug を手で入力してください。`);
+  throw new Error(`自動の slug が ${AUTO_SLUG_TRIES} 回続けて既存と重なったため決められませんでした。slug を手で入力してください。`);
 }
 
 async function publish(event) {
@@ -859,7 +870,11 @@ function start() {
   $('f-category-new').addEventListener('blur', commitNewCategory);
   $('f-slug').addEventListener('input', () => {
     // 手で書き換えたら自動を止める。空にしたら自動に戻し、すぐ作り直す
-    if (state.originalSlug === null) slugAuto = $('f-slug').value === '';
+    if (state.originalSlug === null) {
+      slugAuto = $('f-slug').value === '';
+      // 空に戻したら番号も振り直す
+      if (slugAuto) autoNumber = null;
+    }
     syncAutoSlug();
     updateSlugAuto();
     const slug = $('f-slug').value;
