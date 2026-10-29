@@ -1,5 +1,5 @@
 // 記事ファイルの front matter を読み書きする。副作用はない。
-import { nowJst } from './time.js';
+import { dateToJstInput } from './time.js';
 
 // 画面で扱うキー。それ以外は raw 行のまま保持して書き戻す。build は読み込みで捨てて保存で作り直す
 const KNOWN_KEYS = ['title', 'date', 'categories', 'tags', 'summary', 'aliases', 'external', 'source', 'build'];
@@ -74,7 +74,7 @@ export function parseArticle(text) {
     fields: {
       slug: '',
       title: String(values.title ?? ''),
-      date: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(date) ? date.slice(0, 16) : nowJst(),
+      date: dateToJstInput(date),
       category: values.categories?.[0] ?? 'tech',
       tags: values.tags ?? [],
       summary: String(values.summary ?? ''),

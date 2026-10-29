@@ -8,9 +8,14 @@
   <div class="tabs" role="group" aria-label="表示切替">
     <button type="button" id="view-edit" aria-pressed="true">編集</button>
     <button type="button" id="view-preview" aria-pressed="false">プレビュー</button>
-    <button type="button" id="view-split" aria-pressed="false" hidden>並べて表示</button>
+    <button type="button" id="view-split" aria-pressed="false" hidden>両方</button>
   </div>
   <button type="submit" form="post-form" id="save" class="btn primary">公開</button>
+</div>
+<div id="draft-notice" class="draft-notice" role="status" hidden>
+  <span id="draft-notice-text" class="draft-notice-text"></span>
+  <button type="button" id="draft-restore" class="btn primary">復元する</button>
+  <button type="button" id="draft-discard" class="btn">破棄する</button>
 </div>
 
 <form id="post-form" class="editor" autocomplete="off" data-index-url="{{ "index.json" | relURL }}">
@@ -20,7 +25,7 @@
       <button type="button" class="btn" data-kind="external" aria-pressed="false">外部記事</button>
     </div>
 
-    <input id="f-title" class="title-input" placeholder="タイトル" aria-label="タイトル" required>
+    <input id="f-title" class="title-input" placeholder="タイトル" aria-label="タイトル">
 
     <div id="external-fields" class="external-fields" hidden>
       <label class="field">URL（https://）

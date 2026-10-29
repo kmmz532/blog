@@ -1,6 +1,6 @@
 // 本文欄のツールバーと、画像の 3 経路（ボタン・貼り付け・ドロップ）。
 // 画像は upload で保存し、仮テキストを置いてから実 URL に差し替える。失敗したら仮テキストを消す。
-const PLACEHOLDER = '![アップロード中…]()';
+let uploadCount = 0;
 
 function wrapSelection(textarea, before, after, fallback) {
   const start = textarea.selectionStart;
@@ -38,15 +38,17 @@ function altFrom(file) {
 
 // 仮テキストを置き、保存が終わったら差し替える。すべて textarea の input イベントで通知する
 async function insertImage(textarea, file, upload, onError) {
+  // 仮テキストに番号を付け、同時に複数の画像を貼っても差し替え先を取り違えないようにする
+  const placeholder = `![アップロード中…(${++uploadCount})]()`;
   const start = textarea.selectionStart;
-  textarea.setRangeText(PLACEHOLDER, start, textarea.selectionEnd, 'end');
+  textarea.setRangeText(placeholder, start, textarea.selectionEnd, 'end');
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
 
   const alt = altFrom(file);
   const replaceWith = (text) => {
-    const index = textarea.value.indexOf(PLACEHOLDER);
+    const index = textarea.value.indexOf(placeholder);
     if (index === -1) return;
-    textarea.setRangeText(text, index, index + PLACEHOLDER.length, 'end');
+    textarea.setRangeText(text, index, index + placeholder.length, 'end');
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
   };
 

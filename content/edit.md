@@ -4,4 +4,6 @@ layout: edit
 url: /edit/
 sidebar: false
 robots: noindex
+sitemap:
+  disable: true
 ---

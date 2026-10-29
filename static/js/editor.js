@@ -21,6 +21,13 @@ let dirty = false;
 let autoSource = '';
 // 利用者が日時を触ったら、外部ページからの自動入力で上書きしない
 let dateTouched = false;
+// エラー表示は、公開が成功するか原因の入力欄が直るまで残す（未保存・下書きの表示で消さない）
+let errorShown = false;
+let slugInvalid = false;
+// 復元するか選ぶまで保持する下書き { key, draft }
+let pendingDraft = null;
+// カテゴリを選んだら、新規記事の件数順の既定値で上書きしない
+let categoryPicked = false;
 
 function debounce(fn, ms) {
   let timer;
@@ -41,6 +48,7 @@ function setStatus(message, isError = false) {
   const el = $('status');
   el.textContent = message;
   el.classList.toggle('error', isError);
+  errorShown = isError;
 }
 
 function errorMessage(error, creating) {
@@ -54,7 +62,7 @@ function errorMessage(error, creating) {
 
 function markDirty() {
   dirty = true;
-  setStatus('未保存の変更があります');
+  if (!errorShown) setStatus('未保存の変更があります');
   scheduleDraft();
   scheduleRefresh();
 }
@@ -86,6 +94,7 @@ function renderCategories(selected) {
       button.textContent = name;
       button.setAttribute('aria-pressed', String(name === selected));
       button.addEventListener('click', () => {
+        categoryPicked = true;
         renderCategories(name);
         markDirty();
       });
@@ -114,6 +123,7 @@ function commitNewCategory() {
   }
   const existing = knownCategories.find((item) => item.name.toLowerCase() === name.toLowerCase());
   if (!existing) knownCategories.push({ name, count: 0 });
+  categoryPicked = true;
   renderCategories(existing?.name ?? name);
   markDirty();
 }
@@ -151,11 +161,13 @@ function renderSelectedTags() {
   );
 }
 
-// 入力文字を含む既存タグを出す。押すと選択・解除
+// 入力が空なら件数の多い 20 件、文字を打ったら全件から入力文字を含むものを出す。押すと選択・解除
 function renderTagSuggestions(filter) {
   const needle = filter.trim().toLowerCase();
   const box = $('tag-suggest');
-  const matches = knownTags.filter((item) => item.name.toLowerCase().includes(needle));
+  const matches = needle
+    ? knownTags.filter((item) => item.name.toLowerCase().includes(needle))
+    : knownTags.slice(0, 20);
   box.replaceChildren(
     ...matches.map((item) => {
       const button = document.createElement('button');
@@ -230,7 +242,9 @@ async function loadIndex() {
     const byCount = (a, b) => b.count - a.count || a.name.localeCompare(b.name);
     knownCategories = [...categoryCounts].map(([name, count]) => ({ name, count })).sort(byCount);
     knownTags = [...tagCounts].map(([name, count]) => ({ name, count })).sort(byCount);
-    renderCategories(currentCategory());
+    // 新規記事は件数が一番多いカテゴリを初期値にする（既存が無ければ tech）
+    const keepCurrent = state.originalSlug !== null || categoryPicked;
+    renderCategories(keepCurrent ? currentCategory() : (knownCategories[0]?.name ?? 'tech'));
     renderTagSuggestions($('f-tag-entry').value);
   } catch {
     // 一覧が出なくても、新規に入力すれば使える
@@ -288,6 +302,10 @@ function validate(fields) {
 }
 
 // 種類は保存後に変えられないので、既存記事ではタブを隠す
+function isWide() {
+  return window.matchMedia('(min-width: 1400px)').matches;
+}
+
 function setKind(kind) {
   state.kind = kind;
   const external = kind === 'external';
@@ -297,11 +315,11 @@ function setKind(kind) {
   $('f-body').hidden = external;
   $('view-edit').hidden = external;
   $('view-preview').hidden = external;
-  $('view-split').hidden = external || !window.matchMedia('(min-width: 1400px)').matches;
+  $('view-split').hidden = external || !isWide();
   for (const button of document.querySelectorAll('#kind-tabs button')) {
     button.setAttribute('aria-pressed', String(button.dataset.kind === kind));
   }
-  setView(external ? 'preview' : 'edit');
+  setView(external ? 'preview' : isWide() ? 'split' : 'edit');
 }
 
 function setView(view) {
@@ -451,6 +469,8 @@ function refreshPreview() {
 // ---- 下書き ----
 
 function saveDraft() {
+  // 復元か破棄を選ぶまでは、残っている下書きを上書きしない
+  if (pendingDraft) return;
   const payload = {
     ...readForm(),
     sha: state.sha,
@@ -460,17 +480,54 @@ function saveDraft() {
   };
   if (!writeDraft(draftKey(state.originalSlug), payload)) {
     setStatus('下書きを保存できませんでした。', true);
-  } else {
+  } else if (!errorShown) {
     const time = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
     setStatus(`下書きを保存しました ${time}`);
   }
   renderDrafts($('drafts'));
 }
 
+// 下書きのお知らせ。選ぶまでは保存済みの内容を出したままにする
+function showDraftNotice(key, draft) {
+  pendingDraft = { key, draft };
+  const time = new Date(draft.savedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+  $('draft-notice-text').textContent = `この記事の下書きがあります（${time} 保存）`;
+  $('draft-notice').hidden = false;
+}
+
+function closeDraftNotice() {
+  pendingDraft = null;
+  $('draft-notice').hidden = true;
+}
+
+function restoreDraft() {
+  if (!pendingDraft) return;
+  const { draft } = pendingDraft;
+  closeDraftNotice();
+  writeForm(draft);
+  categoryPicked = true;
+  state.sha = draft.sha ?? null;
+  state.aliases = draft.aliases ?? [];
+  state.extra = draft.extra ?? [];
+  dirty = true;
+  updateChrome();
+  refreshPreview();
+  setStatus('下書きを復元しました。');
+}
+
+function discardDraft() {
+  if (!pendingDraft) return;
+  removeDraft(pendingDraft.key);
+  closeDraftNotice();
+  renderDrafts($('drafts'));
+  setStatus('下書きを破棄しました。');
+}
+
 // ---- 画面状態 ----
 
 function updateChrome() {
   const saved = state.originalSlug !== null;
+  $('save').textContent = saved ? '更新' : '公開';
   $('kind-tabs').hidden = saved;
   $('danger-details').hidden = !saved;
   const back = $('back-link');
@@ -541,6 +598,7 @@ async function publish(event) {
 
     state.originalSlug = fields.slug;
     removeDraft(oldKey);
+    closeDraftNotice();
     dirty = false;
     history.replaceState(null, '', `/edit/?slug=${encodeURIComponent(fields.slug)}`);
     updateChrome();
@@ -636,17 +694,9 @@ async function load() {
   const key = draftKey(state.originalSlug);
   if (hasDraft(key)) {
     const draft = readDraft(key);
-    // キャンセルか壊れた下書きは捨てる
-    if (draft && confirm('この記事の下書きがあります。復元しますか？\n「キャンセル」を選ぶと下書きを削除します。')) {
-      writeForm(draft);
-      state.sha = draft.sha ?? null;
-      state.aliases = draft.aliases ?? [];
-      state.extra = draft.extra ?? [];
-      dirty = true;
-      setStatus('下書きを復元しました。');
-    } else {
-      removeDraft(key);
-    }
+    // 壊れた下書きは捨てる。まともな下書きは復元か破棄を選ばれるまで残す
+    if (draft) showDraftNotice(key, draft);
+    else removeDraft(key);
   }
 
   updateChrome();
@@ -678,12 +728,17 @@ function start() {
   $('f-category-new').addEventListener('blur', commitNewCategory);
   $('f-slug').addEventListener('input', () => {
     const slug = $('f-slug').value;
-    if (slug && !isValidSlug(slug)) setStatus('slug は英小文字・数字・ハイフンのみ使えます。', true);
+    const invalid = Boolean(slug) && !isValidSlug(slug);
+    $('f-slug').setAttribute('aria-invalid', String(invalid));
+    if (invalid) setStatus('slug は英小文字・数字・ハイフンのみ使えます。', true);
+    else if (slugInvalid) setStatus('');
+    slugInvalid = invalid;
   });
 
   for (const button of document.querySelectorAll('#kind-tabs button')) {
     button.addEventListener('click', () => {
       if (button.dataset.kind === 'external' && $('f-slug').value === '') $('f-slug').value = 'ext-';
+      if (button.dataset.kind === 'article' && $('f-slug').value === 'ext-') $('f-slug').value = '';
       setKind(button.dataset.kind);
       markDirty();
     });
@@ -708,6 +763,8 @@ function start() {
     onError: (message) => setStatus(message, true),
   });
 
+  $('draft-restore').addEventListener('click', restoreDraft);
+  $('draft-discard').addEventListener('click', discardDraft);
   $('delete').addEventListener('click', removePost);
   $('discard').addEventListener('click', () => {
     if (!confirm('この記事の下書きを破棄して、保存済みの内容を読み直します。')) return;
