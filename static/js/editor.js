@@ -133,7 +133,7 @@ function validate(fields) {
   }
   // 外部記事のタイトルと概要は空でもよい（ビルド時に OGP で補う）
   if (fields.kind !== 'external' && !fields.title) return fail('f-title', 'タイトルを入力してください。');
-  if (!fields.categories.length) return fail('category-chips', 'カテゴリを選んでください。');
+  if (!fields.categories.length) return fail('f-category', 'カテゴリを入力してください。');
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(fields.date)) return fail('f-date', '投稿日時を入力してください。');
   if (fields.kind === 'external') {
     if (!isHttps(fields.url)) return fail('f-external', '外部記事の URL は https:// で始まるものを入れてください。');

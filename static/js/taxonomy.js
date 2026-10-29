@@ -1,4 +1,4 @@
-// カテゴリとタグ（design.md §11.6・§16）。カテゴリは階層を親から順に選ぶ、タグは複数選ぶ。どちらも「新規」で作れる。
+// カテゴリとタグ（design.md §11.6・§16）。カテゴリは「>」区切りの入力か既存のチップで選ぶ、タグは複数選ぶ。どちらも「新規」で作れる。
 // 画面の状態（state）と、変更を知らせる関数（markDirty）は引数で受け取る。editor.js は import しない
 import { showNotice } from './notice.js';
 
@@ -16,7 +16,10 @@ function choice(text, pressed, onClick) {
 }
 
 export function createTaxonomy({ state, markDirty }) {
-  // ---- カテゴリ（階層。親から順に選ぶ。design.md §16） ----
+  // ---- カテゴリ（階層は「>」で区切った 1 本の流れ。design.md §16） ----
+
+  const SEPARATOR = ' > ';
+  const toText = (path) => path.join(SEPARATOR);
 
   // 今の階層の子の候補。件数の多い順
   function childrenOf(prefix) {
@@ -25,62 +28,52 @@ export function createTaxonomy({ state, markDirty }) {
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
   }
 
-  // 階層の段ごとに、同じ段の候補（兄弟）を 1 行ずつ並べる。選んでいる段は押された状態で出す。
-  // 別の候補を押すと、その段から下を選び直す（design.md §16）
-  function renderCategories() {
-    const path = state.categories;
-    const box = $('category-chips');
-    const rows = [];
-    for (let depth = 0; depth <= path.length; depth++) {
-      const prefix = path.slice(0, depth);
-      const current = path[depth];
-      const options = childrenOf(prefix);
-      // 保存前の新しい名前や、候補の読み込み前の名前も、選んでいるものとして出す
-      if (current !== undefined && !options.some((node) => node.name === current)) {
-        options.unshift({ name: current });
-      }
-      const row = document.createElement('div');
-      row.className = 'category-row';
-      // 行の末尾の「＋」は、この段に新しいカテゴリを作る（1 段目なら最上位、2 段目以降は上で選んだものの子）
-      const add = choice(depth === 0 ? '＋ 新規' : '＋ 子カテゴリ', false, () => {
-        newPrefix = prefix;
-        $('category-new').hidden = false;
-        $('f-category-new').focus();
-      });
-      row.append(
-        ...options.map((node) =>
-          choice(node.name, node.name === current, () => {
-            // 選んでいるものをもう一度押すと、その段から下を外す（上の段は残る）
-            state.categories = node.name === current ? prefix : [...prefix, node.name];
-            state.categoryPicked = true;
-            renderCategories();
-            markDirty();
-          }),
-        ),
-        add,
-      );
-      rows.push(row);
+  // 「a > b」を ['a', 'b'] にする。空の段は捨て、大文字小文字だけ違う名前は既存に合わせる
+  function parsePath(text) {
+    const path = [];
+    for (const name of text.split('>').map((part) => part.trim()).filter(Boolean)) {
+      const existing = childrenOf(path).find((node) => node.name.toLowerCase() === name.toLowerCase());
+      path.push(existing?.name ?? name);
     }
-    box.replaceChildren(...rows);
+    return path;
   }
 
-  // 「＋」を押した段（newPrefix）の子として作る（同じ名前が既にあれば、それを使う）
-  let newPrefix = [];
+  // 入力欄に今のカテゴリを出し、既存のカテゴリ（途中の段も含む）を補完の候補とチップに並べる
+  function renderCategories() {
+    const input = $('f-category');
+    if (document.activeElement !== input) input.value = toText(state.categories);
+    const current = toText(state.categories);
+    const paths = state.categoryNodes
+      .map((node) => ({ path: node.path, text: toText(node.path), count: node.count }))
+      .sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
+    $('category-list').replaceChildren(
+      ...paths.map(({ text }) => {
+        const option = document.createElement('option');
+        option.value = text;
+        return option;
+      }),
+    );
+    $('category-chips').replaceChildren(
+      ...paths.map(({ path, text }) => choice(text, text === current, () => setCategories(path))),
+    );
+  }
 
-  function commitNewCategory() {
-    const name = $('f-category-new').value.trim();
-    $('f-category-new').value = '';
-    $('category-new').hidden = true;
-    if (!name) return;
-    if (name.includes(',')) {
+  function setCategories(path) {
+    state.categories = [...path];
+    state.categoryPicked = true;
+    $('f-category').value = toText(path);
+    renderCategories();
+    markDirty();
+  }
+
+  function commitCategoryInput() {
+    const text = $('f-category').value;
+    if (text.includes(',')) {
       showNotice('error', 'カテゴリ名に , は使えません。');
       return;
     }
-    const existing = childrenOf(newPrefix).find((node) => node.name.toLowerCase() === name.toLowerCase());
-    state.categories = [...newPrefix, existing?.name ?? name];
-    state.categoryPicked = true;
-    renderCategories();
-    markDirty();
+    const path = parsePath(text);
+    if (toText(path) !== toText(state.categories)) setCategories(path);
   }
 
   // ---- タグ（選択中のタグと、既存タグの候補） ----
@@ -213,15 +206,15 @@ export function createTaxonomy({ state, markDirty }) {
     }
   }
 
-  // カテゴリの「新規」とタグの入力欄の操作を付ける
+  // カテゴリとタグの入力欄の操作を付ける
   function attach() {
-    $('f-category-new').addEventListener('keydown', (event) => {
+    $('f-category').addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
         event.preventDefault();
-        commitNewCategory();
+        commitCategoryInput();
       }
     });
-    $('f-category-new').addEventListener('blur', commitNewCategory);
+    $('f-category').addEventListener('change', commitCategoryInput);
     attachTagInput();
   }
 
