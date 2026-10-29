@@ -1,0 +1,31 @@
+{{- /* 本文の {{< link-card url="..." >}} をカードにする（design.md §18）。OGP が取れなければ通常のリンク */ -}}
+{{- $url := .Get "url" -}}
+{{- $ok := or (strings.HasPrefix $url "https://") (strings.HasPrefix $url "http://") -}}
+{{- $title := "" -}}
+{{- $desc := "" -}}
+{{- $image := "" -}}
+{{- if $ok -}}
+  {{- $res := try (resources.GetRemote $url) -}}
+  {{- if not $res.Err -}}
+    {{- with $res.Value -}}
+      {{- $html := .Content -}}
+      {{- with findRESubmatch `<meta[^>]+property="og:title"[^>]+content="([^"]*)"|<meta[^>]+content="([^"]*)"[^>]+property="og:title"` $html -}}
+        {{- $title = htmlUnescape (or (index (index . 0) 1) (index (index . 0) 2)) -}}
+      {{- end -}}
+      {{- with findRESubmatch `<meta[^>]+property="og:description"[^>]+content="([^"]*)"|<meta[^>]+content="([^"]*)"[^>]+property="og:description"` $html -}}
+        {{- $desc = htmlUnescape (or (index (index . 0) 1) (index (index . 0) 2)) -}}
+      {{- end -}}
+      {{- with findRESubmatch `<meta[^>]+property="og:image"[^>]+content="([^"]*)"|<meta[^>]+content="([^"]*)"[^>]+property="og:image"` $html -}}
+        {{- $image = htmlUnescape (or (index (index . 0) 1) (index (index . 0) 2)) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- warnf "link-card: %s: %s" $url $res.Err -}}
+  {{- end -}}
+{{- end -}}
+{{- /* 中は span と img だけにして、<p> の中に入っても正しい HTML になるようにする */ -}}
+{{- if and $ok $title -}}
+<a class="link-card" href="{{ $url }}" target="_blank" rel="noopener"><span class="link-card-body"><span class="link-card-title">{{ $title }}</span>{{ with $desc }}<span class="link-card-desc">{{ . }}</span>{{ end }}<span class="link-card-host">{{ (urls.Parse $url).Host }}</span></span>{{ with $image }}<img class="link-card-thumb" src="{{ . }}" width="96" height="96" alt="" loading="lazy">{{ end }}</a>
+{{- else -}}
+<a href="{{ $url }}" target="_blank" rel="noopener">{{ $url }}</a>
+{{- end -}}
