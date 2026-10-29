@@ -13,26 +13,37 @@ const $ = (id) => document.getElementById(id);
 const SUMMARY_TARGET = 120;
 const SOURCE_NAMES = { 'zenn.dev': 'Zenn', 'qiita.com': 'Qiita', 'note.com': 'note' };
 
-// originalSlug: 保存済み記事の slug。新規は null。kind: 'article' | 'external'
-const state = { kind: 'article', originalSlug: null, sha: null, aliases: [], extra: [] };
-let tags = [];
-// 既存の記事から集計したもの。{ name, count } の配列（件数の多い順）
-let knownCategories = [];
-let knownTags = [];
-let dirty = false;
-let autoSource = '';
-// 利用者が日時を触ったら、外部ページからの自動入力で上書きしない
-let dateTouched = false;
-// 復元するか選ぶまで保持する下書き { key, draft }
-let pendingDraft = null;
-// カテゴリを選んだら、新規記事の件数順の既定値で上書きしない
-let categoryPicked = false;
-// 手動で設定したサムネイルの URL（空なら自動）
-let thumbImage = '';
-// 新規記事の slug が自動（投稿日時と種類から作る）か。手で書き換えたら false
-let slugAuto = false;
-// 自動の slug の末尾の番号（2 桁）。自動のときだけ使う
-let autoNumber = null;
+// 画面の状態はこの 1 つにまとめる。記事の状態（kind・originalSlug・sha・aliases・extra）と、編集中の値・タイマー
+const state = {
+  // originalSlug: 保存済み記事の slug。新規は null。kind: 'article' | 'external'
+  kind: 'article',
+  originalSlug: null,
+  sha: null,
+  aliases: [],
+  extra: [],
+  // 選択中のタグ
+  tags: [],
+  // 既存の記事から集計したもの。{ name, count } の配列（件数の多い順）
+  knownCategories: [],
+  knownTags: [],
+  dirty: false,
+  // 外部ページから自動で入れたサイト名（利用者が書き換えたら上書きしない）
+  autoSource: '',
+  // 利用者が日時を触ったら、外部ページからの自動入力で上書きしない
+  dateTouched: false,
+  // 復元するか選ぶまで保持する下書き { key, draft }
+  pendingDraft: null,
+  // カテゴリを選んだら、新規記事の件数順の既定値で上書きしない
+  categoryPicked: false,
+  // 手動で設定したサムネイルの URL（空なら自動）
+  thumbImage: '',
+  // 新規記事の slug が自動（投稿日時と種類から作る）か。手で書き換えたら false
+  slugAuto: false,
+  // 自動の slug の末尾の番号（2 桁）。自動のときだけ使う
+  autoNumber: null,
+  // 入力のあとに実行する処理。start() で差し込む
+  schedule: { draft: () => {}, refresh: () => {} },
+};
 const AUTO_SLUG_TRIES = 5;
 
 function debounce(fn, ms) {
@@ -45,10 +56,8 @@ function debounce(fn, ms) {
   return run;
 }
 
-let scheduleDraft = () => {};
-let scheduleRefresh = () => {};
 // 公開・削除のあとに、待機中の下書き保存が走って下書きを復活させないよう止める
-const cancelDraft = () => scheduleDraft.cancel?.();
+const cancelDraft = () => state.schedule.draft.cancel?.();
 
 // slug 欄の直下のエラー。空文字で消す
 function setSlugError(message) {
@@ -65,17 +74,17 @@ function randomNumber() {
 }
 
 function autoSlugFor(fields) {
-  autoNumber ??= randomNumber();
-  return `${fields.kind === 'external' ? 'ext-' : ''}${fields.date.slice(0, 10)}-${autoNumber}`;
+  state.autoNumber ??= randomNumber();
+  return `${fields.kind === 'external' ? 'ext-' : ''}${fields.date.slice(0, 10)}-${state.autoNumber}`;
 }
 
 function updateSlugAuto() {
-  $('slug-auto').hidden = state.originalSlug !== null || !slugAuto;
+  $('slug-auto').hidden = state.originalSlug !== null || !state.slugAuto;
 }
 
 // 自動のままなら、投稿日時か記事の種類が変わったときに slug を作り直す（保存はしない）
 function syncAutoSlug() {
-  if (state.originalSlug !== null || !slugAuto) return;
+  if (state.originalSlug !== null || !state.slugAuto) return;
   const date = $('f-date').value;
   if (!/^\d{4}-\d{2}-\d{2}T/.test(date)) return;
   $('f-slug').value = autoSlugFor({ kind: state.kind, date });
@@ -92,10 +101,10 @@ function errorMessage(error, creating) {
 }
 
 function markDirty() {
-  dirty = true;
+  state.dirty = true;
   setSaveState('unsaved', '未保存の変更あり');
-  scheduleDraft();
-  scheduleRefresh();
+  state.schedule.draft();
+  state.schedule.refresh();
 }
 
 function isHttps(url) {
@@ -113,7 +122,7 @@ function currentCategory() {
 }
 
 function renderCategories(selected) {
-  const names = knownCategories.map((item) => item.name);
+  const names = state.knownCategories.map((item) => item.name);
   if (selected && !names.includes(selected)) names.push(selected);
   const box = $('category-chips');
   box.replaceChildren(
@@ -125,7 +134,7 @@ function renderCategories(selected) {
       button.textContent = name;
       button.setAttribute('aria-pressed', String(name === selected));
       button.addEventListener('click', () => {
-        categoryPicked = true;
+        state.categoryPicked = true;
         renderCategories(name);
         markDirty();
       });
@@ -152,9 +161,9 @@ function commitNewCategory() {
     showNotice('error', 'カテゴリ名に , は使えません。');
     return;
   }
-  const existing = knownCategories.find((item) => item.name.toLowerCase() === name.toLowerCase());
-  if (!existing) knownCategories.push({ name, count: 0 });
-  categoryPicked = true;
+  const existing = state.knownCategories.find((item) => item.name.toLowerCase() === name.toLowerCase());
+  if (!existing) state.knownCategories.push({ name, count: 0 });
+  state.categoryPicked = true;
   renderCategories(existing?.name ?? name);
   markDirty();
 }
@@ -165,14 +174,14 @@ function commitNewCategory() {
 function normalizeTagName(raw) {
   const name = raw.trim().replace(/^#/, '');
   if (!name || name.includes(',')) return null;
-  const existing = knownTags.find((item) => item.name.toLowerCase() === name.toLowerCase());
+  const existing = state.knownTags.find((item) => item.name.toLowerCase() === name.toLowerCase());
   return existing?.name ?? name;
 }
 
 function renderSelectedTags() {
   const box = $('tag-selected');
   box.replaceChildren(
-    ...tags.map((tag, index) => {
+    ...state.tags.map((tag, index) => {
       const chip = document.createElement('span');
       chip.className = 'chip';
       chip.textContent = `#${tag}`;
@@ -181,7 +190,7 @@ function renderSelectedTags() {
       remove.setAttribute('aria-label', `${tag} を外す`);
       remove.textContent = '×';
       remove.addEventListener('click', () => {
-        tags.splice(index, 1);
+        state.tags.splice(index, 1);
         renderSelectedTags();
         renderTagSuggestions($('f-tag-entry').value);
         markDirty();
@@ -197,18 +206,18 @@ function renderTagSuggestions(filter) {
   const needle = filter.trim().toLowerCase();
   const box = $('tag-suggest');
   const matches = needle
-    ? knownTags.filter((item) => item.name.toLowerCase().includes(needle))
-    : knownTags.slice(0, 20);
+    ? state.knownTags.filter((item) => item.name.toLowerCase().includes(needle))
+    : state.knownTags.slice(0, 20);
   box.replaceChildren(
     ...matches.map((item) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'choice';
       button.textContent = `#${item.name} (${item.count})`;
-      button.setAttribute('aria-pressed', String(tags.includes(item.name)));
+      button.setAttribute('aria-pressed', String(state.tags.includes(item.name)));
       button.addEventListener('click', () => {
-        if (tags.includes(item.name)) tags = tags.filter((tag) => tag !== item.name);
-        else tags.push(item.name);
+        if (state.tags.includes(item.name)) state.tags = state.tags.filter((tag) => tag !== item.name);
+        else state.tags.push(item.name);
         renderSelectedTags();
         renderTagSuggestions($('f-tag-entry').value);
         markDirty();
@@ -227,8 +236,8 @@ function addTagFromEntry() {
     if (raw.trim()) showNotice('error', 'タグ名に , は使えません。');
     return;
   }
-  if (!tags.includes(name)) {
-    tags.push(name);
+  if (!state.tags.includes(name)) {
+    state.tags.push(name);
     renderSelectedTags();
     markDirty();
   }
@@ -241,8 +250,8 @@ function attachTagInput() {
     if (event.key === 'Enter' || event.key === ',') {
       event.preventDefault();
       addTagFromEntry();
-    } else if (event.key === 'Backspace' && entry.value === '' && tags.length) {
-      tags.pop();
+    } else if (event.key === 'Backspace' && entry.value === '' && state.tags.length) {
+      state.tags.pop();
       renderSelectedTags();
       renderTagSuggestions('');
       markDirty();
@@ -271,11 +280,11 @@ async function loadIndex() {
       }
     }
     const byCount = (a, b) => b.count - a.count || a.name.localeCompare(b.name);
-    knownCategories = [...categoryCounts].map(([name, count]) => ({ name, count })).sort(byCount);
-    knownTags = [...tagCounts].map(([name, count]) => ({ name, count })).sort(byCount);
+    state.knownCategories = [...categoryCounts].map(([name, count]) => ({ name, count })).sort(byCount);
+    state.knownTags = [...tagCounts].map(([name, count]) => ({ name, count })).sort(byCount);
     // 新規記事は件数が一番多いカテゴリを初期値にする（既存が無ければ tech）
-    const keepCurrent = state.originalSlug !== null || categoryPicked;
-    renderCategories(keepCurrent ? currentCategory() : (knownCategories[0]?.name ?? 'tech'));
+    const keepCurrent = state.originalSlug !== null || state.categoryPicked;
+    renderCategories(keepCurrent ? currentCategory() : (state.knownCategories[0]?.name ?? 'tech'));
     renderTagSuggestions($('f-tag-entry').value);
   } catch {
     // 一覧が出なくても、新規に入力すれば使える
@@ -291,12 +300,12 @@ function readForm() {
     title: $('f-title').value.trim(),
     date: $('f-date').value.slice(0, 16),
     category: currentCategory(),
-    tags: [...tags],
+    tags: [...state.tags],
     summary: $('f-summary').value.trim(),
     body: $('f-body').value,
     url: $('f-external').value.trim(),
     source: $('f-source').value.trim(),
-    image: thumbImage,
+    image: state.thumbImage,
   };
 }
 
@@ -309,18 +318,18 @@ function writeForm(fields) {
   if (state.originalSlug === null) {
     // 自動の形の slug（下書きの復元を含む）は、その番号を引き継いで自動のままにする
     const match = AUTO_SLUG_RE.exec(fields.slug);
-    slugAuto = !fields.slug || Boolean(match);
-    autoNumber = match ? match[1] : null;
+    state.slugAuto = !fields.slug || Boolean(match);
+    state.autoNumber = match ? match[1] : null;
     syncAutoSlug();
   }
   renderCategories(fields.category);
-  tags = [...fields.tags];
+  state.tags = [...fields.tags];
   renderSelectedTags();
   renderTagSuggestions('');
   $('f-summary').value = fields.summary;
   $('summary-details').open = Boolean(fields.summary);
-  thumbImage = fields.image ?? '';
-  $('thumb-details').open = Boolean(thumbImage);
+  state.thumbImage = fields.image ?? '';
+  $('thumb-details').open = Boolean(state.thumbImage);
   $('f-body').value = fields.body;
   $('f-external').value = fields.url ?? '';
   $('f-source').value = fields.source ?? '';
@@ -422,9 +431,9 @@ function sourceFromUrl(url) {
 function onExternalUrlInput() {
   const source = $('f-source');
   const guess = sourceFromUrl($('f-external').value.trim());
-  if (guess && (source.value === '' || source.value === autoSource)) {
+  if (guess && (source.value === '' || source.value === state.autoSource)) {
     source.value = guess;
-    autoSource = guess;
+    state.autoSource = guess;
   }
 }
 
@@ -445,19 +454,19 @@ async function autofillExternal() {
     $('summary-details').open = true;
     updateSummaryCount();
   }
-  if (!tags.length && meta.tags.length) {
-    tags = meta.tags.filter(Boolean);
+  if (!state.tags.length && meta.tags.length) {
+    state.tags = meta.tags.filter(Boolean);
     renderSelectedTags();
     renderTagSuggestions('');
   }
-  if (!dateTouched && meta.date) {
+  if (!state.dateTouched && meta.date) {
     $('f-date').value = meta.date;
     syncAutoSlug();
   }
   const source = $('f-source');
-  if (meta.source && (source.value === '' || source.value === autoSource)) {
+  if (meta.source && (source.value === '' || source.value === state.autoSource)) {
     source.value = meta.source;
-    autoSource = meta.source;
+    state.autoSource = meta.source;
   }
   markDirty();
   showNotice('info', '外部ページから項目を取得しました。内容を確認してください。');
@@ -518,7 +527,7 @@ const BODY_IMAGE_RE = /!\[[^\]]*\]\(([^)\s]+)[^)]*\)/g;
 
 // 今どう決まっているかを返す。自動の画像は本文の最初の画像（外部記事は OGP なのでプレビューなし）
 function thumbStatus() {
-  if (thumbImage) return { url: thumbImage, label: '手動' };
+  if (state.thumbImage) return { url: state.thumbImage, label: '手動' };
   if (state.kind === 'external') return { url: '', label: '自動: OGP の画像（ビルド時に取得）' };
   const first = [...$('f-body').value.matchAll(BODY_IMAGE_RE)][0];
   if (first) return { url: first[1], label: '自動: 本文の最初の画像' };
@@ -552,7 +561,7 @@ function showThumbChoices() {
       img.loading = 'lazy';
       button.append(img);
       button.addEventListener('click', () => {
-        thumbImage = url;
+        state.thumbImage = url;
         box.hidden = true;
         renderThumb();
         markDirty();
@@ -576,7 +585,7 @@ function refreshPreview() {
 
 function saveDraft() {
   // 復元か破棄を選ぶまでは、残っている下書きを上書きしない
-  if (pendingDraft) return;
+  if (state.pendingDraft) return;
   const payload = {
     ...readForm(),
     sha: state.sha,
@@ -595,7 +604,7 @@ function saveDraft() {
 
 // 下書きのお知らせ。選ぶまでは保存済みの内容を出したままにする
 function showDraftNotice(key, draft) {
-  pendingDraft = { key, draft };
+  state.pendingDraft = { key, draft };
   const time = new Date(draft.savedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
   // 選ぶまで消えない（お知らせ欄の [復元する] [破棄する]）
   showNotice('info', `この記事の下書きがあります（${time} 保存）`, [
@@ -605,28 +614,28 @@ function showDraftNotice(key, draft) {
 }
 
 function closeDraftNotice() {
-  pendingDraft = null;
+  state.pendingDraft = null;
   hideNotice();
 }
 
 function restoreDraft() {
-  if (!pendingDraft) return;
-  const { draft } = pendingDraft;
+  if (!state.pendingDraft) return;
+  const { draft } = state.pendingDraft;
   closeDraftNotice();
   writeForm(draft);
-  categoryPicked = true;
+  state.categoryPicked = true;
   state.sha = draft.sha ?? null;
   state.aliases = draft.aliases ?? [];
   state.extra = draft.extra ?? [];
-  dirty = true;
+  state.dirty = true;
   updateChrome();
   refreshPreview();
   showNotice('info', '下書きを復元しました。');
 }
 
 function discardDraft() {
-  if (!pendingDraft) return;
-  removeDraft(pendingDraft.key);
+  if (!state.pendingDraft) return;
+  removeDraft(state.pendingDraft.key);
   closeDraftNotice();
   renderDrafts($('drafts'));
   showNotice('info', '下書きを破棄しました。');
@@ -683,7 +692,7 @@ async function saveNewPost(fields, auto) {
   const attempts = auto ? AUTO_SLUG_TRIES : 1;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     if (auto) {
-      if (attempt > 1) autoNumber = randomNumber();
+      if (attempt > 1) state.autoNumber = randomNumber();
       fields.slug = autoSlugFor(fields);
     }
     try {
@@ -707,7 +716,7 @@ async function publish(event) {
   }
 
   const creating = state.originalSlug === null;
-  const auto = creating && slugAuto;
+  const auto = creating && state.slugAuto;
   const slugChanged = !creating && fields.slug !== state.originalSlug;
   const oldKey = draftKey(state.originalSlug);
   const oldSlug = state.originalSlug;
@@ -737,7 +746,7 @@ async function publish(event) {
       oldSlug: slugChanged ? oldSlug : null,
     });
     if (slugChanged && !warning) recordDelete(oldSlug);
-    dirty = false;
+    state.dirty = false;
     history.replaceState(null, '', `/edit/?slug=${encodeURIComponent(fields.slug)}`);
     updateChrome();
     renderDrafts($('drafts'));
@@ -769,7 +778,7 @@ async function removePost() {
     await deletePost(slug, state.sha);
     recordDelete(slug);
     removeDraft(draftKey(slug));
-    dirty = false;
+    state.dirty = false;
     location.assign('/');
   } catch (error) {
     showNotice('error', errorMessage(error, false));
@@ -846,14 +855,14 @@ async function load() {
 
 function start() {
   const form = $('post-form');
-  scheduleDraft = debounce(saveDraft, 1000);
-  scheduleRefresh = debounce(refreshPreview, 300);
+  state.schedule.draft = debounce(saveDraft, 1000);
+  state.schedule.refresh = debounce(refreshPreview, 300);
 
   form.addEventListener('submit', publish);
   form.addEventListener('input', (event) => {
     if (event.target.id === 'f-external') onExternalUrlInput();
     if (event.target.id === 'f-date') {
-      dateTouched = true;
+      state.dateTouched = true;
       syncAutoSlug();
     }
     if (event.target.id === 'f-summary') updateSummaryCount();
@@ -871,9 +880,9 @@ function start() {
   $('f-slug').addEventListener('input', () => {
     // 手で書き換えたら自動を止める。空にしたら自動に戻し、すぐ作り直す
     if (state.originalSlug === null) {
-      slugAuto = $('f-slug').value === '';
+      state.slugAuto = $('f-slug').value === '';
       // 空に戻したら番号も振り直す
-      if (slugAuto) autoNumber = null;
+      if (state.slugAuto) state.autoNumber = null;
     }
     syncAutoSlug();
     updateSlugAuto();
@@ -910,7 +919,7 @@ function start() {
   });
 
   $('thumb-auto').addEventListener('click', () => {
-    thumbImage = '';
+    state.thumbImage = '';
     renderThumb();
     markDirty();
   });
@@ -926,7 +935,7 @@ function start() {
     showNotice('info', '画像をアップロードしています…');
     try {
       // 本文には挿入しない。URL だけを手動のサムネイルにする
-      thumbImage = await uploadImage(file);
+      state.thumbImage = await uploadImage(file);
       renderThumb();
       markDirty();
     } catch (error) {
@@ -937,7 +946,7 @@ function start() {
   $('discard').addEventListener('click', () => {
     if (!confirm('この記事の下書きを破棄して、保存済みの内容を読み直します。')) return;
     removeDraft(draftKey(state.originalSlug));
-    dirty = false;
+    state.dirty = false;
     location.reload();
   });
 
@@ -953,7 +962,7 @@ function start() {
   });
 
   window.addEventListener('beforeunload', (event) => {
-    if (!dirty) return;
+    if (!state.dirty) return;
     event.preventDefault();
     event.returnValue = '';
   });
