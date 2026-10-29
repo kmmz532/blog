@@ -215,10 +215,15 @@ function fitPreviewToBody() {
 
 function autosize() {
   const body = $('f-body');
+  // 高さを一度 auto に縮めるとページが短くなってスクロール位置が飛ぶので、前後で戻す
+  const { scrollX, scrollY } = window;
+  const innerTop = body.scrollTop;
   body.style.height = 'auto';
   // 手動の高さがあればそれを使う（内容が多ければ本文欄の中でスクロールする）。無ければ内容の高さ
   autoHeight = `${manualHeight ?? body.scrollHeight}px`;
   body.style.height = autoHeight;
+  body.scrollTop = innerTop;
+  window.scrollTo(scrollX, scrollY);
 }
 
 // 並べて表示のとき、本文欄とプレビューのスクロール位置を割合で合わせる。
