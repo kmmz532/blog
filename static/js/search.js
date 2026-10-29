@@ -110,15 +110,11 @@ function loadIndex() {
 // 入力が止まってから検索する（1 文字ごとに全記事を調べ直さない）
 const DEBOUNCE_MS = 200;
 let timer = 0;
-const form = document.getElementById('search-form');
 input.addEventListener('input', () => {
   clearTimeout(timer);
-  // 検索の待ち・索引の読み込みの間は、虫眼鏡を脈打たせる
-  form.classList.add('searching');
   timer = setTimeout(async () => {
     await loadIndex();
     render();
-    form.classList.remove('searching');
   }, DEBOUNCE_MS);
 });
 document.getElementById('search-form').addEventListener('submit', (event) => event.preventDefault());
