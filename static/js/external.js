@@ -1,3 +1,7 @@
+import { showNotice } from './notice.js';
+
+const $ = (id) => document.getElementById(id);
+
 // 外部記事の URL からタイトルなどを取る（ブラウザ側）。取れなければ null を返し、呼び出し側は手入力に任せる。
 // 取得した文字列は値として返すだけで、HTML としては描画しない。認証ヘッダーは付けない。
 const HATENA_HOST = /\.(hatenablog\.com|hatenablog\.jp|hateblo\.jp|hatenadiary\.com|hatenadiary\.jp)$/;
@@ -95,4 +99,129 @@ export async function fetchExternalMeta(rawUrl) {
     // CORS で拒否された・ネットワークが無いなど。手入力に任せる
     return null;
   }
+}
+
+const SOURCE_NAMES = { 'zenn.dev': 'Zenn', 'qiita.com': 'Qiita', 'note.com': 'note' };
+
+export function isHttps(url) {
+  try {
+    return new URL(url).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+// 外部記事フォーム（design.md §3.1・§11.6）。画面の状態と他の部品は引数で受け取る。editor.js は import しない
+export function createExternalForm({ state, markDirty, slugs, taxonomy, updateSummaryCount, refreshPreview }) {
+  // ---- 外部記事 ----
+
+  function sourceFromUrl(url) {
+    try {
+      const host = new URL(url).hostname.replace(/^www\./, '');
+      return SOURCE_NAMES[host] ?? host;
+    } catch {
+      return '';
+    }
+  }
+
+  // URL を入れたとき、サイト名が空か自動入力のままなら既定値を入れる
+  function onExternalUrlInput() {
+    const source = $('f-source');
+    const guess = sourceFromUrl($('f-external').value.trim());
+    if (guess && (source.value === '' || source.value === state.autoSource)) {
+      source.value = guess;
+      state.autoSource = guess;
+    }
+  }
+
+  // URL の確定時に外部ページから項目を取る。入力済みの項目は上書きしない
+  async function autofillExternal() {
+    const url = $('f-external').value.trim();
+    if (!isHttps(url)) return;
+    showNotice('info', '外部ページから項目を取得しています…');
+    const meta = await fetchExternalMeta(url);
+    if (!meta) {
+      showNotice('info', '自動取得できませんでした（手入力してください）。');
+      return;
+    }
+
+    if (!$('f-title').value && meta.title) $('f-title').value = meta.title;
+    if (!$('f-summary').value && meta.summary) {
+      $('f-summary').value = meta.summary;
+      $('summary-details').open = true;
+      updateSummaryCount();
+    }
+    if (!state.tags.length && meta.tags.length) {
+      state.tags = meta.tags.filter(Boolean);
+      taxonomy.renderSelectedTags();
+      taxonomy.renderTagSuggestions('');
+    }
+    if (!state.dateTouched && meta.date) {
+      $('f-date').value = meta.date;
+      slugs.syncAutoSlug();
+    }
+    const source = $('f-source');
+    if (meta.source && (source.value === '' || source.value === state.autoSource)) {
+      source.value = meta.source;
+      state.autoSource = meta.source;
+    }
+    markDirty();
+    showNotice('info', '外部ページから項目を取得しました。内容を確認してください。');
+    refreshPreview();
+  }
+
+  function renderExternalCard(fields) {
+    const article = document.createElement('article');
+    article.className = 'carditem';
+
+    const meta = document.createElement('div');
+    meta.className = 'card-meta';
+    const date = document.createElement('time');
+    date.textContent = fields.date.slice(0, 10).replaceAll('-', '.');
+    meta.append(date);
+    if (fields.category) {
+      const category = document.createElement('span');
+      category.textContent = fields.category;
+      meta.append(category);
+    }
+
+    const heading = document.createElement('h2');
+    heading.className = 'card-title';
+    heading.textContent = fields.title || fields.url || '（無題）';
+    // 外部リンクの表示はタイトルの横に出す（一覧カードと同じ）
+    const source = document.createElement('span');
+    source.className = 'card-external';
+    const icon = document.createElement('i');
+    icon.className = 'fa-solid fa-arrow-up-right-from-square';
+    icon.setAttribute('aria-hidden', 'true');
+    source.append(icon, ` ${fields.source || ''}`);
+    heading.append(source);
+
+    article.append(meta, heading);
+    if (fields.summary) {
+      const excerpt = document.createElement('p');
+      excerpt.className = 'card-excerpt';
+      excerpt.textContent = fields.summary;
+      article.append(excerpt);
+    }
+    if (fields.tags.length) {
+      const box = document.createElement('div');
+      box.className = 'card-tags';
+      for (const tag of fields.tags) {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = `#${tag}`;
+        box.append(chip);
+      }
+      article.append(box);
+    }
+    $('preview').replaceChildren(article);
+  }
+
+
+  function attach() {
+    $('f-external').addEventListener('change', autofillExternal);
+  }
+
+  return { onExternalUrlInput, autofillExternal, renderExternalCard, attach };
 }

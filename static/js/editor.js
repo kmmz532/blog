@@ -4,7 +4,7 @@ import { parseArticle, buildArticle, buildExternal } from './frontmatter.js';
 import { draftKey, hasDraft, readDraft, writeDraft, removeDraft, renderDrafts } from './drafts.js';
 import { renderPreview } from './preview.js';
 import { attachToolbar } from './toolbar.js';
-import { fetchExternalMeta } from './external.js';
+import { createExternalForm, isHttps } from './external.js';
 import { nowJst } from './time.js';
 import { recordSave, recordDelete } from './pending.js';
 import { setSaveState, showNotice, hideNotice } from './notice.js';
@@ -14,7 +14,6 @@ import { createThumb } from './thumb.js';
 
 const $ = (id) => document.getElementById(id);
 const SUMMARY_TARGET = 120;
-const SOURCE_NAMES = { 'zenn.dev': 'Zenn', 'qiita.com': 'Qiita', 'note.com': 'note' };
 
 // 画面の状態はこの 1 つにまとめる。記事の状態（kind・originalSlug・sha・aliases・extra）と、編集中の値・タイマー
 const state = {
@@ -50,6 +49,7 @@ const state = {
 const AUTO_SLUG_TRIES = 5;
 const taxonomy = createTaxonomy({ state, markDirty });
 const slugs = createSlug({ state });
+const externals = createExternalForm({ state, markDirty, slugs, taxonomy, updateSummaryCount, refreshPreview });
 const thumbs = createThumb({ state, markDirty });
 
 function debounce(fn, ms) {
@@ -79,14 +79,6 @@ function markDirty() {
   setSaveState('unsaved', '未保存の変更あり');
   state.schedule.draft();
   state.schedule.refresh();
-}
-
-function isHttps(url) {
-  try {
-    return new URL(url).protocol === 'https:';
-  } catch {
-    return false;
-  }
 }
 
 // ---- フォームとの変換 ----
@@ -214,116 +206,11 @@ function autosize() {
   body.style.height = `${body.scrollHeight}px`;
 }
 
-// ---- 外部記事 ----
-
-function sourceFromUrl(url) {
-  try {
-    const host = new URL(url).hostname.replace(/^www\./, '');
-    return SOURCE_NAMES[host] ?? host;
-  } catch {
-    return '';
-  }
-}
-
-// URL を入れたとき、サイト名が空か自動入力のままなら既定値を入れる
-function onExternalUrlInput() {
-  const source = $('f-source');
-  const guess = sourceFromUrl($('f-external').value.trim());
-  if (guess && (source.value === '' || source.value === state.autoSource)) {
-    source.value = guess;
-    state.autoSource = guess;
-  }
-}
-
-// URL の確定時に外部ページから項目を取る。入力済みの項目は上書きしない
-async function autofillExternal() {
-  const url = $('f-external').value.trim();
-  if (!isHttps(url)) return;
-  showNotice('info', '外部ページから項目を取得しています…');
-  const meta = await fetchExternalMeta(url);
-  if (!meta) {
-    showNotice('info', '自動取得できませんでした（手入力してください）。');
-    return;
-  }
-
-  if (!$('f-title').value && meta.title) $('f-title').value = meta.title;
-  if (!$('f-summary').value && meta.summary) {
-    $('f-summary').value = meta.summary;
-    $('summary-details').open = true;
-    updateSummaryCount();
-  }
-  if (!state.tags.length && meta.tags.length) {
-    state.tags = meta.tags.filter(Boolean);
-    taxonomy.renderSelectedTags();
-    taxonomy.renderTagSuggestions('');
-  }
-  if (!state.dateTouched && meta.date) {
-    $('f-date').value = meta.date;
-    slugs.syncAutoSlug();
-  }
-  const source = $('f-source');
-  if (meta.source && (source.value === '' || source.value === state.autoSource)) {
-    source.value = meta.source;
-    state.autoSource = meta.source;
-  }
-  markDirty();
-  showNotice('info', '外部ページから項目を取得しました。内容を確認してください。');
-  refreshPreview();
-}
-
-function renderExternalCard(fields) {
-  const article = document.createElement('article');
-  article.className = 'carditem';
-
-  const meta = document.createElement('div');
-  meta.className = 'card-meta';
-  const date = document.createElement('time');
-  date.textContent = fields.date.slice(0, 10).replaceAll('-', '.');
-  meta.append(date);
-  if (fields.category) {
-    const category = document.createElement('span');
-    category.textContent = fields.category;
-    meta.append(category);
-  }
-
-  const heading = document.createElement('h2');
-  heading.className = 'card-title';
-  heading.textContent = fields.title || fields.url || '（無題）';
-  // 外部リンクの表示はタイトルの横に出す（一覧カードと同じ）
-  const source = document.createElement('span');
-  source.className = 'card-external';
-  const icon = document.createElement('i');
-  icon.className = 'fa-solid fa-arrow-up-right-from-square';
-  icon.setAttribute('aria-hidden', 'true');
-  source.append(icon, ` ${fields.source || ''}`);
-  heading.append(source);
-
-  article.append(meta, heading);
-  if (fields.summary) {
-    const excerpt = document.createElement('p');
-    excerpt.className = 'card-excerpt';
-    excerpt.textContent = fields.summary;
-    article.append(excerpt);
-  }
-  if (fields.tags.length) {
-    const box = document.createElement('div');
-    box.className = 'card-tags';
-    for (const tag of fields.tags) {
-      const chip = document.createElement('span');
-      chip.className = 'chip';
-      chip.textContent = `#${tag}`;
-      box.append(chip);
-    }
-    article.append(box);
-  }
-  $('preview').replaceChildren(article);
-}
-
 function refreshPreview() {
   const fields = readForm();
   updateSummaryHint();
   thumbs.renderThumb();
-  if (fields.kind === 'external') renderExternalCard(fields);
+  if (fields.kind === 'external') externals.renderExternalCard(fields);
   else renderPreview(fields.body, fields.title, $('preview'));
 }
 
@@ -606,7 +493,7 @@ function start() {
 
   form.addEventListener('submit', publish);
   form.addEventListener('input', (event) => {
-    if (event.target.id === 'f-external') onExternalUrlInput();
+    if (event.target.id === 'f-external') externals.onExternalUrlInput();
     if (event.target.id === 'f-date') {
       state.dateTouched = true;
       slugs.syncAutoSlug();
@@ -615,7 +502,7 @@ function start() {
     if (event.target.id === 'f-body') autosize();
     markDirty();
   });
-  $('f-external').addEventListener('change', autofillExternal);
+  externals.attach();
   slugs.attach();
 
   for (const button of document.querySelectorAll('#kind-tabs button')) {
