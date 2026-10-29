@@ -113,19 +113,19 @@ export function createTaxonomy({ state, markDirty }) {
   function renderTagSuggestions(filter) {
     const needle = filter.trim().toLowerCase();
     const box = $('tag-suggest');
+    // 選択済みのタグは上に出ているので、候補からは外す
+    const unselected = state.knownTags.filter((item) => !state.tags.includes(item.name));
     const matches = needle
-      ? state.knownTags.filter((item) => item.name.toLowerCase().includes(needle))
-      : state.knownTags.slice(0, 20);
+      ? unselected.filter((item) => item.name.toLowerCase().includes(needle))
+      : unselected.slice(0, 20);
     box.replaceChildren(
       ...matches.map((item) => {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'choice';
         button.textContent = `#${item.name} (${item.count})`;
-        button.setAttribute('aria-pressed', String(state.tags.includes(item.name)));
         button.addEventListener('click', () => {
-          if (state.tags.includes(item.name)) state.tags = state.tags.filter((tag) => tag !== item.name);
-          else state.tags.push(item.name);
+          state.tags.push(item.name);
           renderSelectedTags();
           renderTagSuggestions($('f-tag-entry').value);
           markDirty();
