@@ -40,6 +40,13 @@
 <meta name="blog-repo" content="{{ site.Params.repo }}">
 <meta name="blog-branch" content="{{ site.Params.branch }}">
 <link rel="alternate" type="application/rss+xml" title="{{ site.Title }}" href="{{ "index.xml" | absURL }}">
+{{- /* アイコンは params.icon / params.appleIcon を設定したときだけ出す（design.md §13） */}}
+{{- with site.Params.icon }}
+<link rel="icon" href="{{ . | relURL }}">
+{{- end }}
+{{- with site.Params.appleIcon }}
+<link rel="apple-touch-icon" href="{{ . | relURL }}">
+{{- end }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">

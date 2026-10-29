@@ -23,6 +23,8 @@ enableRobotsTXT = true
 [params]
   description = "Kmmz1127の個人ブログです！"
   headerTitle = "Kmmz1127 Blog"
+  icon = "/icon.jpg"
+  appleIcon = "/apple-touch-icon.png"
   repo = "kmmz532/blog-article"
   branch = "main"
   author = "Mizuto, Kaminakano"
