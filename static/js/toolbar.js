@@ -34,7 +34,7 @@ function imageFile(list) {
   return [...(list ?? [])].find((file) => file.type.startsWith('image/')) ?? null;
 }
 
-function altFrom(file) {
+export function altFrom(file) {
   return file.name ? file.name.replace(/\.[^.]+$/, '').replace(/[[\]]/g, '') : 'image';
 }
 
@@ -78,6 +78,12 @@ function insertCardFromUrl(textarea, url) {
   insertText(textarea, url);
   textarea.setSelectionRange(start, start + url.length);
   insertText(textarea, `{{< link-card url="${url}" >}}`);
+}
+
+// 本文のカーソル位置に画像を入れる（画像の一覧から選んだとき・一覧から上げたとき）
+export function insertImageMarkdown(textarea, url, alt = 'image') {
+  textarea.setRangeText(`![${alt}](${url})`, textarea.selectionStart, textarea.selectionEnd, 'end');
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 export function attachToolbar({ textarea, toolbar, fileInput, upload, onError }) {

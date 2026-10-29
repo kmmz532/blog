@@ -176,6 +176,36 @@ export async function saveImage(path, base64) {
   });
 }
 
+// 保存済みの画像を新しい年から順に返す。publicPath は記事に書く /images/<yyyy>/<name>。
+// 1 つのフォルダは 1000 件まで。取れない年があっても他の年は返す
+export async function listImages() {
+  const ref = `?ref=${encodeURIComponent(branch)}`;
+  const years = (await api(`${contentsUrl('static/images')}${ref}`)) ?? [];
+  const dirs = years.filter((entry) => entry.type === 'dir' && /^\d{4}$/.test(entry.name));
+  const lists = await Promise.all(dirs.map((dir) => api(`${contentsUrl(dir.path)}${ref}`)));
+  return lists
+    .flatMap((list) => list ?? [])
+    .filter((entry) => entry.type === 'file' && IMAGE_PATH_RE.test(entry.path))
+    .map((entry) => ({
+      path: entry.path,
+      publicPath: entry.path.replace(/^static/, ''),
+      sha: entry.sha,
+      size: entry.size,
+    }))
+    .sort((a, b) => (a.publicPath < b.publicPath ? 1 : -1));
+}
+
+export async function deleteImage(path, sha) {
+  if (!IMAGE_PATH_RE.test(path)) throw new Error('画像の保存先が正しくありません。');
+  await api(contentsUrl(path), {
+    method: 'DELETE',
+    body: { message: `delete image: ${path}`, sha, branch },
+  });
+}
+
+// 公開前の画像を見るための URL（blog-article は public）。/images/... の記事内の書き方から作る
+export const rawImageUrl = (publicPath) => `https://raw.githubusercontent.com/${repo}/${branch}/static${publicPath}`;
+
 // ログイン時に使う。書き込み権限の確認はここで行う
 export async function checkRepoPush(token) {
   const json = await api(`/repos/${repo}`, { token });

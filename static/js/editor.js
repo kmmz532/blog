@@ -3,7 +3,8 @@ import { uploadImage } from './image.js';
 import { parseArticle } from './frontmatter.js';
 import { draftKey, hasDraft, readDraft, removeDraft, renderDrafts } from './drafts.js';
 import { renderPreview } from './preview.js';
-import { attachToolbar } from './toolbar.js';
+import { attachToolbar, insertImageMarkdown, altFrom } from './toolbar.js';
+import { mountImageManager } from './images.js';
 import { createExternalForm, isHttps } from './external.js';
 import { nowJst } from './time.js';
 import { setSaveState, showNotice } from './notice.js';
@@ -389,6 +390,17 @@ function start() {
     fileInput: $('f-image'),
     upload: uploadImage,
     onError: (message) => showNotice('error', message),
+  });
+
+  const images = mountImageManager($('image-manager'), {
+    onPick: (url) => insertImageMarkdown($('f-body'), url),
+    onUploaded: (url, file) => insertImageMarkdown($('f-body'), url, altFrom(file)),
+  });
+  // 一覧は初めて開いたときに読む。ツールバーの画像一覧ボタンからも開ける
+  $('images-details').addEventListener('toggle', () => images.load(), { once: true });
+  $('open-images').addEventListener('click', () => {
+    $('images-details').open = true;
+    $('images-details').scrollIntoView({ block: 'nearest' });
   });
 
   thumbs.attach();

@@ -1,5 +1,9 @@
 {{ define "main" }}
 <h1 class="page-title">一括管理</h1>
+<nav class="admin-nav" aria-label="管理">
+  <a href="{{ "/admin/" | relURL }}" aria-current="page">記事</a>
+  <a href="{{ "/admin/images/" | relURL }}">画像</a>
+</nav>
 <p class="admin-note">公開済みの記事を選んで、削除やカテゴリ・タグの変更をまとめて行います。保存は 1 つのコミットになります（反映まで 1〜2 分）。</p>
 
 <div class="admin-tools">

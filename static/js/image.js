@@ -1,4 +1,4 @@
-import { saveImage, ConflictError } from './github.js';
+import { saveImage, rawImageUrl, ConflictError } from './github.js';
 import { jstYear } from './time.js';
 
 const MAX_LONG_SIDE = 1600;
@@ -63,6 +63,15 @@ async function toBase64(blob) {
   return btoa(bin);
 }
 
+// 上げたばかりの画像は、公開されるまで /images/... で見られない。この画面の間だけ手元の Blob で見せる
+const localImages = new Map();
+
+// 記事内の画像 URL（/images/...）を、今すぐ見られる URL にする。それ以外はそのまま返す
+export function imageSrc(url) {
+  if (!/^\/images\/\d{4}\/[a-z0-9]{8}\.\w+$/.test(url)) return url;
+  return localImages.get(url) ?? rawImageUrl(url);
+}
+
 // 保存した画像の公開パス（/images/<yyyy>/<name>）を返す
 export async function uploadImage(file) {
   const { blob, ext } = await prepareImage(file);
@@ -74,6 +83,7 @@ export async function uploadImage(file) {
     const name = `${randomName()}.${ext}`;
     try {
       await saveImage(`static/images/${year}/${name}`, content);
+      localImages.set(`/images/${year}/${name}`, URL.createObjectURL(blob));
       return `/images/${year}/${name}`;
     } catch (error) {
       if (!(error instanceof ConflictError)) throw error;

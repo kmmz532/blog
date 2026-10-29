@@ -1,4 +1,5 @@
 import { addCopyButtons } from './copy.js';
+import { imageSrc } from './image.js';
 
 // marked の出力は HTML として挿入するため、危険な要素と属性を落としてから描画する。
 // 記事詳細（single.html）と同じ見た目になるよう、タイトルと本文を同じクラスで出す。
@@ -236,6 +237,11 @@ export function renderPreview(markdown, title, container) {
       }
     }
   }
+
+  // 公開前や手元の確認では /images/... が開けないので、見られる URL に差し替える
+  content.querySelectorAll('img[src^="/images/"]').forEach((img) => {
+    img.src = imageSrc(img.getAttribute('src'));
+  });
 
   const body = document.createElement('div');
   body.className = 'post-body';

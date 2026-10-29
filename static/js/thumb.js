@@ -1,6 +1,6 @@
 // サムネイル（手動設定があればそれ。無ければ自動。design.md §3・§11.6）。
 // 画面の状態（state）と変更通知（markDirty）は引数で受け取る。editor.js は import しない
-import { uploadImage } from './image.js';
+import { uploadImage, imageSrc } from './image.js';
 import { showNotice } from './notice.js';
 
 const $ = (id) => document.getElementById(id);
@@ -23,7 +23,7 @@ export function createThumb({ state, markDirty }) {
     const { url, label } = thumbStatus();
     const preview = $('thumb-preview');
     preview.hidden = !url;
-    preview.src = url;
+    preview.src = imageSrc(url);
     $('thumb-state').textContent = label;
     $('thumb-pick').hidden = state.kind === 'external';
     $('thumb-choices').hidden = true;
@@ -39,7 +39,7 @@ export function createThumb({ state, markDirty }) {
         button.type = 'button';
         button.className = 'thumb-choice';
         const img = document.createElement('img');
-        img.src = url;
+        img.src = imageSrc(url);
         img.alt = '';
         img.width = 64;
         img.height = 64;

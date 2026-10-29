@@ -714,3 +714,83 @@ body:has(.editor) .footer {
   outline: 2px solid var(--link);
   outline-offset: -2px;
 }
+
+/* 画像の管理（design.md §19） */
+.admin-nav {
+  display: flex;
+  gap: 1rem;
+  margin: 0.5rem 0 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-nav a {
+  padding: 0.4rem 0.2rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+
+.admin-nav a[aria-current="page"] {
+  color: var(--foreground);
+  border-bottom-color: var(--link);
+}
+
+.image-manager.dragover {
+  outline: 2px dashed var(--link);
+  outline-offset: 4px;
+}
+
+.image-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.image-status {
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.image-tile {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.image-tile img {
+  display: block;
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(var(--foreground-rgb), 0.04);
+}
+
+.image-name {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.image-actions .btn {
+  height: auto;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+}

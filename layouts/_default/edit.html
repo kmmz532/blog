@@ -39,6 +39,7 @@
       <button type="button" data-action="quote" aria-label="引用" title="引用"><i class="fa-solid fa-quote-left" aria-hidden="true"></i></button>
       <button type="button" data-action="code" aria-label="コード" title="コード"><i class="fa-solid fa-code" aria-hidden="true"></i></button>
       <button type="button" data-action="image" aria-label="画像を挿入" title="画像を挿入"><i class="fa-solid fa-image" aria-hidden="true"></i></button>
+      <button type="button" id="open-images" aria-label="画像の一覧" title="画像の一覧"><i class="fa-solid fa-images" aria-hidden="true"></i></button>
       <input id="f-image" type="file" accept="image/*" hidden>
     </div>
 
@@ -77,6 +78,11 @@
       <summary>概要（任意）</summary>
       <textarea id="f-summary" rows="3" placeholder="（本文から自動生成されます）"></textarea>
       <p id="summary-count" class="char-count"></p>
+    </details>
+
+    <details id="images-details" class="details-card">
+      <summary>画像</summary>
+      <div id="image-manager" class="image-manager"></div>
     </details>
 
     <details id="thumb-details" class="details-card">

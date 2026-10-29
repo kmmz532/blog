@@ -1,0 +1,15 @@
+{{ define "main" }}
+<h1 class="page-title">画像の管理</h1>
+<nav class="admin-nav" aria-label="管理">
+  <a href="{{ "/admin/" | relURL }}">記事</a>
+  <a href="{{ "/admin/images/" | relURL }}" aria-current="page">画像</a>
+</nav>
+<p class="admin-note">アップロード済みの画像です。ファイルをここへドロップしても上げられます（長辺 1600px の WebP に縮小、1MB まで）。削除は 1 件ずつで、反映まで 1〜2 分かかります。</p>
+
+<div id="image-manager" class="image-manager"></div>
+{{ end }}
+
+
+{{ define "scripts" }}
+<script type="module" src="{{ "js/admin-images.js" | relURL }}"></script>
+{{ end }}
