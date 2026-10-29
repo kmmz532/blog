@@ -1,0 +1,53 @@
+{{ define "main" }}
+<h1 class="page-title">一括管理</h1>
+<p class="admin-note">公開済みの記事を選んで、削除やカテゴリ・タグの変更をまとめて行います。保存は 1 つのコミットになります（反映まで 1〜2 分）。</p>
+
+<div class="admin-tools">
+  <input id="admin-search" type="search" placeholder="タイトルで絞り込む" aria-label="タイトルで絞り込む">
+  <select id="admin-kind" aria-label="種類で絞り込む">
+    <option value="all">すべての種類</option>
+    <option value="article">記事</option>
+    <option value="external">外部記事</option>
+  </select>
+  <span id="admin-count" class="admin-count" aria-live="polite"></span>
+</div>
+
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th scope="col"><input id="admin-all" type="checkbox" aria-label="表示中の記事をすべて選ぶ"></th>
+        <th scope="col">日付</th>
+        <th scope="col">タイトル</th>
+        <th scope="col">種類</th>
+        <th scope="col">カテゴリ</th>
+        <th scope="col">タグ</th>
+      </tr>
+    </thead>
+    <tbody id="admin-rows"></tbody>
+  </table>
+</div>
+
+<section id="bulk-bar" class="bulk-bar" aria-label="一括操作" hidden>
+  <p id="bulk-count" class="bulk-count"></p>
+  <div class="bulk-controls">
+    <select id="bulk-action" aria-label="一括操作">
+      <option value="delete">削除</option>
+      <option value="category">カテゴリを設定</option>
+      <option value="addTags">タグを追加</option>
+      <option value="removeTags">タグを削除</option>
+    </select>
+    <select id="bulk-category" aria-label="設定するカテゴリ" hidden></select>
+    <input id="bulk-tags" type="text" placeholder="タグ（カンマ区切り）" aria-label="タグ（カンマ区切り）" hidden>
+    <button type="button" id="bulk-apply" class="btn primary">適用</button>
+  </div>
+  <p id="bulk-status" class="bulk-status" role="status"></p>
+</section>
+
+<p id="admin-status" class="bulk-status" role="status"></p>
+{{ end }}
+
+
+{{ define "scripts" }}
+<script type="module" src="{{ "js/admin-list.js" | relURL }}" data-index-url="{{ "index.json" | relURL }}"></script>
+{{ end }}
