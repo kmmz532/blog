@@ -249,3 +249,30 @@ h4:hover .heading-anchor,
 .heading-anchor:focus-visible {
   opacity: 1;
 }
+
+/* コードのコピーボタン（design.md §14.3）。右上に出す */
+.post-body pre {
+  position: relative;
+}
+
+.copy-code {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.copy-code:hover,
+.copy-code:focus-visible {
+  color: var(--foreground);
+}
