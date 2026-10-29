@@ -29,7 +29,7 @@ enableRobotsTXT = true
   # 画像の無い記事の og:image（任意。/images/... の形）。未設定なら出さない
   # ogImage = "/images/ogp.png"
   headerTitle = "Kmmz1127 Blog"
-  icon = "/icon.jpg"
+  icon = "/favicon.ico"
   appleIcon = "/apple-touch-icon.png"
   repo = "kmmz532/blog-article"
   branch = "main"
