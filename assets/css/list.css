@@ -149,15 +149,15 @@ a.chip:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.25rem;
+  width: 2.25rem;
   height: 2.25rem;
-  padding: 0 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  padding: 0;
+  border: 1px solid var(--foreground);
+  border-radius: 50%;
 }
 
 .pager a:hover {
-  background: rgba(var(--foreground-rgb), 0.08);
+  background: rgba(var(--foreground-rgb), 0.2);
   text-decoration: none;
 }
 
