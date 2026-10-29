@@ -126,3 +126,21 @@ export function buildExternal(fields, extra) {
   ];
   return `---\n${lines.join('\n')}\n---\n`;
 }
+
+// 一括操作の変換（design.md §17）。カテゴリを置き換え（null なら変えない）、タグを追加・削除する。
+// 本文・他の項目・lastmod は変えない。記事と外部記事のどちらも同じ形で扱う
+export function applyBulk(text, { categories = null, addTags = [], removeTags = [] }) {
+  const parsed = parseArticle(text);
+  const tags = parsed.fields.tags.filter((tag) => !removeTags.includes(tag));
+  for (const tag of addTags) {
+    if (!tags.includes(tag)) tags.push(tag);
+  }
+  const fields = {
+    ...parsed.fields,
+    categories: categories ?? parsed.fields.categories,
+    tags,
+  };
+  return parsed.kind === 'external'
+    ? buildExternal(fields, parsed.extra)
+    : buildArticle(fields, parsed.aliases, parsed.extra);
+}
