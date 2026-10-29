@@ -4,8 +4,8 @@ import { addCopyButtons } from './copy.js';
 // 記事詳細（single.html）と同じ見た目になるよう、タイトルと本文を同じクラスで出す。
 // title が null のときはタイトルを出さない（編集画面は本文欄の上にタイトル入力があるため）。
 const DROP = 'script, iframe, object, embed, style, link, meta, base, form';
-// 本文の記法を 1 行で書いたもの（design.md §18）。コードブロックの外だけ変換する
-const SHORTCODE_LINE = /^\{\{<\s*(link-card|tweet|youtube)\s+(?:url|id)="([^"]+)"\s*>\}\}\s*$/gm;
+// 本文の記法（design.md §18）。コードブロックの外だけ変換する。行の途中にあっても変換する
+const SHORTCODE_LINE = /\{\{<\s*(link-card|tweet|youtube)\s+(?:url|id)="([^"]+)"\s*>\}\}/g;
 const TWEET_URL = /^https:\/\/(?:x|twitter)\.com\/([A-Za-z0-9_]{1,15})\/status\/\d+/;
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
 // 同じ URL を入力のたびに取り直さないための、メモリ上のキャッシュ（Promise を入れる）
@@ -28,7 +28,7 @@ function withSlots(markdown) {
         ? part
         : part.replace(
             SHORTCODE_LINE,
-            (_, name, value) => `<div class="shortcode-slot" data-name="${name}" data-value="${encodeURIComponent(value)}"></div>`,
+            (_, name, value) => `<span class="shortcode-slot" data-name="${name}" data-value="${encodeURIComponent(value)}"></span>`,
           ),
     )
     .join('');
@@ -108,25 +108,33 @@ function fillLinkCard(slot, url) {
   });
 }
 
-// X の投稿は公式のスクリプトを読まず、投稿者の名前とリンクだけのカードにする（design.md §18）
+// X の公式の埋め込み（widgets.js、design.md §18）。読み込めなければ blockquote の中のリンクが残る
+let twitterScript = null;
+
+function loadTwitterWidget(slot) {
+  if (window.twttr?.widgets) {
+    window.twttr.widgets.load(slot);
+    return;
+  }
+  if (!twitterScript) {
+    twitterScript = document.createElement('script');
+    twitterScript.src = 'https://platform.twitter.com/widgets.js';
+    twitterScript.async = true;
+    twitterScript.charset = 'utf-8';
+    document.head.append(twitterScript);
+  }
+  twitterScript.addEventListener('load', () => window.twttr?.widgets.load(slot), { once: true });
+}
+
 function fillTweet(slot, url) {
-  const match = TWEET_URL.exec(url);
-  if (!match) {
+  if (!TWEET_URL.test(url)) {
     slot.replaceChildren(plainLink(url));
     return;
   }
-  const link = makeElement('a', 'link-card tweet-card');
-  link.href = url;
-  link.target = '_blank';
-  link.rel = 'noopener';
-  const body = makeElement('span', 'link-card-body');
-  body.append(
-    makeElement('span', 'link-card-title', `@${match[1]} の投稿`),
-    makeElement('span', 'link-card-desc', 'X（旧 Twitter）で投稿を開きます'),
-    makeElement('span', 'link-card-host', 'x.com'),
-  );
-  link.append(body);
-  slot.replaceChildren(link);
+  const quote = makeElement('blockquote', 'twitter-tweet');
+  quote.append(plainLink(url));
+  slot.replaceChildren(quote);
+  loadTwitterWidget(slot);
 }
 
 function fillYoutube(slot, id) {
