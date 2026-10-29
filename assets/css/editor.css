@@ -797,6 +797,8 @@ body:has(.editor) .footer {
 
 /* 編集画面の画像ダイアログ */
 .images-dialog {
+  /* 全体のリセット（margin: 0）で、標準の中央寄せが消えるので戻す */
+  margin: auto;
   width: min(760px, calc(100vw - 32px));
   max-height: calc(100vh - 64px);
   padding: 16px 20px;
