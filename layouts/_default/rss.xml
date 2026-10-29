@@ -1,6 +1,7 @@
-{{- $items := first 30 (where site.RegularPages "Section" "posts") -}}
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+{{- /* 先頭の XML 宣言は、HTML として読まれてエスケープされないように safeHTML で出す */ -}}
+{{ `<?xml version="1.0" encoding="utf-8" standalone="yes"?>` | safeHTML }}
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+{{- $items := first 30 (where site.RegularPages "Section" "posts") -}}
   <channel>
     <title>{{ site.Title | transform.XMLEscape }}</title>
     <link>{{ site.BaseURL }}</link>
