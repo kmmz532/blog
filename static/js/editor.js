@@ -204,6 +204,26 @@ function autosize() {
   body.style.height = `${body.scrollHeight}px`;
 }
 
+// 並べて表示のとき、本文欄とプレビューのスクロール位置を割合で合わせる。
+// 片方を動かすと、もう片方の scroll イベントが返ってくるので、そのときは無視する
+function attachScrollSync() {
+  const body = $('f-body');
+  const preview = $('preview');
+  let moving = false;
+  const follow = (from, to) => () => {
+    if (moving) return;
+    const range = from.scrollHeight - from.clientHeight;
+    if (range <= 0) return;
+    moving = true;
+    to.scrollTop = (from.scrollTop / range) * (to.scrollHeight - to.clientHeight);
+    requestAnimationFrame(() => {
+      moving = false;
+    });
+  };
+  body.addEventListener('scroll', follow(body, preview));
+  preview.addEventListener('scroll', follow(preview, body));
+}
+
 function refreshPreview() {
   const fields = readForm();
   updateSummaryHint();
@@ -315,6 +335,7 @@ function start() {
   });
   externals.attach();
   slugs.attach();
+  attachScrollSync();
 
   for (const button of document.querySelectorAll('#kind-tabs button')) {
     button.addEventListener('click', () => {

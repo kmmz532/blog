@@ -296,9 +296,11 @@
   border-radius: 8px;
 }
 
-/* 並べて表示では、本文欄（ツールバーの下）と上端をそろえる */
+/* 並べて表示では、本文欄（ツールバーの下）と上端をそろえる。高さも本文欄と同じ 60vh で止め、中をスクロールさせる（editor.js で位置を合わせる） */
 .editor-main.split .preview-pane {
   margin-top: 0;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 /* 外部記事のプレビューはカード自体に枠があるので、外枠は付けない */
