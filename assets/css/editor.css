@@ -534,9 +534,10 @@
   color: var(--text-secondary);
 }
 
-@media (min-width: 960px) {
+/* 半分の画面幅でも記事設定を右に並べる（サイトの本体と同じ 720px。幅はサイドバーと同じ 260px） */
+@media (min-width: 720px) {
   .editor {
-    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-columns: minmax(0, 1fr) 260px;
     align-items: start;
   }
 
