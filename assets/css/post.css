@@ -390,3 +390,44 @@ h4:hover .heading-anchor,
 .post-body .shortcode-error {
   color: #c00;
 }
+
+/* 本文の Instagram 埋め込み（design.md §18）。投稿の縦長に合わせて幅を 540px まで */
+.post-body .instagram-embed {
+  margin: 1.25em auto;
+  max-width: 540px;
+}
+
+.post-body .instagram-embed iframe {
+  display: block;
+  width: 100%;
+  height: 620px;
+  border: 0;
+  border-radius: 8px;
+}
+
+/* 本文の音声埋め込み（SoundCloud）。高さは一覧の小さい再生バーに合わせる */
+.post-body .audio-embed {
+  margin: 1.25em 0;
+}
+
+.post-body .audio-embed iframe {
+  display: block;
+  width: 100%;
+  height: 166px;
+  border: 0;
+  border-radius: 8px;
+}
+
+/* 本文の Facebook 埋め込み（design.md §18）。投稿の縦長に合わせて幅を 500px まで */
+.post-body .facebook-embed {
+  margin: 1.25em auto;
+  max-width: 500px;
+}
+
+.post-body .facebook-embed iframe {
+  display: block;
+  width: 100%;
+  height: 600px;
+  border: 0;
+  border-radius: 8px;
+}

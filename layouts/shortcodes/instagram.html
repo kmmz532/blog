@@ -1,0 +1,8 @@
+{{- /* {{< instagram url="https://www.instagram.com/p/<コード>/" >}}: Instagram の投稿を iframe で埋め込む。公式のスクリプトは使わない（design.md §18） */ -}}
+{{- $url := .Get "url" -}}
+{{- $m := findRESubmatch `^https://(?:www\.)?instagram\.com/(p|reel)/([A-Za-z0-9_-]+)/?` $url -}}
+{{- if $m -}}
+<div class="instagram-embed"><iframe src="https://www.instagram.com/{{ index (index $m 0) 1 }}/{{ index (index $m 0) 2 }}/embed" title="Instagram の投稿" loading="lazy" allowtransparency="true"></iframe></div>
+{{- else -}}
+<a href="{{ $url }}" target="_blank" rel="noopener">{{ $url }}</a>
+{{- end -}}

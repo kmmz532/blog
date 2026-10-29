@@ -5,8 +5,9 @@ import { addCopyButtons } from './copy.js';
 // title が null のときはタイトルを出さない（編集画面は本文欄の上にタイトル入力があるため）。
 const DROP = 'script, iframe, object, embed, style, link, meta, base, form';
 // 本文の記法（design.md §18）。コードブロックの外だけ変換する。行の途中にあっても変換する
-const SHORTCODE_LINE = /\{\{<\s*(link-card|tweet|youtube)\s+(?:url|id)="([^"]+)"\s*>\}\}/g;
+const SHORTCODE_LINE = /\{\{<\s*(link-card|tweet|youtube|instagram|vimeo|niconico|soundcloud|facebook)\s+(?:url|id)="([^"]+)"\s*>\}\}/g;
 const TWEET_URL = /^https:\/\/(?:x|twitter)\.com\/([A-Za-z0-9_]{1,15})\/status\/\d+/;
+const INSTAGRAM_URL = /^https:\/\/(?:www\.)?instagram\.com\/(p|reel)\/([A-Za-z0-9_-]+)\/?/;
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
 // ビルド時に取った OGP（/ogp/index.json、design.md §18）。読めたら一度だけ読み、以後は同じ Promise を使う
 let ogpIndex = null;
@@ -143,10 +144,76 @@ function fillYoutube(slot, id) {
   slot.replaceChildren(wrap);
 }
 
+// Instagram の投稿は iframe で埋め込む（design.md §18）。URL の形が違えば通常のリンク
+function fillInstagram(slot, url) {
+  const match = INSTAGRAM_URL.exec(url);
+  if (!match) {
+    slot.replaceChildren(plainLink(url));
+    return;
+  }
+  const frame = document.createElement('iframe');
+  frame.src = `https://www.instagram.com/${match[1]}/${match[2]}/embed`;
+  frame.title = 'Instagram の投稿';
+  frame.loading = 'lazy';
+  const wrap = makeElement('div', 'instagram-embed');
+  wrap.append(frame);
+  slot.replaceChildren(wrap);
+}
+
+// iframe の埋め込みを作る。wrapClass は 16:9 の動画枠（video-embed）か、音声の枠（audio-embed）
+function fillFrame(slot, src, title, wrapClass) {
+  const frame = document.createElement('iframe');
+  frame.src = src;
+  frame.title = title;
+  frame.loading = 'lazy';
+  frame.allowFullscreen = wrapClass === 'video-embed';
+  const wrap = makeElement('div', wrapClass);
+  wrap.append(frame);
+  slot.replaceChildren(wrap);
+}
+
+function fillVimeo(slot, id) {
+  if (!/^[0-9]+$/.test(id)) {
+    slot.replaceChildren(makeElement('span', 'shortcode-error', `Vimeo の ID が正しくありません: ${id}`));
+    return;
+  }
+  fillFrame(slot, `https://player.vimeo.com/video/${id}`, 'Vimeo の動画', 'video-embed');
+}
+
+function fillNiconico(slot, id) {
+  if (!/^(sm|nm|so)?[0-9]+$/.test(id)) {
+    slot.replaceChildren(makeElement('span', 'shortcode-error', `ニコニコ動画の ID が正しくありません: ${id}`));
+    return;
+  }
+  fillFrame(slot, `https://embed.nicovideo.jp/watch/${id}`, 'ニコニコ動画の動画', 'video-embed');
+}
+
+function fillSoundcloud(slot, url) {
+  if (!/^https:\/\/soundcloud\.com\/[^/\s"]+\/[^/\s"]+/.test(url)) {
+    slot.replaceChildren(plainLink(url));
+    return;
+  }
+  fillFrame(slot, `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}`, 'SoundCloud の曲', 'audio-embed');
+}
+
+function fillFacebook(slot, url) {
+  if (!/^https:\/\/(?:www\.|m\.)?facebook\.com\/[^\s"]+/.test(url)) {
+    slot.replaceChildren(plainLink(url));
+    return;
+  }
+  fillFrame(slot, `https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(url)}&width=500`, 'Facebook の投稿', 'facebook-embed');
+}
+
 function fillSlot(slot) {
   const value = decodeURIComponent(slot.dataset.value);
-  if (slot.dataset.name === 'youtube') fillYoutube(slot, value);
-  else if (slot.dataset.name === 'tweet') fillTweet(slot, value);
+  const name = slot.dataset.name;
+  if (name === 'youtube') fillYoutube(slot, value);
+  else if (name === 'tweet') fillTweet(slot, value);
+  else if (name === 'instagram') fillInstagram(slot, value);
+  else if (name === 'vimeo') fillVimeo(slot, value);
+  else if (name === 'niconico') fillNiconico(slot, value);
+  else if (name === 'soundcloud') fillSoundcloud(slot, value);
+  else if (name === 'facebook') fillFacebook(slot, value);
   else fillLinkCard(slot, value);
 }
 

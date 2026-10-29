@@ -1,0 +1,7 @@
+{{- /* {{< vimeo id="数字" >}}: Vimeo の動画を iframe で埋め込む（design.md §18）。ID は数字だけ */ -}}
+{{- $id := .Get "id" -}}
+{{- if findRE `^[0-9]+$` $id -}}
+<div class="video-embed"><iframe src="https://player.vimeo.com/video/{{ $id }}" title="Vimeo の動画" loading="lazy" allowfullscreen></iframe></div>
+{{- else -}}
+<span class="shortcode-error">Vimeo の ID が正しくありません: {{ $id }}</span>
+{{- end -}}

@@ -1,0 +1,7 @@
+{{- /* {{< facebook url="https://www.facebook.com/..." >}}: Facebook の投稿を iframe（プラグイン）で埋め込む。公式のスクリプトは使わない（design.md §18） */ -}}
+{{- $url := .Get "url" -}}
+{{- if findRE `^https://(?:www\.|m\.)?facebook\.com/[^\s"]+` $url -}}
+<div class="facebook-embed"><iframe src="https://www.facebook.com/plugins/post.php?href={{ $url | urlquery }}&width=500" title="Facebook の投稿" loading="lazy" allowfullscreen></iframe></div>
+{{- else -}}
+<a href="{{ $url }}" target="_blank" rel="noopener">{{ $url }}</a>
+{{- end -}}

@@ -11,6 +11,13 @@
 | `{{< link-card url="https://..." >}}` | 記事のタイトル・概要・サムネイルのカード | 取れなければ通常のリンクになる |
 | `{{< youtube id="11字のID" >}}` | YouTube の動画（16:9） | ID だけを書く。URL は不可 |
 | `{{< tweet url="https://x.com/ユーザー名/status/番号" >}}` | X の投稿の埋め込み | X の公式スクリプトを読み込む。単独の行に置く |
+| `{{< instagram url="https://www.instagram.com/p/コード/" >}}` | Instagram の投稿（iframe） | `/reel/` の URL も可 |
+| `{{< facebook url="https://www.facebook.com/..." >}}` | Facebook の投稿（iframe） | 公開されている投稿だけ表示される |
+| `{{< vimeo id="数字" >}}` | Vimeo の動画（16:9） | ID だけを書く |
+| `{{< niconico id="sm9 など" >}}` | ニコニコ動画（16:9） | ID だけを書く |
+| `{{< soundcloud url="https://soundcloud.com/ユーザー名/曲" >}}` | SoundCloud の曲（音声） | 曲の URL を書く |
+
+GitHub のリポジトリや記事の URL は、`link-card` にすればカードになります。gist の埋め込みはスクリプトが要るので、今は対応していません。
 
 ### URL を貼り付けると
 

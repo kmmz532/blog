@@ -1,0 +1,7 @@
+{{- /* {{< niconico id="sm9 など" >}}: ニコニコ動画を iframe で埋め込む（design.md §18）。ID は sm・nm・so の後ろに数字（または数字だけ） */ -}}
+{{- $id := .Get "id" -}}
+{{- if findRE `^(sm|nm|so)?[0-9]+$` $id -}}
+<div class="video-embed"><iframe src="https://embed.nicovideo.jp/watch/{{ $id }}" title="ニコニコ動画の動画" loading="lazy" allowfullscreen></iframe></div>
+{{- else -}}
+<span class="shortcode-error">ニコニコ動画の ID が正しくありません: {{ $id }}</span>
+{{- end -}}
