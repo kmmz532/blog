@@ -25,57 +25,42 @@ export function createTaxonomy({ state, markDirty }) {
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
   }
 
-  // 今の選択（state.categories）を描き直す。上の段は、押すとその段までに戻る
+  // 階層の段ごとに、同じ段の候補（兄弟）を 1 行ずつ並べる。選んでいる段は押された状態で出す。
+  // 別の候補を押すと、その段から下を選び直す（design.md §16）
   function renderCategories() {
     const path = state.categories;
     const box = $('category-chips');
-    const levels = path.map((name, index) => {
-      const isLast = index === path.length - 1;
-      return choice(name, true, () => {
-        if (isLast) return;
-        state.categories = path.slice(0, index + 1);
-        state.categoryPicked = true;
-        renderCategories();
-        markDirty();
-      });
-    });
-    const row = document.createElement('span');
-    row.className = 'category-path';
-    path.forEach((_, index) => {
-      if (index > 0) {
-        const sep = document.createElement('span');
-        sep.className = 'category-sep';
-        sep.setAttribute('aria-hidden', 'true');
-        sep.textContent = '›';
-        row.append(sep);
+    const rows = [];
+    for (let depth = 0; depth <= path.length; depth++) {
+      const prefix = path.slice(0, depth);
+      const current = path[depth];
+      const options = childrenOf(prefix);
+      // 保存前の新しい名前や、候補の読み込み前の名前も、選んでいるものとして出す
+      if (current !== undefined && !options.some((node) => node.name === current)) {
+        options.unshift({ name: current });
       }
-      row.append(levels[index]);
-    });
-    if (path.length) {
-      const clear = choice('×', false, () => {
-        state.categories = [];
-        state.categoryPicked = true;
-        renderCategories();
-        markDirty();
-      });
-      clear.setAttribute('aria-label', 'カテゴリを選び直す');
-      clear.title = 'カテゴリを選び直す';
-      row.append(clear);
+      if (!options.length) continue;
+      const row = document.createElement('div');
+      row.className = 'category-row';
+      row.append(
+        ...options.map((node) =>
+          choice(node.name, node.name === current, () => {
+            if (node.name === current) return;
+            state.categories = [...prefix, node.name];
+            state.categoryPicked = true;
+            renderCategories();
+            markDirty();
+          }),
+        ),
+      );
+      rows.push(row);
     }
-
-    const candidates = childrenOf(path).map((node) =>
-      choice(node.name, false, () => {
-        state.categories = [...path, node.name];
-        state.categoryPicked = true;
-        renderCategories();
-        markDirty();
-      }),
-    );
     const add = choice('＋ 新規', false, () => {
       $('category-new').hidden = false;
       $('f-category-new').focus();
     });
-    box.replaceChildren(...(path.length ? [row] : []), ...candidates, add);
+    rows.push(add);
+    box.replaceChildren(...rows);
   }
 
   // 「＋ 新規」は今の階層の子として作る（同じ名前が子にあれば、それを使う）

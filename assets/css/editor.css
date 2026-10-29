@@ -591,16 +591,18 @@ body:has(.editor) .footer {
 }
 
 
-/* カテゴリの選んだ階層（design.md §16）。押すとその段までに戻る */
-.category-path {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem;
+/* カテゴリの階層（design.md §16）。段ごとに、同じ段の候補を 1 行に並べる */
+#category-chips {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
 }
 
-.category-sep {
-  color: var(--text-secondary);
+.category-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
 }
 
 /* 一括管理（design.md §17） */
