@@ -21,6 +21,23 @@ enableRobotsTXT = true
   description = "kmmz1127の個人ブログです！"
   repo = "kmmz532/blog-article"
   branch = "main"
+  author = "Kmmz1127"
+  bio = "ウェブ開発やアプリ開発に興味のある大学生"
+  footer = "© 2025-2026 Kmmz1127 - All Rights Reserved."
+
+# サイドバーのリンク (URLが空であれば非表示)
+[[params.links]]
+  name = "kmmz.jp"
+  url = "https://kmmz.jp/"
+  icon = "fa-house"
+[[params.links]]
+  name = "GitHub"
+  url = "https://github.com/kmmz532"
+  icon = "fa-brands fa-github"
+[[params.links]]
+  name = "X"
+  url = ""
+  icon = "fa-brands fa-x-twitter"
 
 # 記事は別リポジトリ blog-article を posts/ に clone して取り込む
 [[module.mounts]]

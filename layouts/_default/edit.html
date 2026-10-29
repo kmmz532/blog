@@ -1,46 +1,92 @@
 {{ define "main" }}
-<h1 class="page-title" id="edit-title">記事の編集</h1>
-<div class="editor">
-  <form id="post-form" class="editor-form" autocomplete="off">
-    <label>slug（英小文字・数字・ハイフン）
-      <input id="f-slug" required pattern="[a-z0-9\-]{1,80}" maxlength="80"></label>
-    <label>タイトル
-      <input id="f-title" required></label>
-    <label>投稿日時
-      <input id="f-date" type="datetime-local" required></label>
-    <label>カテゴリ
-      <select id="f-category">
-        <option value="tech">tech</option>
-        <option value="diary">diary</option>
-        <option value="misc">misc</option>
-        <option value="devlog">devlog</option>
-      </select></label>
-    <label>タグ（カンマ区切り）
-      <input id="f-tags"></label>
-    <label>概要
-      <textarea id="f-summary" rows="2"></textarea></label>
-    <label>本文（Markdown）
-      <textarea id="f-body" rows="24"></textarea></label>
-    <label class="image-upload">画像を挿入（WebP に変換して保存）
-      <input id="f-image" type="file" accept="image/*"></label>
-    <div class="editor-actions">
-      <button type="submit" id="save" class="btn primary">公開</button>
-      <button type="button" id="discard" class="btn">下書きを破棄</button>
-      <button type="button" id="delete" class="btn danger" hidden>削除</button>
-      <a id="view-link" class="btn" href="#" hidden>記事を見る</a>
-    </div>
-    <p id="status" role="status" aria-live="polite"></p>
-  </form>
-  <section class="preview-pane">
-    <h2>プレビュー</h2>
-    <div id="preview" class="post-body"></div>
-  </section>
+<div class="editor-bar">
+  <a class="icon-button" id="back-link" href="{{ "/" | relURL }}" aria-label="戻る" title="戻る">
+    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+  </a>
+  <span id="status" class="save-state" role="status" aria-live="polite"></span>
+  <span class="spacer"></span>
+  <div class="tabs" role="group" aria-label="表示切替">
+    <button type="button" id="view-edit" aria-pressed="true">編集</button>
+    <button type="button" id="view-preview" aria-pressed="false">プレビュー</button>
+    <button type="button" id="view-split" aria-pressed="false" hidden>並べて表示</button>
+  </div>
+  <button type="submit" form="post-form" id="save" class="btn primary">公開</button>
 </div>
-<section class="drafts">
-  <h2>下書き（この端末のみ）</h2>
-  <ul id="drafts"></ul>
-</section>
+
+<form id="post-form" class="editor" autocomplete="off" data-index-url="{{ "index.json" | relURL }}">
+  <div class="editor-main" id="editor-main" data-view="edit" data-kind="article">
+    <div id="kind-tabs" class="kind-tabs" hidden>
+      <button type="button" class="btn" data-kind="article" aria-pressed="true">記事</button>
+      <button type="button" class="btn" data-kind="external" aria-pressed="false">外部記事</button>
+    </div>
+
+    <input id="f-title" class="title-input" placeholder="タイトル" aria-label="タイトル" required>
+
+    <div id="external-fields" class="external-fields" hidden>
+      <label class="field">URL（https://）
+        <input id="f-external" type="url" placeholder="https://"></label>
+      <label class="field">サイト名
+        <input id="f-source" placeholder="Zenn など"></label>
+    </div>
+
+    <div id="toolbar" class="toolbar" role="toolbar" aria-label="書式">
+      <button type="button" data-action="bold" aria-label="太字" title="太字"><i class="fa-solid fa-bold" aria-hidden="true"></i></button>
+      <button type="button" data-action="italic" aria-label="斜体" title="斜体"><i class="fa-solid fa-italic" aria-hidden="true"></i></button>
+      <button type="button" data-action="heading" aria-label="見出し" title="見出し"><i class="fa-solid fa-heading" aria-hidden="true"></i></button>
+      <button type="button" data-action="link" aria-label="リンク" title="リンク"><i class="fa-solid fa-link" aria-hidden="true"></i></button>
+      <button type="button" data-action="code" aria-label="コード" title="コード"><i class="fa-solid fa-code" aria-hidden="true"></i></button>
+      <button type="button" data-action="image" aria-label="画像を挿入" title="画像を挿入"><i class="fa-solid fa-image" aria-hidden="true"></i></button>
+      <input id="f-image" type="file" accept="image/*" hidden>
+    </div>
+
+    <div class="editor-panes">
+      <textarea id="f-body" class="body-input" aria-label="本文（Markdown）" placeholder="本文を書く（Markdown）"></textarea>
+      <section id="preview" class="preview-pane" aria-label="プレビュー"></section>
+    </div>
+  </div>
+
+  <aside class="settings">
+    <div class="settings-card">
+      <h2>記事設定</h2>
+      <label class="field">slug
+        <input id="f-slug" required pattern="[a-z0-9\-]{1,80}" maxlength="80"></label>
+      <label class="field">投稿日時
+        <input id="f-date" type="datetime-local" required></label>
+      <div class="field">
+        <span>カテゴリ</span>
+        <div class="segmented" role="radiogroup" aria-label="カテゴリ">
+          <label><input type="radio" name="f-category" value="tech" checked><span>tech</span></label>
+          <label><input type="radio" name="f-category" value="diary"><span>diary</span></label>
+          <label><input type="radio" name="f-category" value="misc"><span>misc</span></label>
+          <label><input type="radio" name="f-category" value="devlog"><span>devlog</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <span>タグ</span>
+        <div id="tag-input" class="tag-input">
+          <input id="f-tag-entry" list="tag-list" placeholder="タグを入力して Enter" aria-label="タグ">
+        </div>
+        <datalist id="tag-list"></datalist>
+      </div>
+      <label class="field">概要
+        <textarea id="f-summary" rows="3"></textarea></label>
+      <p id="summary-count" class="char-count"></p>
+    </div>
+
+    <details class="details-card drafts">
+      <summary>下書き（この端末のみ）</summary>
+      <ul id="drafts"></ul>
+      <button type="button" id="discard" class="btn">この下書きを破棄</button>
+    </details>
+
+    <details id="danger-details" class="details-card" hidden>
+      <summary>危険な操作</summary>
+      <button type="button" id="delete" class="btn danger">この記事を削除</button>
+    </details>
+  </aside>
+</form>
 {{ end }}
+
 
 {{ define "scripts" }}
 <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js" integrity="sha384-H+hy9ULve6xfxRkWIh/YOtvDdpXgV2fmAGQkIDTxIgZwNoaoBal14Di2YTMR6MzR" crossorigin="anonymous"></script>

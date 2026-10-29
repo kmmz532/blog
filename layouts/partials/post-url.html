@@ -1,0 +1,2 @@
+{{- /* 外部記事は external の URL。通常記事は自分のパス（外部記事は詳細ページを作らない） */ -}}
+{{- with .Params.external }}{{ . }}{{ else }}{{ .RelPermalink }}{{ end -}}

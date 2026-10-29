@@ -1,0 +1,29 @@
+{{- /* 記事のタイトル・概要・サムネイルを JSON で返す。外部記事は front matter を優先し、空の項目だけ OGP で補う。取得に失敗したら front matter だけ */ -}}
+{{- $title := .Params.title | default .Title -}}
+{{- $summary := .Params.summary | default "" -}}
+{{- $image := "" -}}
+{{- if .Params.external -}}
+  {{- $html := "" -}}
+  {{- $res := try (resources.GetRemote .Params.external) -}}
+  {{- if not $res.Err -}}
+    {{- with $res.Value -}}{{- $html = .Content -}}{{- end -}}
+  {{- end -}}
+  {{- $ogTitle := "" -}}
+  {{- $ogDesc := "" -}}
+  {{- $ogImage := "" -}}
+  {{- if $html -}}
+    {{- with findRESubmatch `<meta[^>]+property="og:title"[^>]+content="([^"]*)"|<meta[^>]+content="([^"]*)"[^>]+property="og:title"` $html -}}
+      {{- $ogTitle = htmlUnescape (or (index (index . 0) 1) (index (index . 0) 2)) -}}
+    {{- end -}}
+    {{- with findRESubmatch `<meta[^>]+property="og:description"[^>]+content="([^"]*)"|<meta[^>]+content="([^"]*)"[^>]+property="og:description"` $html -}}
+      {{- $ogDesc = htmlUnescape (or (index (index . 0) 1) (index (index . 0) 2)) -}}
+    {{- end -}}
+    {{- with findRESubmatch `<meta[^>]+property="og:image"[^>]+content="([^"]*)"|<meta[^>]+content="([^"]*)"[^>]+property="og:image"` $html -}}
+      {{- $ogImage = htmlUnescape (or (index (index . 0) 1) (index (index . 0) 2)) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $title = .Params.title | default $ogTitle | default .Params.external -}}
+  {{- $summary = .Params.summary | default $ogDesc -}}
+  {{- $image = $ogImage -}}
+{{- end -}}
+{{- dict "title" $title "summary" $summary "image" $image | jsonify -}}

@@ -1,0 +1,70 @@
+<aside class="sidebar">
+  <section class="sidebar-card">
+    <p class="profile-name">{{ site.Params.author }}</p>
+    <p class="profile-bio">{{ site.Params.bio }}</p>
+    <div class="profile-links">
+      {{- range site.Params.links }}
+      {{- if .url }}
+      <a href="{{ .url }}" target="_blank" rel="noopener" aria-label="{{ .name }}" title="{{ .name }}"><i class="{{ .icon }}" aria-hidden="true"></i></a>
+      {{- end }}
+      {{- end }}
+    </div>
+  </section>
+
+  <section class="sidebar-card">
+    <h2 class="sidebar-title">検索</h2>
+    <form class="search-box" action="{{ "/search/" | relURL }}" method="get" role="search">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <input type="search" name="q" aria-label="検索キーワード" placeholder="検索">
+    </form>
+  </section>
+
+  <section class="sidebar-card">
+    <h2 class="sidebar-title">カテゴリ</h2>
+    <ul class="sidebar-list">
+      {{- range slice "tech" "diary" "misc" "devlog" }}
+      {{- $page := site.GetPage (printf "/categories/%s" .) }}
+      {{- with $page }}
+      <li>
+        <a href="{{ .RelPermalink }}" {{ if and (eq $.Kind "term") (eq $.Data.Term .Title) }}class="current"{{ end }}>{{ .Title }}</a>
+        <span class="count">({{ len .Pages }})</span>
+      </li>
+      {{- end }}
+      {{- end }}
+    </ul>
+  </section>
+
+  <section class="sidebar-card">
+    <h2 class="sidebar-title">タグ</h2>
+    <div class="sidebar-chips">
+      {{- range first 20 site.Taxonomies.tags.ByCount }}
+      <a class="chip" href="{{ .Page.RelPermalink }}">#{{ .Page.Title }}</a>
+      {{- end }}
+    </div>
+    <a class="sidebar-more" href="{{ "/tags/" | relURL }}">すべてのタグ →</a>
+  </section>
+
+  <section class="sidebar-card">
+    <h2 class="sidebar-title">最近の記事</h2>
+    <ul class="sidebar-list">
+      {{- range first 5 (where site.RegularPages "Section" "posts") }}
+      <li>
+        <a href="{{ partial "post-url.html" . }}" {{ with .Params.external }}target="_blank" rel="noopener"{{ end }}>{{ (partialCached "external-meta.html" . .File.Path | transform.Unmarshal).title }}</a>
+        <span class="count">{{ .Date.Format "2006.01.02" }}</span>
+      </li>
+      {{- end }}
+    </ul>
+  </section>
+
+  <section class="sidebar-card">
+    <h2 class="sidebar-title">アーカイブ</h2>
+    <ul class="sidebar-list">
+      {{- range first 12 ((where site.RegularPages "Section" "posts").GroupByDate "2006-01") }}
+      <li>
+        <a href="{{ "/archives/" | relURL }}#{{ .Key }}">{{ with time (printf "%s-01" .Key) }}{{ .Year }}年{{ .Month }}月{{ end }}</a>
+        <span class="count">({{ len .Pages }})</span>
+      </li>
+      {{- end }}
+    </ul>
+  </section>
+</aside>

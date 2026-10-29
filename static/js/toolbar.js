@@ -1,0 +1,103 @@
+// 本文欄のツールバーと、画像の 3 経路（ボタン・貼り付け・ドロップ）。
+// 画像は upload で保存し、仮テキストを置いてから実 URL に差し替える。失敗したら仮テキストを消す。
+const PLACEHOLDER = '![アップロード中…]()';
+
+function wrapSelection(textarea, before, after, fallback) {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selected = textarea.value.slice(start, end) || fallback;
+  textarea.setRangeText(before + selected + after, start, end, 'end');
+  textarea.setSelectionRange(start + before.length, start + before.length + selected.length);
+}
+
+function prefixLine(textarea, prefix) {
+  const start = textarea.selectionStart;
+  const lineStart = textarea.value.lastIndexOf('\n', start - 1) + 1;
+  textarea.setRangeText(prefix, lineStart, lineStart, 'end');
+}
+
+const ACTIONS = {
+  bold: (ta) => wrapSelection(ta, '**', '**', '太字'),
+  italic: (ta) => wrapSelection(ta, '*', '*', '斜体'),
+  heading: (ta) => prefixLine(ta, '## '),
+  link: (ta) => wrapSelection(ta, '[', '](https://)', 'リンク'),
+  code: (ta) => {
+    const multiline = ta.value.slice(ta.selectionStart, ta.selectionEnd).includes('\n');
+    if (multiline) wrapSelection(ta, '```\n', '\n```', 'コード');
+    else wrapSelection(ta, '`', '`', 'コード');
+  },
+};
+
+function imageFile(list) {
+  return [...(list ?? [])].find((file) => file.type.startsWith('image/')) ?? null;
+}
+
+function altFrom(file) {
+  return file.name ? file.name.replace(/\.[^.]+$/, '').replace(/[[\]]/g, '') : 'image';
+}
+
+// 仮テキストを置き、保存が終わったら差し替える。すべて textarea の input イベントで通知する
+async function insertImage(textarea, file, upload, onError) {
+  const start = textarea.selectionStart;
+  textarea.setRangeText(PLACEHOLDER, start, textarea.selectionEnd, 'end');
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+  const alt = altFrom(file);
+  const replaceWith = (text) => {
+    const index = textarea.value.indexOf(PLACEHOLDER);
+    if (index === -1) return;
+    textarea.setRangeText(text, index, index + PLACEHOLDER.length, 'end');
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+
+  try {
+    const url = await upload(file);
+    replaceWith(`![${alt}](${url})`);
+  } catch (error) {
+    replaceWith('');
+    onError(error.message);
+  }
+}
+
+export function attachToolbar({ textarea, toolbar, fileInput, upload, onError }) {
+  toolbar.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+    const action = button.dataset.action;
+    if (action === 'image') {
+      fileInput.click();
+      return;
+    }
+    ACTIONS[action]?.(textarea);
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    textarea.focus();
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    fileInput.value = '';
+    if (file) insertImage(textarea, file, upload, onError);
+  });
+
+  // テキストの貼り付けは通常どおり。画像があるときだけ横取りする
+  textarea.addEventListener('paste', (event) => {
+    const file = imageFile(event.clipboardData?.files);
+    if (!file) return;
+    event.preventDefault();
+    insertImage(textarea, file, upload, onError);
+  });
+
+  textarea.addEventListener('dragover', (event) => {
+    if (!imageFile(event.dataTransfer?.files)) return;
+    event.preventDefault();
+    textarea.classList.add('dragover');
+  });
+  textarea.addEventListener('dragleave', () => textarea.classList.remove('dragover'));
+  textarea.addEventListener('drop', (event) => {
+    textarea.classList.remove('dragover');
+    const file = imageFile(event.dataTransfer?.files);
+    if (!file) return;
+    event.preventDefault();
+    insertImage(textarea, file, upload, onError);
+  });
+}

@@ -5,13 +5,18 @@
 </head>
 <body>
   {{ partial "header.html" . }}
-  <main class="contents">
-    {{ block "main" . }}{{ end }}
-  </main>
+  <div class="layout">
+    <main class="contents">
+      {{ block "main" . }}{{ end }}
+    </main>
+    {{- if not (or (eq .Kind "404") (eq (.Params.sidebar | default true) false)) }}
+    {{ partial "sidebar.html" . }}
+    {{- end }}
+  </div>
   {{ partial "footer.html" . }}
   <div class="options">
-    <button type="button" id="theme-toggle" aria-label="ダークモードを切り替える">
-      <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <button type="button" id="theme-toggle" aria-label="ダークモードを切り替える" title="ダークモードを切り替える">
+      <i class="fa-solid fa-moon icon" aria-hidden="true"></i>
     </button>
   </div>
   <script src="{{ "js/theme.js" | relURL }}" type="module"></script>

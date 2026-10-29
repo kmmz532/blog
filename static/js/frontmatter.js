@@ -1,9 +1,10 @@
 // 記事ファイルの front matter を読み書きする。副作用はない。
 import { nowJst } from './time.js';
 
-// 画面で扱うキー。それ以外は raw 行のまま保持して書き戻す
-const KNOWN_KEYS = ['title', 'date', 'categories', 'tags', 'summary', 'aliases'];
+// 画面で扱うキー。それ以外は raw 行のまま保持して書き戻す。build は読み込みで捨てて保存で作り直す
+const KNOWN_KEYS = ['title', 'date', 'categories', 'tags', 'summary', 'aliases', 'external', 'source', 'build'];
 const LIST_KEYS = ['categories', 'tags', 'aliases'];
+const EXTERNAL_BUILD = '{"render": "never", "list": "always"}';
 
 function unquote(raw) {
   if (raw.startsWith('"')) {
@@ -53,6 +54,7 @@ export function parseArticle(text) {
   const values = {};
   const extra = [];
   for (const { key, lines } of blocks) {
+    if (key === 'build') continue;
     if (!KNOWN_KEYS.includes(key)) {
       extra.push(...lines);
       continue;
@@ -66,7 +68,9 @@ export function parseArticle(text) {
   }
 
   const date = String(values.date ?? '');
+  const isExternal = values.external !== undefined;
   return {
+    kind: isExternal ? 'external' : 'article',
     fields: {
       slug: '',
       title: String(values.title ?? ''),
@@ -74,6 +78,8 @@ export function parseArticle(text) {
       category: values.categories?.[0] ?? 'tech',
       tags: values.tags ?? [],
       summary: String(values.summary ?? ''),
+      url: String(values.external ?? ''),
+      source: String(values.source ?? ''),
       body,
     },
     aliases: values.aliases ?? [],
@@ -82,16 +88,34 @@ export function parseArticle(text) {
 }
 
 // 日時は JST 固定。入力された分単位の値に秒と +09:00 を付ける
-export function buildArticle(fields, aliases, extra) {
-  const lines = [
+function frontFields(fields) {
+  return [
     `title: ${JSON.stringify(fields.title)}`,
     `date: ${fields.date}:00+09:00`,
     `categories: ${JSON.stringify([fields.category])}`,
     `tags: ${JSON.stringify(fields.tags)}`,
     `summary: ${JSON.stringify(fields.summary)}`,
+  ];
+}
+
+export function buildArticle(fields, aliases, extra) {
+  const lines = [
+    ...frontFields(fields),
     ...(aliases.length ? [`aliases: ${JSON.stringify(aliases)}`] : []),
     ...extra,
   ];
   const body = fields.body.replace(/^\n+/, '').replace(/\s+$/, '');
   return `---\n${lines.join('\n')}\n---\n\n${body}\n`;
+}
+
+// 外部記事は本文を持たず、詳細ページも作らない（設計書 §3.1）
+export function buildExternal(fields, extra) {
+  const lines = [
+    ...frontFields(fields),
+    `external: ${JSON.stringify(fields.url)}`,
+    `source: ${JSON.stringify(fields.source)}`,
+    `build: ${EXTERNAL_BUILD}`,
+    ...extra,
+  ];
+  return `---\n${lines.join('\n')}\n---\n`;
 }

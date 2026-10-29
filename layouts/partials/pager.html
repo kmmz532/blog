@@ -1,8 +1,26 @@
-{{- /* 引数は Pager */}}
+{{- /* 引数は Pager */ -}}
 {{- if gt .TotalPages 1 }}
 <nav class="pager" aria-label="ページネーション">
-  {{- with .Prev }}<a href="{{ .URL }}">← 新しい記事</a>{{ else }}<span></span>{{ end }}
-  <span class="pager-current">{{ .PageNumber }} / {{ .TotalPages }}</span>
-  {{- with .Next }}<a href="{{ .URL }}">古い記事 →</a>{{ else }}<span></span>{{ end }}
+  {{- if .HasPrev }}
+  <a href="{{ .First.URL }}" aria-label="最初のページ" title="最初のページ"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></a>
+  <a href="{{ .Prev.URL }}" aria-label="前のページ" title="前のページ"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></a>
+  {{- else }}
+  <span class="disabled"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></span>
+  <span class="disabled"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></span>
+  {{- end }}
+  {{- range .Pagers }}
+  {{- if eq .PageNumber $.PageNumber }}
+  <span class="current" aria-current="page">{{ .PageNumber }}</span>
+  {{- else }}
+  <a href="{{ .URL }}">{{ .PageNumber }}</a>
+  {{- end }}
+  {{- end }}
+  {{- if .HasNext }}
+  <a href="{{ .Next.URL }}" aria-label="次のページ" title="次のページ"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+  <a href="{{ .Last.URL }}" aria-label="最後のページ" title="最後のページ"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></a>
+  {{- else }}
+  <span class="disabled"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></span>
+  <span class="disabled"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></span>
+  {{- end }}
 </nav>
 {{- end }}

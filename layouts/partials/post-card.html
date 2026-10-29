@@ -1,19 +1,35 @@
-<article class="carditem">
-  <h2 class="card-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
-  <p class="card-meta">
+{{- $url := partial "post-url.html" . }}
+{{- $external := .Params.external }}
+{{- $meta := partialCached "external-meta.html" . .File.Path | transform.Unmarshal }}
+<article class="carditem{{ if $meta.image }} has-thumb{{ end }}">
+  {{- with $meta.image }}
+  <img class="card-thumb" src="{{ . }}" width="96" height="96" alt="" loading="lazy">
+  {{- end }}
+  <div class="card-body">
+  <div class="card-meta">
     <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006.01.02" }}</time>
     {{- range .Params.categories }}
-    <a class="chip" href="{{ "/categories/" | relURL }}{{ . | urlize }}/">{{ . }}</a>
+    <span>{{ . }}</span>
     {{- end }}
-  </p>
-  {{- with .Params.summary }}
+  </div>
+  <h2 class="card-title">
+    <a href="{{ $url }}" {{ if $external }}target="_blank" rel="noopener"{{ end }}>{{ $meta.title }}</a>
+  </h2>
+  {{- if $external }}
+  <p class="card-external"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> {{ .Params.source }}</p>
+  {{- end }}
+  {{- with $meta.summary }}
   <p class="card-excerpt">{{ . }}</p>
   {{- end }}
   {{- with .Params.tags }}
-  <p class="card-tags">
+  <div class="card-tags">
     {{- range . }}
     <a class="chip" href="{{ "/tags/" | relURL }}{{ . | urlize }}/">#{{ . }}</a>
     {{- end }}
-  </p>
+  </div>
   {{- end }}
+  </div>
+  <a class="card-edit admin-only" href="{{ "/edit/" | relURL }}?slug={{ .File.ContentBaseName | urlquery }}" aria-label="編集" title="編集" hidden>
+    <i class="fa-solid fa-pen" aria-hidden="true"></i>
+  </a>
 </article>

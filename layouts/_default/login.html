@@ -7,12 +7,13 @@
   <li>有効期限は 90 日以内にする。</li>
 </ol>
 <form id="login-form" class="login-form">
-  <label>Personal access token
+  <label class="field">Personal access token
     <input id="token" type="password" autocomplete="off" required></label>
   <button type="submit" class="btn primary">ログイン</button>
   <p id="login-status" role="alert"></p>
 </form>
 {{ end }}
+
 
 {{ define "scripts" }}
 <script type="module" src="{{ "js/login.js" | relURL }}"></script>

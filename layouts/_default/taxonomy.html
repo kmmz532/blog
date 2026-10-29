@@ -1,6 +1,6 @@
 {{ define "main" }}
-<h1 class="page-title">{{ .Title }}</h1>
 {{- if eq .Kind "term" }}
+<h1 class="page-title">{{ if eq .Data.Singular "tag" }}#{{ end }}{{ .Title }} の記事</h1>
 {{- $pag := .Paginate .Pages }}
 <div class="card-list">
   {{- range $pag.Pages }}
@@ -11,6 +11,7 @@
 </div>
 {{- partial "pager.html" $pag }}
 {{- else }}
+<h1 class="page-title">{{ .Title }}</h1>
 <ul class="term-list">
   {{- range .Data.Terms.Alphabetical }}
   <li><a href="{{ .Page.RelPermalink }}">{{ .Page.Title }}</a> <span class="card-meta">({{ .Count }})</span></li>
@@ -18,3 +19,4 @@
 </ul>
 {{- end }}
 {{ end }}
+

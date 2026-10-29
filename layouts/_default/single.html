@@ -1,22 +1,35 @@
 {{ define "main" }}
 <article class="post" data-slug="{{ .File.ContentBaseName }}">
-  <header class="post-header">
-    <h1>{{ .Title }}</h1>
-    <p class="card-meta">
-      <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006.01.02" }}</time>
-      {{- range .Params.categories }}
-      <a class="chip" href="{{ "/categories/" | relURL }}{{ . | urlize }}/">{{ . }}</a>
-      {{- end }}
-    </p>
-    {{- with .Params.tags }}
-    <p class="card-tags">
-      {{- range . }}
-      <a class="chip" href="{{ "/tags/" | relURL }}{{ . | urlize }}/">#{{ . }}</a>
-      {{- end }}
-    </p>
+  <h1 class="post-title">{{ .Title }}</h1>
+  <div class="post-meta">
+    <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006.01.02" }}</time>
+    {{- range .Params.categories }}
+    <a class="chip" href="{{ "/categories/" | relURL }}{{ . | urlize }}/">{{ . }}</a>
     {{- end }}
-    <p><a class="admin-only btn" href="{{ "/edit/" | relURL }}?slug={{ .File.ContentBaseName | urlquery }}" hidden>この記事を編集</a></p>
-  </header>
+  </div>
+  {{- with .Params.tags }}
+  <div class="card-tags">
+    {{- range . }}
+    <a class="chip" href="{{ "/tags/" | relURL }}{{ . | urlize }}/">#{{ . }}</a>
+    {{- end }}
+  </div>
+  {{- end }}
   <div class="post-body">{{ .Content }}</div>
+  <nav class="post-nav" aria-label="前後の記事">
+    {{- with .NextInSection }}
+    <a class="prev" href="{{ partial "post-url.html" . }}" {{ with .Params.external }}target="_blank" rel="noopener"{{ end }}>
+      <small>← 前の記事</small>{{ .Title }}
+    </a>
+    {{- else }}
+    <span></span>
+    {{- end }}
+    {{- with .PrevInSection }}
+    <a class="next" href="{{ partial "post-url.html" . }}" {{ with .Params.external }}target="_blank" rel="noopener"{{ end }}>
+      <small>次の記事 →</small>{{ .Title }}
+    </a>
+    {{- else }}
+    <span></span>
+    {{- end }}
+  </nav>
 </article>
 {{ end }}
