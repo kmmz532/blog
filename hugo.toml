@@ -30,7 +30,7 @@ enableRobotsTXT = true
 
 # サイドバーのリンク (URLが空であれば非表示)
 [[params.links]]
-  name = "kmmz.jp"
+  name = "ホームページ"
   url = "https://kmmz.jp/"
   icon = "fa-solid fa-house"
 [[params.links]]
@@ -38,8 +38,8 @@ enableRobotsTXT = true
   url = "https://github.com/kmmz532"
   icon = "fa-brands fa-github"
 [[params.links]]
-  name = "X"
-  url = ""
+  name = "X.com"
+  url = "https://x.com/kmmz1127"
   icon = "fa-brands fa-x-twitter"
 
 # 記事は別リポジトリ blog-article を posts/ に clone して取り込む
