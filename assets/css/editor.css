@@ -552,15 +552,26 @@ body:has(.editor) .footer {
 
 /* 並べて表示は幅 1400px 以上のときだけ。本文とプレビューだけを左右に分ける */
 @media (min-width: 1400px) {
+  /* 本文欄とプレビューは間を空けず、1 つの枠を左右に割ったように見せる */
   .editor-main.split .editor-panes {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 2rem;
+    gap: 0;
   }
 
-  /* ツールバーは本文欄の幅だけにして、本文欄と 1 つの枠に見せる */
+  /* ツールバーは本文とプレビューの両方の上に 1 本で置く */
   .editor-main.split .toolbar {
-    width: calc(50% - 1rem);
+    width: 100%;
+  }
+
+  .editor-main.split .body-input {
+    border-radius: 0 0 0 8px;
+  }
+
+  /* 境目の線は本文欄の右枠だけにして、二重線にしない */
+  .editor-main.split .preview-pane {
+    border-left: none;
+    border-radius: 0 0 8px 0;
   }
 }
 
