@@ -185,6 +185,20 @@
   opacity: 0.75;
 }
 
+.footer-feeds {
+  display: inline-flex;
+  gap: 0.6rem;
+  margin-left: 0.6rem;
+}
+
+.footer-feeds a {
+  color: var(--text-secondary);
+}
+
+.footer-feeds a:hover {
+  color: var(--link-hover);
+}
+
 .footer-admin {
   color: var(--text-secondary);
 }

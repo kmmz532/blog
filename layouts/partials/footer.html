@@ -1,4 +1,8 @@
 <footer class="footer">
   <span>{{ site.Params.footer }}</span>
+  <span class="footer-feeds">
+    <a href="{{ "/index.xml" | relURL }}" aria-label="RSS" title="RSS"><i class="fa-solid fa-rss" aria-hidden="true"></i></a>
+    <a href="{{ "/index.json" | relURL }}" aria-label="JSON" title="JSON"><i class="fa-solid fa-code" aria-hidden="true"></i></a>
+  </span>
   <a id="auth-link" class="footer-admin" href="{{ "/login/" | relURL }}">管理</a>
 </footer>
