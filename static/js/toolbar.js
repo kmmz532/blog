@@ -21,6 +21,8 @@ const ACTIONS = {
   italic: (ta) => wrapSelection(ta, '*', '*', '斜体'),
   heading: (ta) => prefixLine(ta, '## '),
   link: (ta) => wrapSelection(ta, '[', '](https://)', 'リンク'),
+  list: (ta) => prefixLine(ta, '- '),
+  quote: (ta) => prefixLine(ta, '> '),
   code: (ta) => {
     const multiline = ta.value.slice(ta.selectionStart, ta.selectionEnd).includes('\n');
     if (multiline) wrapSelection(ta, '```\n', '\n```', 'コード');
@@ -90,6 +92,17 @@ export function attachToolbar({ textarea, toolbar, fileInput, upload, onError })
     ACTIONS[action]?.(textarea);
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
     textarea.focus();
+  });
+
+  // 本文欄の中のショートカット（ツールバーの title に書いたもの）。Ctrl+S・Ctrl+Enter は editor.js
+  const SHORTCUTS = { b: 'bold', i: 'italic', k: 'link' };
+  textarea.addEventListener('keydown', (event) => {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
+    const action = SHORTCUTS[event.key.toLowerCase()];
+    if (!action) return;
+    event.preventDefault();
+    ACTIONS[action](textarea);
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
   });
 
   fileInput.addEventListener('change', () => {

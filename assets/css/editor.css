@@ -708,3 +708,9 @@ body:has(.editor) .footer {
   margin: 0;
   font-size: 0.85rem;
 }
+
+/* 表示切替のタブは overflow: hidden で外側のフォーカス枠が切れるので、内側に出す（キーボード操作で今の位置がわかるように） */
+.tabs button:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: -2px;
+}

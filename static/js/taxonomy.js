@@ -53,8 +53,13 @@ export function createTaxonomy({ state, markDirty }) {
         return option;
       }),
     );
+    // チップはよく使う上位だけにする（多すぎると選びにくい）。残りは入力欄の補完で選ぶ。選択中は必ず出す
+    const CHIP_LIMIT = 8;
+    const chips = paths.slice(0, CHIP_LIMIT);
+    const selected = paths.find(({ text }) => text === current);
+    if (selected && !chips.includes(selected)) chips.push(selected);
     $('category-chips').replaceChildren(
-      ...paths.map(({ path, text }) => choice(text, text === current, () => setCategories(path))),
+      ...chips.map(({ path, text }) => choice(text, text === current, () => setCategories(path))),
     );
   }
 

@@ -7,10 +7,10 @@
   <div class="tabs" role="group" aria-label="表示切替">
     <button type="button" id="view-edit" aria-pressed="true">編集</button>
     <button type="button" id="view-preview" aria-pressed="false">プレビュー</button>
-    <button type="button" id="view-split" aria-pressed="false" hidden>両方</button>
+    <button type="button" id="view-split" aria-pressed="false" hidden>並べて表示</button>
   </div>
   <span id="save-state" class="save-state" aria-live="polite"></span>
-  <button type="submit" form="post-form" id="save" class="btn primary">公開</button>
+  <button type="submit" form="post-form" id="save" class="btn primary" title="公開（Ctrl+Enter）">公開</button>
 </div>
 <div id="notice" class="notice" role="status" hidden></div>
 
@@ -31,10 +31,12 @@
     </div>
 
     <div id="toolbar" class="toolbar" role="toolbar" aria-label="書式">
-      <button type="button" data-action="bold" aria-label="太字" title="太字"><i class="fa-solid fa-bold" aria-hidden="true"></i></button>
-      <button type="button" data-action="italic" aria-label="斜体" title="斜体"><i class="fa-solid fa-italic" aria-hidden="true"></i></button>
+      <button type="button" data-action="bold" aria-label="太字" title="太字（Ctrl+B）"><i class="fa-solid fa-bold" aria-hidden="true"></i></button>
+      <button type="button" data-action="italic" aria-label="斜体" title="斜体（Ctrl+I）"><i class="fa-solid fa-italic" aria-hidden="true"></i></button>
       <button type="button" data-action="heading" aria-label="見出し" title="見出し"><i class="fa-solid fa-heading" aria-hidden="true"></i></button>
-      <button type="button" data-action="link" aria-label="リンク" title="リンク"><i class="fa-solid fa-link" aria-hidden="true"></i></button>
+      <button type="button" data-action="link" aria-label="リンク" title="リンク（Ctrl+K）"><i class="fa-solid fa-link" aria-hidden="true"></i></button>
+      <button type="button" data-action="list" aria-label="箇条書き" title="箇条書き"><i class="fa-solid fa-list-ul" aria-hidden="true"></i></button>
+      <button type="button" data-action="quote" aria-label="引用" title="引用"><i class="fa-solid fa-quote-left" aria-hidden="true"></i></button>
       <button type="button" data-action="code" aria-label="コード" title="コード"><i class="fa-solid fa-code" aria-hidden="true"></i></button>
       <button type="button" data-action="image" aria-label="画像を挿入" title="画像を挿入"><i class="fa-solid fa-image" aria-hidden="true"></i></button>
       <input id="f-image" type="file" accept="image/*" hidden>
@@ -49,14 +51,6 @@
   <aside class="settings">
     <div class="settings-card">
       <h2>記事設定</h2>
-      <label class="field">slug
-        <span class="slug-row">
-          <input id="f-slug" required pattern="[a-z0-9\-]{1,80}" maxlength="80">
-          <span id="slug-auto" class="slug-auto" hidden>自動</span>
-        </span></label>
-      <p id="f-slug-error" class="field-error" hidden></p>
-      <label class="field">投稿日時
-        <input id="f-date" type="datetime-local" required></label>
       <div class="field">
         <label for="f-category">カテゴリ（「&gt;」で階層）</label>
         <input id="f-category" list="category-list" placeholder="例: 趣味 &gt; 写真" autocomplete="off">
@@ -69,6 +63,14 @@
         <input id="f-tag-entry" placeholder="検索または新しいタグ（Enter）" aria-label="タグ" maxlength="40">
         <div id="tag-suggest" class="choices" aria-label="既存のタグ"></div>
       </div>
+      <label class="field">投稿日時
+        <input id="f-date" type="datetime-local" required></label>
+      <label class="field">slug
+        <span class="slug-row">
+          <input id="f-slug" required pattern="[a-z0-9\-]{1,80}" maxlength="80">
+          <span id="slug-auto" class="slug-auto" hidden>自動</span>
+        </span></label>
+      <p id="f-slug-error" class="field-error" hidden></p>
     </div>
 
     <details id="summary-details" class="details-card">
