@@ -1,0 +1,8 @@
+{{- /* {{< tweet url="https://x.com/<user>/status/<id>" >}}: X の投稿を静的なカードにする。公式の widgets.js は読み込まない（design.md §18） */ -}}
+{{- $url := .Get "url" -}}
+{{- $m := findRESubmatch `^https://(?:x|twitter)\.com/([A-Za-z0-9_]{1,15})/status/\d+` $url -}}
+{{- if $m -}}
+<a class="link-card tweet-card" href="{{ $url }}" target="_blank" rel="noopener"><span class="link-card-body"><span class="link-card-title">@{{ index (index $m 0) 1 }} の投稿</span><span class="link-card-desc">X（旧 Twitter）で投稿を開きます</span><span class="link-card-host">x.com</span></span></a>
+{{- else -}}
+<a href="{{ $url }}" target="_blank" rel="noopener">{{ $url }}</a>
+{{- end -}}

@@ -1,0 +1,7 @@
+{{- /* {{< youtube id="..." >}}: YouTube の動画を埋め込む（youtube-nocookie）。ID は 11 字の英数字・「-」「_」だけ（design.md §18） */ -}}
+{{- $id := .Get "id" -}}
+{{- if findRE `^[A-Za-z0-9_-]{11}$` $id -}}
+<div class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/{{ $id }}" title="YouTube の動画" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+{{- else -}}
+<span class="shortcode-error">YouTube の ID が正しくありません: {{ $id }}</span>
+{{- end -}}
