@@ -2,9 +2,10 @@
 import { dateToJstInput } from './time.js';
 
 // 画面で扱うキー。それ以外は raw 行のまま保持して書き戻す。build は読み込みで捨てて保存で作り直す
-const KNOWN_KEYS = ['title', 'date', 'lastmod', 'categories', 'tags', 'summary', 'image', 'aliases', 'external', 'source', 'build'];
+const KNOWN_KEYS = ['title', 'date', 'lastmod', 'categories', 'tags', 'summary', 'image', 'aliases', 'external', 'source', 'build', 'sitemap'];
 const LIST_KEYS = ['categories', 'tags', 'aliases'];
-const EXTERNAL_BUILD = '{"render": "never", "list": "always"}';
+// 外部記事はページを作らない。never だとカテゴリ・タグの集計からも外れるので link にする（link もページは作らない）
+const EXTERNAL_BUILD = '{"render": "link", "list": "always"}';
 
 function unquote(raw) {
   if (raw.startsWith('"')) {
@@ -54,7 +55,8 @@ export function parseArticle(text) {
   const values = {};
   const extra = [];
   for (const { key, lines } of blocks) {
-    if (key === 'build') continue;
+    // build と sitemap は外部記事のときに保存で作り直す
+    if (key === 'build' || key === 'sitemap') continue;
     if (!KNOWN_KEYS.includes(key)) {
       extra.push(...lines);
       continue;
@@ -122,6 +124,8 @@ export function buildExternal(fields, extra) {
     `external: ${JSON.stringify(fields.url)}`,
     `source: ${JSON.stringify(fields.source)}`,
     `build: ${EXTERNAL_BUILD}`,
+    // ページが無いので、サイトマップにも載せない
+    'sitemap: {"disable": true}',
     ...extra,
   ];
   return `---\n${lines.join('\n')}\n---\n`;
