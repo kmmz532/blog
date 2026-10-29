@@ -45,8 +45,8 @@ export function createTaxonomy({ state, markDirty }) {
       row.append(
         ...options.map((node) =>
           choice(node.name, node.name === current, () => {
-            if (node.name === current) return;
-            state.categories = [...prefix, node.name];
+            // 選んでいるものをもう一度押すと、その段から下を外す（上の段は残る）
+            state.categories = node.name === current ? prefix : [...prefix, node.name];
             state.categoryPicked = true;
             renderCategories();
             markDirty();
