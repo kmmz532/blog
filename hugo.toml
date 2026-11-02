@@ -20,6 +20,13 @@ enableRobotsTXT = true
 [markup.highlight]
   noClasses = false
 
+[markup.goldmark.extensions.passthrough]
+  enable = true
+  # 数式（design.md §21）。インラインは \(...\) だけ（本文の $ を誤認しないため）
+  [markup.goldmark.extensions.passthrough.delimiters]
+    block = [['$$', '$$'], ['\[', '\]']]
+    inline = [['\(', '\)']]
+
 [markup.tableOfContents]
   startLevel = 2
   endLevel = 3

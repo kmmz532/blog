@@ -21,17 +21,29 @@ function isHttpUrl(value) {
   }
 }
 
+// 数式（design.md §21）。記事ページ（Hugo の passthrough）と同じ区切りにする。$...$ は使わない（金額の $ を誤認するため）
+const MATH_BLOCK = /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]/g;
+const MATH_INLINE = /\\\(([\s\S]+?)\\\)/g;
+
+// 数式は marked に渡す前に <span> に置き換え、描画のあとで KaTeX に描いてもらう（data-tex は encodeURIComponent）
+function mathSlot(tex, display) {
+  return `<span class="math-slot" data-display="${display ? 1 : 0}" data-tex="${encodeURIComponent(tex.trim())}"></span>`;
+}
+
 function withSlots(markdown) {
-  // split の奇数番目は ``` で囲まれた部分なので、そのまま残す
+  // split の奇数番目はコードブロック（```）とインラインのコード（`）なので、そのまま残す
   return markdown
-    .split(/(```[\s\S]*?```)/)
+    .split(/(```[\s\S]*?```|`[^`\n]*`)/)
     .map((part, i) =>
       i % 2
         ? part
-        : part.replace(
-            SHORTCODE_LINE,
-            (_, name, value) => `<span class="shortcode-slot" data-name="${name}" data-value="${encodeURIComponent(value)}"></span>`,
-          ),
+        : part
+            .replace(
+              SHORTCODE_LINE,
+              (_, name, value) => `<span class="shortcode-slot" data-name="${name}" data-value="${encodeURIComponent(value)}"></span>`,
+            )
+            .replace(MATH_BLOCK, (_, a, b) => mathSlot(a ?? b, true))
+            .replace(MATH_INLINE, (_, tex) => mathSlot(tex, false)),
     )
     .join('');
 }
@@ -45,6 +57,37 @@ function loadOgpIndex() {
       .then((items) => new Map(items.map((item) => [item.url, item])));
   }
   return ogpIndex;
+}
+
+// KaTeX は編集画面を開いたときに一度だけ読む（onerror で null にし、失敗しても他の処理は止めない）。
+// 読めなければ数式は元の記法のまま出す（公開後に記事ページで正しく出る）
+let katexLoading = null;
+
+function loadKatex() {
+  if (window.katex) return Promise.resolve(window.katex);
+  if (!katexLoading) {
+    katexLoading = new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js';
+      script.integrity = 'sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg';
+      script.crossOrigin = 'anonymous';
+      script.onload = () => resolve(window.katex ?? null);
+      script.onerror = () => resolve(null);
+      document.head.append(script);
+    });
+  }
+  return katexLoading;
+}
+
+// 数式の元の記法（読めないときに出す）と、KaTeX の描画。描画は KaTeX の出力だけを入れる
+function fillMath(slot) {
+  const tex = decodeURIComponent(slot.dataset.tex);
+  const display = slot.dataset.display === '1';
+  if (!window.katex) {
+    slot.textContent = display ? `$$${tex}$$` : `\\(${tex}\\)`;
+    return;
+  }
+  window.katex.render(tex, slot, { displayMode: display, throwOnError: false });
 }
 
 // 取得した値は textContent と属性にだけ入れる（HTML として描画しない）
@@ -272,5 +315,13 @@ export function renderPreview(markdown, title, container, { onThumb } = {}) {
   }
   container.replaceChildren(...parts);
   body.querySelectorAll('.shortcode-slot').forEach(fillSlot);
+  const mathSlots = body.querySelectorAll('.math-slot');
+  mathSlots.forEach(fillMath);
+  if (mathSlots.length && !window.katex) {
+    // 読めたら描き直す。読めなければ元の記法のまま（お知らせは出さない）
+    loadKatex().then((katex) => {
+      if (katex) mathSlots.forEach(fillMath);
+    });
+  }
   addCopyButtons(body);
 }
