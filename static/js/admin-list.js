@@ -57,6 +57,13 @@ function row(item) {
   title.textContent = item.title || item.url || '（無題）';
   const titleCell = document.createElement('td');
   titleCell.append(title);
+  if (!item.external) {
+    const copy = document.createElement('a');
+    copy.href = `/edit/?from=${encodeURIComponent(item.slug)}`;
+    copy.className = 'template-link';
+    copy.textContent = 'テンプレートにする';
+    titleCell.append(' ', copy);
+  }
 
   tr.append(
     checkCell,

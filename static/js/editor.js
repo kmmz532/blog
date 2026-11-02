@@ -294,8 +294,11 @@ function failStart(message) {
 // ---- 初期化 ----
 
 async function load() {
-  const slug = new URLSearchParams(location.search).get('slug');
+  const params = new URLSearchParams(location.search);
+  const slug = params.get('slug');
+  const fromSlug = params.get('from');
   let server;
+  let templateTitle = null;
 
   if (slug !== null) {
     if (!isValidSlug(slug)) {
@@ -326,6 +329,32 @@ async function load() {
     state.aliases = parsed.aliases;
     state.extra = parsed.extra;
     server = { ...parsed.fields, kind: parsed.kind, slug };
+  } else if (fromSlug !== null) {
+    // 既存記事をテンプレートにする。投稿日・slug・保存先の情報は引き継がず、新規記事として開く
+    if (!isValidSlug(fromSlug)) {
+      failStart('slug の形式が正しくありません。');
+      return;
+    }
+    let parsed;
+    try {
+      const post = await getPost(fromSlug);
+      if (!post) {
+        failStart(`記事「${fromSlug}」が見つかりません。`);
+        return;
+      }
+      parsed = parseArticle(post.text);
+    } catch (error) {
+      failStart(error.message);
+      return;
+    }
+    if (parsed.kind !== 'article') {
+      failStart('外部記事はテンプレートにできません。');
+      return;
+    }
+    state.extra = parsed.extra;
+    templateTitle = parsed.fields.title || '（無題）';
+    server = { ...parsed.fields, kind: 'article', slug: '', date: nowJst() };
+    server.slug = slugs.autoSlugFor(server);
   } else {
     server = {
       kind: 'article',
@@ -350,6 +379,9 @@ async function load() {
     // 壊れた下書きは捨てる。まともな下書きは復元か破棄を選ばれるまで残す
     if (draft) drafts.showDraftNotice(key, draft);
     else removeDraft(key);
+  } else if (templateTitle !== null) {
+    // 下書きの案内があるときは、そちらを優先して残す
+    showNotice('info', `「${templateTitle}」の内容を引き継ぎました。投稿日は今の日時です。`);
   }
 
   updateChrome();
