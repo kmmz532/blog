@@ -41,12 +41,37 @@ export function altFrom(file) {
 // 表示幅（px）は alt の末尾に |数字 で付ける。空なら元のまま
 export const withWidth = (alt, width) => (width ? `${alt}|${width}` : alt);
 
+// 本文欄から外れたときのカーソル位置。外れている間に入れる画像は、ここに置く
+const lastCaret = new WeakMap();
+
+// 一度も触っていない本文欄は先頭（0）に戻っていることがあるので、位置が無ければ末尾に置く
+function restoreCaret(textarea) {
+  if (document.activeElement === textarea) return;
+  const { length } = textarea.value;
+  const [start, end] = lastCaret.get(textarea) ?? [length, length];
+  textarea.setSelectionRange(Math.min(start, length), Math.min(end, length));
+}
+
+// 画像は単独の段落にする。前後が文字や別の画像と同じ行に続かないよう、空行を足して選択範囲に置く
+function insertBlock(textarea, text) {
+  restoreCaret(textarea);
+  const { value, selectionStart: start, selectionEnd: end } = textarea;
+  const gap = (side, edge) => {
+    if (side === '') return '';
+    const run = (side.match(edge)?.[0] ?? '').length;
+    return '\n'.repeat(Math.max(0, 2 - run));
+  };
+  const before = gap(value.slice(0, start), /\n*$/);
+  const after = gap(value.slice(end), /^\n*/);
+  textarea.setRangeText(before + text + after, start, end, 'end');
+  if (after) textarea.setSelectionRange(start + before.length + text.length, start + before.length + text.length);
+}
+
 // 仮テキストを置き、保存が終わったら差し替える。すべて textarea の input イベントで通知する
 async function insertImage(textarea, file, upload, onError, width = '') {
   // 仮テキストに番号を付け、同時に複数の画像を貼っても差し替え先を取り違えないようにする
   const placeholder = `![アップロード中…(${++uploadCount})]()`;
-  const start = textarea.selectionStart;
-  textarea.setRangeText(placeholder, start, textarea.selectionEnd, 'end');
+  insertBlock(textarea, placeholder);
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
 
   const alt = withWidth(altFrom(file), width);
@@ -85,11 +110,13 @@ function insertCardFromUrl(textarea, url) {
 
 // 本文のカーソル位置に画像を入れる（画像の一覧から選んだとき・一覧から上げたとき）
 export function insertImageMarkdown(textarea, url, alt = 'image', width = '') {
-  textarea.setRangeText(`![${withWidth(alt, width)}](${url})`, textarea.selectionStart, textarea.selectionEnd, 'end');
+  insertBlock(textarea, `![${withWidth(alt, width)}](${url})`);
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 export function attachToolbar({ textarea, toolbar, fileInput, upload, onError, confirmUpload = async () => '' }) {
+  textarea.addEventListener('blur', () => lastCaret.set(textarea, [textarea.selectionStart, textarea.selectionEnd]));
+
   // 貼り付け・ドロップは誤爆しやすいので、上げる前に確認する。画像ボタンは自分でファイルを選ぶので確認しない
   async function insertConfirmed(file) {
     // 確認の戻り値は表示幅（'' は元のまま）。やめるなら null
