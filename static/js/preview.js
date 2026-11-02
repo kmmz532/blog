@@ -49,7 +49,7 @@ function withSlots(markdown) {
 }
 
 // URL → { title, desc, image } の Map。読めなければ空の Map（仮の見た目で出す）
-function loadOgpIndex() {
+export function loadOgpIndex() {
   if (!ogpIndex) {
     ogpIndex = fetch(new URL('/ogp/index.json', location.origin))
       .then((res) => (res.ok ? res.json() : []))

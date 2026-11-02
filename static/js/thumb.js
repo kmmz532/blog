@@ -3,12 +3,15 @@
 import { uploadImage, imageSrc } from './image.js';
 import { showNotice } from './notice.js';
 import { isHttps } from './external.js';
+import { loadOgpIndex } from './preview.js';
 
 const $ = (id) => document.getElementById(id);
 
 // 記法の alt（[1]）と URL（[2]）。alt の末尾の |数字 は表示幅なので、表示名からは外す
 const BODY_IMAGE_RE = /!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g;
 const WIDTH_SUFFIX_RE = /\|\d+$/;
+// 本文の link-card の URL（[1]）。カードの OGP 画像を候補にする
+const LINK_CARD_RE = /\{\{<\s*link-card\s+url="([^"]+)"/g;
 
 export function createThumb({ state, markDirty }) {
   // ---- サムネイル（手動設定があればそれ。無ければ自動。design.md §3・§11.6） ----
@@ -73,6 +76,20 @@ export function createThumb({ state, markDirty }) {
     }));
   }
 
+  // 本文の link-card のカードの OGP 画像（ビルド時に取れたもの。/ogp/index.json）。カードの順に出し、同じ画像は 1 つにまとめる
+  async function cardChoices() {
+    const map = await loadOgpIndex();
+    const seen = new Set();
+    const items = [];
+    for (const [, url] of $('f-body').value.matchAll(LINK_CARD_RE)) {
+      const card = map.get(url);
+      if (!card?.image || !isHttps(card.image) || seen.has(card.image)) continue;
+      seen.add(card.image);
+      items.push({ url: card.image, caption: `カード: ${card.title || url}` });
+    }
+    return items;
+  }
+
   // 公開済みの外部記事なら、ビルド時に取った OGP の画像（index.json の images）を読む。未公開なら空
   async function externalChoices() {
     if (state.originalSlug === null) return [];
@@ -91,7 +108,8 @@ export function createThumb({ state, markDirty }) {
     const box = $('thumb-choices');
     box.hidden = false;
     if (state.kind !== 'external') {
-      const items = bodyChoices();
+      box.textContent = '読み込んでいます…';
+      const items = [...bodyChoices(), ...(await cardChoices())];
       box.replaceChildren(...items.map(choice));
       if (!items.length) box.textContent = '本文に画像がありません。';
       return;
