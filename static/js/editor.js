@@ -415,14 +415,14 @@ async function load() {
   $('template-details').hidden = state.originalSlug !== null;
 
   const key = draftKey(state.originalSlug);
-  if (hasDraft(key)) {
+  // テンプレートで開いたときは、新規記事の下書きの案内は出さない（選んだ記事の内容で始めるため）
+  if (templateTitle !== null) {
+    showNotice('info', `「${templateTitle}」の内容を引き継ぎました。投稿日は今の日時です。`);
+  } else if (hasDraft(key)) {
     const draft = readDraft(key);
     // 壊れた下書きは捨てる。まともな下書きは復元か破棄を選ばれるまで残す
     if (draft) drafts.showDraftNotice(key, draft);
     else removeDraft(key);
-  } else if (templateTitle !== null) {
-    // 下書きの案内があるときは、そちらを優先して残す
-    showNotice('info', `「${templateTitle}」の内容を引き継ぎました。投稿日は今の日時です。`);
   }
 
   updateChrome();
