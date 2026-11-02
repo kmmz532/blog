@@ -4,6 +4,8 @@
 {{- $summary := .Params.summary | default (.Content | replaceRE `(?s)<pre.*?</pre>` "" | plainify | replaceRE `\s+` " " | strings.TrimSpace | truncate 120 "…") -}}
 {{- /* サムネイル: front matter の image（手動）が最優先。通常記事は本文の最初の画像、外部記事は OGP の画像 */ -}}
 {{- $image := .Params.image | default "" -}}
+{{- /* 編集画面のサムネイル候補（https の画像。外部記事は OGP の og:image と twitter:image を全部集める。通常記事は空） */ -}}
+{{- $images := slice -}}
 {{- if .Params.external -}}
   {{- $html := "" -}}
   {{- $res := try (resources.GetRemote .Params.external) -}}
@@ -25,6 +27,13 @@
     {{- with findRESubmatch `<meta[^>]+property="og:image"[^>]+content="([^"]*)"|<meta[^>]+content="([^"]*)"[^>]+property="og:image"` $html -}}
       {{- $ogImage = htmlUnescape (or (index (index . 0) 1) (index (index . 0) 2)) -}}
     {{- end -}}
+    {{- with findRESubmatch `<meta[^>]+(?:property|name)="(?:og|twitter):image"[^>]+content="([^"]*)"|<meta[^>]+content="([^"]*)"[^>]+(?:property|name)="(?:og|twitter):image"` $html -}}
+      {{- range . -}}
+        {{- $u := htmlUnescape (or (index . 1) (index . 2)) -}}
+        {{- if hasPrefix $u "https://" -}}{{- $images = $images | append $u -}}{{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $images = $images | uniq -}}
   {{- end -}}
   {{- $title = .Params.title | default $ogTitle | default .Params.external -}}
   {{- $summary = .Params.summary | default $ogDesc -}}
@@ -36,4 +45,4 @@
     {{- end -}}
   {{- end -}}
 {{- end -}}
-{{- return (dict "title" $title "summary" $summary "image" $image) -}}
+{{- return (dict "title" $title "summary" $summary "image" $image "images" $images) -}}

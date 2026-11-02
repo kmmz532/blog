@@ -213,10 +213,33 @@
   gap: 0.5rem;
 }
 
+.thumb-url {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.thumb-url[hidden] {
+  display: none;
+}
+
+.thumb-url input {
+  flex: 1 1 12rem;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
 .thumb-choices {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 64px);
-  gap: 0.4rem;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.6rem;
   margin-top: 0.6rem;
 }
 
@@ -226,17 +249,58 @@
 }
 
 .thumb-choice {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
   padding: 0;
   border: none;
   background: none;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-align: left;
   cursor: pointer;
 }
 
 .thumb-choice img {
   display: block;
-  width: 64px;
-  height: 64px;
+  width: 100%;
+  height: 120px;
   object-fit: cover;
   border: 1px solid var(--border);
   border-radius: 6px;
+}
+
+.thumb-choice-name {
+  overflow-wrap: anywhere;
+}
+
+/* 編集画面のプレビューで、画像にサムネイルを選ぶボタンを重ねる */
+.thumb-target {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.thumb-target img {
+  display: block;
+  max-width: 100%;
+}
+
+.thumb-set {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  padding: 0.2rem 0.5rem;
+  font: inherit;
+  font-size: 0.75rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.thumb-set:hover,
+.thumb-set:focus-visible {
+  background: rgba(0, 0, 0, 0.85);
 }

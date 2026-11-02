@@ -269,7 +269,7 @@ function refreshPreview() {
   updateSummaryHint();
   thumbs.renderThumb();
   if (fields.kind === 'external') externals.renderExternalCard(fields);
-  else renderPreview(fields.body, null, $('preview'));
+  else renderPreview(fields.body, null, $('preview'), { onThumb: thumbs.setManual });
   fitPreviewToBody();
 }
 
@@ -446,6 +446,7 @@ function start() {
   const images = mountImageManager($('image-manager'), {
     onPick: (url, width) => insertImageMarkdown($('f-body'), url, 'image', width),
     onUploaded: (url, file, width) => insertImageMarkdown($('f-body'), url, altFrom(file), width),
+    onThumb: thumbs.setManual,
   });
   // 画像の一覧はダイアログ。初めて開いたときに読み込む。挿入しても閉じない（続けて入れられる）
   let imagesLoaded = false;

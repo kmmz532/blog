@@ -93,7 +93,11 @@
         <button type="button" id="thumb-upload" class="btn">画像をアップロード</button>
         <input id="thumb-file" type="file" accept="image/*" hidden>
       </div>
-      <div id="thumb-choices" class="thumb-choices" aria-label="本文の画像" hidden></div>
+      <div id="thumb-url-row" class="thumb-url" hidden>
+        <input id="thumb-url" type="url" placeholder="https://（画像の URL）" aria-label="サムネイルの画像の URL">
+        <button type="button" id="thumb-url-set" class="btn">この URL にする</button>
+      </div>
+      <div id="thumb-choices" class="thumb-choices" aria-label="サムネイルの候補" hidden></div>
     </details>
 
     <details id="drafts-details" class="details-card drafts">

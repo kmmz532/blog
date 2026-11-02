@@ -218,7 +218,8 @@ function fillSlot(slot) {
   else fillLinkCard(slot, value);
 }
 
-export function renderPreview(markdown, title, container) {
+// onThumb を渡すと http(s) と /images/ の画像に「サムネイルにする」を付ける（編集画面だけ）
+export function renderPreview(markdown, title, container, { onThumb } = {}) {
   if (!window.marked) {
     container.textContent = 'プレビューを読み込めませんでした。';
     return;
@@ -247,8 +248,16 @@ export function renderPreview(markdown, title, container) {
   });
 
   // 公開前や手元の確認では /images/... が開けないので、見られる URL に差し替える
-  content.querySelectorAll('img[src^="/images/"]').forEach((img) => {
-    img.src = imageSrc(img.getAttribute('src'));
+  content.querySelectorAll('img[src]').forEach((img) => {
+    const url = img.getAttribute('src');
+    if (url.startsWith('/images/')) img.src = imageSrc(url);
+    if (!onThumb || !(url.startsWith('/images/') || isHttpUrl(url))) return;
+    const wrap = makeElement('span', 'thumb-target');
+    const button = makeElement('button', 'thumb-set', 'サムネイルにする');
+    button.type = 'button';
+    button.addEventListener('click', () => onThumb(url));
+    img.replaceWith(wrap);
+    wrap.append(img, button);
   });
 
   const body = document.createElement('div');

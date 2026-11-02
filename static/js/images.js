@@ -22,9 +22,9 @@ function button(label, iconName, onClick, className = 'btn') {
 
 const formatSize = (bytes) => (bytes < 1024 * 100 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(2)} MB`);
 
-// container に UI を作る。onPick を渡すと各画像に「挿入」を出す。onUploaded は 1 枚上げるごとに呼ぶ。
+// container に UI を作る。onPick を渡すと各画像に「挿入」を、onThumb を渡すと「サムネイル」を出す。onUploaded は 1 枚上げるごとに呼ぶ。
 // 返す load() は最初に見せるときに 1 回呼ぶ（API の呼び出しを開くまで遅らせるため）
-export function mountImageManager(container, { onPick, onUploaded } = {}) {
+export function mountImageManager(container, { onPick, onUploaded, onThumb } = {}) {
   const fileInput = el('input');
   fileInput.type = 'file';
   fileInput.accept = 'image/*';
@@ -60,6 +60,7 @@ export function mountImageManager(container, { onPick, onUploaded } = {}) {
 
     const actions = el('div', 'image-actions');
     if (onPick) actions.append(button('挿入', 'fa-plus', () => onPick(item.publicPath, size.value)));
+    if (onThumb) actions.append(button('サムネイル', 'fa-image', () => onThumb(item.publicPath)));
     actions.append(
       button('URL', 'fa-copy', async () => {
         try {
