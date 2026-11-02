@@ -33,6 +33,8 @@ enableRobotsTXT = true
   appleIcon = "/apple-touch-icon.png"
   repo = "kmmz532/blog-article"
   branch = "main"
+  # Cloudflare Web Analytics のトークン（任意。未設定なら計測しない）
+  # cfAnalyticsToken = "1804f0b089514bd89f825935e08c428f"
   author = "Mizuto, Kaminakano"
   bio = "ウェブ開発やアプリ開発に興味のある大学生"
   footer = "© 2025-2026 Mizuto, Kaminakano - CC BY 4.0. | contact@kmmz.jp - Osaka, Japan"

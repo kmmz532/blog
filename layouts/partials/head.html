@@ -1,6 +1,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://platform.twitter.com https://platform.twimg.com; object-src 'none'; base-uri 'self'">
+{{- /* アクセス解析（Cloudflare Web Analytics）は params.cfAnalyticsToken があり、公開ビルドの通常ページだけ（design.md §20） */}}
+{{- $cfToken := "" }}
+{{- if and site.Params.cfAnalyticsToken (not hugo.IsServer) (not .Params.robots) }}{{ $cfToken = site.Params.cfAnalyticsToken }}{{ end }}
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://platform.twitter.com https://platform.twimg.com{{ if $cfToken }} https://static.cloudflareinsights.com{{ end }}; object-src 'none'; base-uri 'self'">
 {{- /* ダークモードの初期化。描画前に適用してちらつきを防ぐ */}}
 <script>
   (function () {
@@ -74,3 +77,6 @@
 {{- $parts := slice (resources.Get "css/base.css") (resources.Get "css/layout.css") (resources.Get "css/list.css") (resources.Get "css/post.css") (resources.Get "css/editor.css") (resources.Get "css/syntax.css") -}}
 {{- $main := resources.Concat "css/main.css" $parts | minify | fingerprint }}
 <link rel="stylesheet" href="{{ $main.RelPermalink }}" integrity="{{ $main.Data.Integrity }}">
+{{- with $cfToken }}
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{ dict "token" . | jsonify }}'></script>
+{{- end }}
