@@ -81,12 +81,13 @@ export function createThumb({ state, markDirty }) {
     const map = await loadOgpIndex();
     const seen = new Set();
     const items = [];
-    for (const [, url] of $('f-body').value.matchAll(LINK_CARD_RE)) {
+    // 番号は本文に出てくる順（同じ画像を外したカードの番号も詰めない）
+    [...$('f-body').value.matchAll(LINK_CARD_RE)].forEach(([, url], i) => {
       const card = map.get(url);
-      if (!card?.image || !isHttps(card.image) || seen.has(card.image)) continue;
+      if (!card?.image || !isHttps(card.image) || seen.has(card.image)) return;
       seen.add(card.image);
-      items.push({ url: card.image, caption: `カード: ${card.title || url}` });
-    }
+      items.push({ url: card.image, caption: `${i + 1}. カード: ${card.title || url}` });
+    });
     return items;
   }
 
