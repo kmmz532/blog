@@ -291,6 +291,46 @@ function failStart(message) {
   $('danger-details').hidden = true;
 }
 
+// ---- テンプレート（新規記事のとき、既存記事を元に作り直す） ----
+
+// 何か書いてあるか。カテゴリは初期値があるので見ない
+function hasContent() {
+  const fields = readForm();
+  return Boolean(fields.title || fields.body.trim() || fields.summary || fields.tags.length || fields.url || state.thumbImage);
+}
+
+function attachTemplate() {
+  const select = $('template-select');
+  let loaded = false;
+  $('template-details').addEventListener('toggle', async () => {
+    if (!$('template-details').open || loaded) return;
+    loaded = true;
+    try {
+      const res = await fetch($('post-form').dataset.indexUrl, { cache: 'no-store' });
+      if (!res.ok) throw new Error();
+      const items = (await res.json())
+        .filter((item) => !item.external)
+        .sort((a, b) => b.date.localeCompare(a.date));
+      for (const item of items) {
+        const option = document.createElement('option');
+        option.value = item.slug;
+        option.textContent = `${item.date.replaceAll('-', '.')} ${item.title || item.slug}`;
+        select.append(option);
+      }
+    } catch {
+      loaded = false;
+      showNotice('error', '記事の一覧を読み込めませんでした。');
+    }
+  });
+  $('template-load').addEventListener('click', () => {
+    const slug = select.value;
+    if (!slug) return;
+    if (hasContent() && !confirm('今書いている内容を、選んだ記事の内容で置き換えます。よろしいですか？（下書き保存したものは残ります）')) return;
+    state.dirty = false;
+    location.href = `/edit/?from=${encodeURIComponent(slug)}`;
+  });
+}
+
 // ---- 初期化 ----
 
 async function load() {
@@ -372,6 +412,7 @@ async function load() {
   }
 
   writeForm(server);
+  $('template-details').hidden = state.originalSlug !== null;
 
   const key = draftKey(state.originalSlug);
   if (hasDraft(key)) {
@@ -462,6 +503,7 @@ function start() {
   });
 
   thumbs.attach();
+  attachTemplate();
   $('delete').addEventListener('click', save.removePost);
   $('discard').addEventListener('click', () => {
     if (!confirm('この記事の下書きを破棄して、保存済みの内容を読み直します。')) return;

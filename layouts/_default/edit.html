@@ -75,6 +75,13 @@
       <p id="f-slug-error" class="field-error" hidden></p>
     </div>
 
+    <details id="template-details" class="details-card" hidden>
+      <summary>テンプレート</summary>
+      <label class="field">既存の記事から作る（投稿日以外を引き継ぐ）
+        <select id="template-select"><option value="">記事を選ぶ</option></select></label>
+      <button type="button" id="template-load" class="btn">読み込む</button>
+    </details>
+
     <details id="summary-details" class="details-card">
       <summary>概要（任意）</summary>
       <textarea id="f-summary" rows="3" placeholder="（本文から自動生成されます）"></textarea>
