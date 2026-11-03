@@ -1,6 +1,8 @@
 baseURL = "https://blog.kmmz.jp/"
 languageCode = "ja"
 timeZone = "Asia/Tokyo"
+# ogp.md が link-card の URL を 1 回のテンプレート実行で全部取りに行くため、取得が遅いと既定の 30 秒を超える
+timeout = "5m"
 title = "かみみずブログ"
 enableRobotsTXT = true
 
