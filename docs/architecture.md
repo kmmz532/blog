@@ -22,7 +22,7 @@ OAuth を使わない理由は、GitHub の OAuth はトークン交換に clien
 
 - リポジトリにある記事は公開済みです。
 - 下書きはブラウザの `localStorage` だけに保存します。未公開の記事を公開リポジトリに置かないためです。
-- 検索は Hugo が出力する `/index.json` をブラウザで絞り込みます。
+- 検索は Hugo が出力する `/index.json` をブラウザで絞り込みます。管理画面（一括管理・編集）は `/gh-admin/index.json` を読みます（検索用とは項目を分けています。`layouts/gh-admin/index.json`）。
 
 ## ファイル構成
 

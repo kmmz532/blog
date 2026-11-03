@@ -1,0 +1,7 @@
+{{- /* 管理画面（一括管理・編集・テンプレート・サムネイル）が読む索引（design.md §17・§19）。検索用の /index.json とは分ける */ -}}
+{{- $index := slice -}}
+{{- range where site.RegularPages "Section" "posts" -}}
+{{- $meta := partialCached "external-meta.html" . .File.Path -}}
+{{- $index = $index | append (dict "slug" .File.ContentBaseName "title" $meta.title "url" (partial "post-url.html" .) "external" (.Params.external | default "") "date" (.Date.Format "2006-01-02") "images" $meta.images "tags" .Params.tags "categories" .Params.categories) -}}
+{{- end -}}
+{{- $index | jsonify -}}
