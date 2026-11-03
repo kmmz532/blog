@@ -29,10 +29,10 @@ hugo server
 
 管理画面の機能は Hugo Modules の部品 `github.com/kmmz532/hugo-gh-admin` として取り込んでいます。版は `go.mod` に記録されています。
 
-手元の作業コピーを利用するには、`BLOG_ADMIN_DIR` に作業コピーのパスを指定して `npm run dev` を起動します。`scripts/dev.mjs` が `HUGO_MODULE_REPLACEMENTS` を設定します。
+手元の作業コピーを利用するには、`GH_ADMIN_DIR` に作業コピーのパスを指定して `npm run dev` を起動します。`scripts/dev.mjs` が `HUGO_MODULE_REPLACEMENTS` を設定します。
 
 ```sh
-BLOG_ADMIN_DIR=F:\workspace\kmmz1127\hugo-gh-admin npm run dev
+GH_ADMIN_DIR=F:\workspace\kmmz1127\hugo-gh-admin npm run dev
 ```
 
 版を上げるとき、または戻すときは次の手順で行います。

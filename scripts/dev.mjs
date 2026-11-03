@@ -52,13 +52,13 @@ if (devToken) {
   console.log('BLOG_DEV_TOKEN 未設定: 自動ログインなし（/login/ で入力してください）。');
 }
 
-// BLOG_ADMIN_DIR があれば、手元の hugo-gh-admin の作業コピーを使う（Hugo Modules の replace）。
+// GH_ADMIN_DIR があれば、手元の hugo-gh-admin の作業コピーを使う（Hugo Modules の replace）。
 // 未設定なら、go.mod に記録した版を使う
 const env = { ...process.env };
-const adminDir = process.env.BLOG_ADMIN_DIR;
+const adminDir = process.env.GH_ADMIN_DIR;
 if (adminDir) {
   env.HUGO_MODULE_REPLACEMENTS = `github.com/kmmz532/hugo-gh-admin -> ${resolve(adminDir)}`;
-  console.log(`BLOG_ADMIN_DIR: ${resolve(adminDir)} を使います。`);
+  console.log(`GH_ADMIN_DIR: ${resolve(adminDir)} を使います。`);
 }
 
 const server = spawn(
