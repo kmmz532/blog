@@ -79,6 +79,10 @@ enableRobotsTXT = true
 [[module.imports]]
   path = "github.com/kmmz532/hugo-gh-admin"
 
+# Hugo のショートコード・描画フック・OGP 索引（記事の書式）
+[[module.imports]]
+  path = "github.com/kmmz532/hugo-shortcodes"
+
 # 記事は別リポジトリ blog-article を posts/ に clone して取り込む
 [[module.mounts]]
   source = "content"

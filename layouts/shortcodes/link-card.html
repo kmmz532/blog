@@ -1,9 +1,0 @@
-{{- /* 本文の {{< link-card url="..." >}} をカードにする。OGP が取れなければ通常のリンク */ -}}
-{{- $url := .Get "url" -}}
-{{- $meta := partial "link-meta.html" $url -}}
-{{- /* 中は span と img だけにして、<p> の中に入っても正しい HTML になるようにする */ -}}
-{{- if and $meta.title (or (strings.HasPrefix $url "https://") (strings.HasPrefix $url "http://")) -}}
-<a class="link-card" href="{{ $url }}" target="_blank" rel="noopener"><span class="link-card-body"><span class="link-card-title">{{ $meta.title }}</span>{{ with $meta.desc }}<span class="link-card-desc">{{ . }}</span>{{ end }}<span class="link-card-host">{{ (urls.Parse $url).Host }}</span></span>{{ with $meta.image }}<img class="link-card-thumb" src="{{ . }}" width="96" height="96" alt="" loading="lazy">{{ end }}</a>
-{{- else -}}
-<a href="{{ $url }}" target="_blank" rel="noopener">{{ $url }}</a>
-{{- end -}}

@@ -1,2 +1,0 @@
-{{- /* 数式。$$...$$ と \[...\] は表示、\(...\) は文中。ビルド時に KaTeX の HTML にする */ -}}
-{{- transform.ToMath .Inner (dict "displayMode" (eq .Type "block")) | safeHTML -}}
