@@ -47,7 +47,7 @@ enableRobotsTXT = true
   footer = "© 2025-2026 Mizuto, Kaminakano - CC BY 4.0. | contact@kmmz.jp - Osaka, Japan"
 
 # 管理画面（gh-admin）の設定。未設定の項目は layouts/partials/gh-admin/settings.html の既定値
-[params.blogAdmin]
+[params.ghAdmin]
   repo = "kmmz532/blog-article"
   branch = "main"
 

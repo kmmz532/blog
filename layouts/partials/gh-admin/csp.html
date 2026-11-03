@@ -1,0 +1,2 @@
+{{- /* 編集画面だけが読む外部スクリプトの送り先（CSP の script-src に足す）。機能の事情はこの partial に閉じる */ -}}
+{{- if eq .Layout "edit" }} https://cdnjs.cloudflare.com{{ end -}}

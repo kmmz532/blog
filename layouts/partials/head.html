@@ -3,7 +3,7 @@
 {{- /* アクセス解析（Cloudflare Web Analytics）は params.cfAnalyticsToken があり、公開ビルドの通常ページだけ（design.md §20） */}}
 {{- $cfToken := "" }}
 {{- if and site.Params.cfAnalyticsToken (not hugo.IsServer) (not .Params.robots) }}{{ $cfToken = site.Params.cfAnalyticsToken }}{{ end }}
-<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://platform.twitter.com https://platform.twimg.com{{ if $cfToken }} https://static.cloudflareinsights.com{{ end }}{{ if eq .Layout "edit" }} https://cdnjs.cloudflare.com{{ end }}; object-src 'none'; base-uri 'self'">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://platform.twitter.com https://platform.twimg.com{{ if $cfToken }} https://static.cloudflareinsights.com{{ end }}{{ partial "gh-admin/csp.html" . }}; object-src 'none'; base-uri 'self'">
 {{- /* ダークモードの初期化。描画前に適用してちらつきを防ぐ */}}
 <script>
   (function () {
