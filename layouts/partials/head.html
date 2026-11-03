@@ -59,7 +59,6 @@
 {{- end }}
 {{- end }}
 {{- /* 管理画面の JS が読む設定値。JS にリポジトリ名を直書きしない */}}
-<meta name="gh-admin" content="{{ partial "gh-admin/settings.html" . }}">
 <link rel="alternate" type="application/rss+xml" title="{{ site.Title }}" href="{{ "index.xml" | absURL }}">
 {{- /* アイコンは params.icon / params.appleIcon を設定したときだけ出す */}}
 {{- with site.Params.icon }}
@@ -78,6 +77,8 @@
 {{- $parts := slice (resources.Get "css/base.css") (resources.Get "css/layout.css") (resources.Get "css/list.css") (resources.Get "css/post.css") (resources.Get "gh-admin/editor.css") (resources.Get "css/syntax.css") -}}
 {{- $main := resources.Concat "css/main.css" $parts | minify | fingerprint }}
 <link rel="stylesheet" href="{{ $main.RelPermalink }}" integrity="{{ $main.Data.Integrity }}">
+{{- /* 管理画面の部品（meta・CSS・admin.js）。CSS は本体の bundle の後に読む */}}
+{{ partial "gh-admin/head.html" . }}
 {{- with $cfToken }}
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{ dict "token" . | jsonify }}'></script>
 {{- end }}

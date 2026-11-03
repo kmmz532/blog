@@ -1,0 +1,5 @@
+{{- /* 管理画面の <head> 部品。本体の head.html から呼ぶ。CSP の送り先は csp.html */ -}}
+<meta name="gh-admin" content="{{ partial "gh-admin/settings.html" . }}">
+{{- $css := resources.Get "gh-admin/editor.css" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+<script type="module" src="{{ "gh-admin/js/admin.js" | relURL }}"></script>

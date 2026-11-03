@@ -1,4 +1,3 @@
-{{- $gh := partial "gh-admin/settings.html" . | transform.Unmarshal }}
 <header class="header">
   <div class="header-inner">
     <a class="title" href="{{ "/" | relURL }}">{{ site.Params.headerTitle | default site.Title }}</a>
@@ -7,22 +6,12 @@
         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
       </a>
       {{- if and (eq .Kind "page") (eq .Section "posts") }}
-      <a class="icon-button admin-only" href="{{ $gh.editURL }}?slug={{ .File.ContentBaseName | urlquery }}" aria-label="この記事を編集" title="この記事を編集" hidden>
-        <i class="fa-solid fa-pen" aria-hidden="true"></i>
-      </a>
+      {{ partial "gh-admin/button.html" (dict "kind" "edit" "page" . "class" "icon-button") }}
       {{- end }}
-      <a class="icon-button admin-only" href="{{ $gh.editURL }}" aria-label="新規記事" title="新規記事" hidden>
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-      </a>
-      <a class="icon-button admin-only" href="{{ $gh.adminURL }}" aria-label="一括管理" title="一括管理" hidden>
-        <i class="fa-solid fa-table-list" aria-hidden="true"></i>
-      </a>
-      <a class="icon-button guest-only" href="{{ $gh.loginURL }}" aria-label="ログイン" title="ログイン" hidden>
-        <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
-      </a>
-      <a class="icon-button logout-only" href="#" aria-label="ログアウト" title="ログアウト" hidden>
-        <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
-      </a>
+      {{ partial "gh-admin/button.html" (dict "kind" "new" "page" . "class" "icon-button") }}
+      {{ partial "gh-admin/button.html" (dict "kind" "admin" "page" . "class" "icon-button") }}
+      {{ partial "gh-admin/button.html" (dict "kind" "login" "page" . "class" "icon-button") }}
+      {{ partial "gh-admin/button.html" (dict "kind" "logout" "page" . "class" "icon-button") }}
     </div>
   </div>
 </header>

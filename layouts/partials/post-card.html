@@ -1,4 +1,3 @@
-{{- $gh := partial "gh-admin/settings.html" . | transform.Unmarshal }}
 {{- $url := partial "post-url.html" . }}
 {{- $external := .Params.external }}
 {{- $meta := partialCached "external-meta.html" . .File.Path }}
@@ -30,7 +29,5 @@
   </div>
   {{- end }}
   </div>
-  <a class="card-edit admin-only" href="{{ $gh.editURL }}?slug={{ .File.ContentBaseName | urlquery }}" aria-label="編集" title="編集" hidden>
-    <i class="fa-solid fa-pen" aria-hidden="true"></i>
-  </a>
+  {{ partial "gh-admin/button.html" (dict "kind" "edit" "page" . "class" "card-edit" "label" "編集") }}
 </article>

@@ -1,0 +1,35 @@
+{{- /* 管理画面への入口のボタン。引数: dict "kind" "edit|new|admin|login|logout|footer" "page" . "class" "..." "label" "..."。
+  本体の header.html・post-card.html・footer.html から呼ぶ。見た目のクラスは class で渡す。 */ -}}
+{{- $gh := partial "gh-admin/settings.html" .page | transform.Unmarshal -}}
+{{- $kind := .kind -}}
+{{- if eq $kind "footer" -}}
+<a id="auth-link" class="footer-admin" href="{{ $gh.loginURL }}">管理</a>
+{{- else -}}
+  {{- $cls := .class | default "icon-button" -}}
+  {{- $vis := "admin-only" -}}
+  {{- $href := $gh.adminURL -}}
+  {{- $label := .label | default "一括管理" -}}
+  {{- $icon := "fa-solid fa-table-list" -}}
+  {{- if eq $kind "edit" -}}
+    {{- $href = printf "%s?slug=%s" $gh.editURL (.page.File.ContentBaseName | urlquery) -}}
+    {{- $label = .label | default "この記事を編集" -}}
+    {{- $icon = "fa-solid fa-pen" -}}
+  {{- else if eq $kind "new" -}}
+    {{- $href = $gh.editURL -}}
+    {{- $label = .label | default "新規記事" -}}
+    {{- $icon = "fa-solid fa-plus" -}}
+  {{- else if eq $kind "login" -}}
+    {{- $vis = "guest-only" -}}
+    {{- $href = $gh.loginURL -}}
+    {{- $label = .label | default "ログイン" -}}
+    {{- $icon = "fa-solid fa-right-to-bracket" -}}
+  {{- else if eq $kind "logout" -}}
+    {{- $vis = "logout-only" -}}
+    {{- $href = "#" -}}
+    {{- $label = .label | default "ログアウト" -}}
+    {{- $icon = "fa-solid fa-right-from-bracket" -}}
+  {{- end }}
+<a class="{{ $cls }} {{ $vis }}" href="{{ $href }}" aria-label="{{ $label }}" title="{{ $label }}" hidden>
+  <i class="{{ $icon }}" aria-hidden="true"></i>
+</a>
+{{- end -}}
