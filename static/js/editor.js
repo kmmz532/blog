@@ -1,3 +1,4 @@
+import { loadIndex } from './index-loader.js';
 import { config } from './config.js';
 import { getPost, getToken, ensureDevSession, isValidSlug } from './github.js';
 import { uploadImage } from './image.js';
@@ -307,9 +308,7 @@ function attachTemplate() {
     if (!$('template-details').open || loaded) return;
     loaded = true;
     try {
-      const res = await fetch($('post-form').dataset.indexUrl, { cache: 'no-store' });
-      if (!res.ok) throw new Error();
-      const items = (await res.json())
+      const items = (await loadIndex($('post-form').dataset.indexUrl))
         .filter((item) => !item.external)
         .sort((a, b) => b.date.localeCompare(a.date));
       for (const item of items) {

@@ -1,6 +1,21 @@
-{{- $index := slice -}}
+{{- /* 検索用の索引（design.md §17・検索の節）。1 ファイル indexPageSize 件まで。2 つ目以降は /index/<n>.json（T78f2） */ -}}
+{{- $size := int (site.Params.indexPageSize | default 50) -}}
+{{- $v := now.Unix -}}
+{{- $items := slice -}}
 {{- range where site.RegularPages "Section" "posts" -}}
 {{- $meta := partialCached "external-meta.html" . .File.Path -}}
-{{- $index = $index | append (dict "title" $meta.title "url" (partial "post-url.html" .) "date" (.Date.Format "2006-01-02") "summary" $meta.summary "tags" .Params.tags "categories" .Params.categories "body" .Plain) -}}
+{{- $items = $items | append (dict "slug" .File.ContentBaseName "title" $meta.title "url" (partial "post-url.html" .) "date" (.Date.Format "2006-01-02") "summary" $meta.summary "tags" .Params.tags "categories" .Params.categories "body" .Plain) -}}
 {{- end -}}
-{{- $index | jsonify -}}
+{{- $total := len $items -}}
+{{- $pages := div (add $total (sub $size 1)) $size -}}
+{{- range $p := seq $pages -}}
+  {{- $next := index (dict) "none" -}}
+  {{- if lt $p $pages -}}{{- $next = printf "%s?v=%d" (relURL (printf "index/%d.json" (add $p 1))) $v -}}{{- end -}}
+  {{- if gt $p 1 -}}
+    {{- $chunk := first $size (after (mul (sub $p 1) $size) $items) -}}
+    {{- $_ := (resources.FromString (printf "index/%d.json" $p) (dict "items" $chunk "next" $next "total" $total | jsonify)).Publish -}}
+  {{- end -}}
+{{- end -}}
+{{- $next1 := index (dict) "none" -}}
+{{- if gt $pages 1 -}}{{- $next1 = printf "%s?v=%d" (relURL "index/2.json") $v -}}{{- end -}}
+{{- dict "items" (first $size $items) "next" $next1 "total" $total | jsonify -}}

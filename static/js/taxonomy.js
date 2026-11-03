@@ -1,5 +1,6 @@
 // カテゴリとタグ（design.md §11.6・§16）。カテゴリは「>」区切りの入力か既存のチップで選ぶ、タグは複数選ぶ。どちらも「新規」で作れる。
 // 画面の状態（state）と、変更を知らせる関数（markDirty）は引数で受け取る。editor.js は import しない
+import { loadIndex } from './index-loader.js';
 import { config } from './config.js';
 import { showNotice } from './notice.js';
 
@@ -180,9 +181,7 @@ export function createTaxonomy({ state, markDirty }) {
   // 既存の記事から、カテゴリの階層とタグの件数を集計する。失敗しても手入力は続けられる
   async function loadIndex() {
     try {
-      const res = await fetch($('post-form').dataset.indexUrl, { cache: 'no-store' });
-      if (!res.ok) return;
-      const posts = await res.json();
+      const posts = await loadIndex($('post-form').dataset.indexUrl);
       // 階層の各段（先頭から k 段目まで）を 1 つの節として数える
       const nodes = new Map();
       const tagCounts = new Map();

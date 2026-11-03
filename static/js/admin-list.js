@@ -1,8 +1,9 @@
 // /admin/ の一覧・絞り込み・選択・一括操作（design.md §17）。
-// 一覧は index.json（公開済みの記事）から作る。ユーザー由来の文字列は textContent で描画する。
+// 一覧は索引（gh-admin/index.json。1 ファイルずつ読む）から作る。ユーザー由来の文字列は textContent で描画する。
 import { config } from './config.js';
 import { ensureDevSession, getToken, getPost, commitChanges, ConflictError } from './github.js';
 import { applyBulk } from './frontmatter.js';
+import { loadIndex } from './index-loader.js';
 
 const $ = (id) => document.getElementById(id);
 const ACTION_LABELS = {
@@ -43,6 +44,7 @@ function row(item) {
 
   const check = document.createElement('input');
   check.type = 'checkbox';
+  check.disabled = !ready;
   check.checked = selected.has(item.slug);
   check.setAttribute('aria-label', `${item.title || item.slug} を選ぶ`);
   check.addEventListener('change', () => {
@@ -139,6 +141,7 @@ const setStatus = (text) => {
 
 // 一括操作を実行する。確認 → 記事を読む → 変換 → 1 コミット。途中で失敗したら何も変えない
 async function apply() {
+  if (!ready) return;
   const action = $('bulk-action').value;
   const slugs = [...selected];
   if (!slugs.length) return;
@@ -215,16 +218,34 @@ function attach() {
   $('bulk-apply').addEventListener('click', apply);
 }
 
+// 絞り込み・一覧の選択・一括操作は全件読み終わってから有効にする（途中の件数だけで一括操作しないため）
+let ready = false;
+function setReady(on) {
+  ready = on;
+  for (const id of ['admin-search', 'admin-kind', 'admin-all']) $(id).disabled = !on;
+  renderRows();
+}
+
+const byNewest = (items) => items.sort((a, b) => b.date.localeCompare(a.date));
+
 async function load() {
   const indexUrl = document.querySelector('script[data-index-url]').dataset.indexUrl;
-  const res = await fetch(indexUrl, { cache: 'no-store' });
-  if (!res.ok) {
+  try {
+    const items = await loadIndex(indexUrl, {
+      onPage: (read, total) => {
+        articles = byNewest([...read]);
+        fillCategoryOptions();
+        renderRows();
+        setStatus(`読み込み中（${read.length} / ${total}）`);
+      },
+    });
+    articles = byNewest(items);
+    fillCategoryOptions();
+    setStatus('');
+    setReady(true);
+  } catch {
     setStatus('記事の一覧を読み込めませんでした。');
-    return;
   }
-  articles = (await res.json()).sort((a, b) => b.date.localeCompare(a.date));
-  fillCategoryOptions();
-  renderRows();
 }
 
 await ensureDevSession();

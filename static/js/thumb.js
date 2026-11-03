@@ -1,5 +1,6 @@
 // サムネイル（手動設定があればそれ。無ければ自動。design.md §3・§11.6）。
 // 画面の状態（state）と変更通知（markDirty）は引数で受け取る。editor.js は import しない
+import { loadIndex } from './index-loader.js';
 import { uploadImage, imageSrc } from './image.js';
 import { showNotice } from './notice.js';
 import { isHttps } from './external.js';
@@ -95,9 +96,13 @@ export function createThumb({ state, markDirty }) {
   async function externalChoices() {
     if (state.originalSlug === null) return [];
     try {
-      const res = await fetch($('post-form').dataset.indexUrl, { cache: 'no-store' });
-      if (!res.ok) return [];
-      const post = (await res.json()).find((item) => item.slug === state.originalSlug);
+      let post;
+      await loadIndex($('post-form').dataset.indexUrl, {
+        stop: (items) => {
+          post = items.find((item) => item.slug === state.originalSlug);
+          return Boolean(post);
+        },
+      });
       return (post?.images ?? []).map((url, i) => ({ url, caption: `OGP ${i + 1}` }));
     } catch {
       return [];
