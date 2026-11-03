@@ -135,6 +135,12 @@ a.chip:hover {
 }
 
 /* ページネーション */
+/* トップの一覧の上（検索欄の下）に置くページ送り */
+#home-list > .pager:first-child {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
 .pager {
   display: flex;
   justify-content: center;
