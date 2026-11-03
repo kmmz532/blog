@@ -26,6 +26,8 @@ OAuthを利用しない理由は、GitHubのOAuthはトークン交換にclient 
 
 ## ファイル構成
 
+管理画面の機能（ログイン・編集・一括管理・画像の管理）は、Hugo Modules の部品 `github.com/kmmz532/hugo-gh-admin` として取り込みます。下の `static/gh-admin/`・`layouts/gh-admin/`・`assets/gh-admin/` などは、部品の内容です（部品の作業コピーで直す）。
+
 ```
 blog/                           本体
 ├─ hugo.toml                    設定。記事はposts/ から取り込む

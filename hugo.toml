@@ -75,6 +75,10 @@ enableRobotsTXT = true
   url = "https://www.instagram.com/_miz210/"
   icon = "fa-brands fa-instagram"
 
+# 管理画面の機能は Hugo Modules の部品（版はタグで固定。go.mod に記録）
+[[module.imports]]
+  path = "github.com/kmmz532/hugo-gh-admin"
+
 # 記事は別リポジトリ blog-article を posts/ に clone して取り込む
 [[module.mounts]]
   source = "content"
