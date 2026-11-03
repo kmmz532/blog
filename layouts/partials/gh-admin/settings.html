@@ -1,0 +1,4 @@
+{{- /* gh-admin の設定（design.md §2）。既定値はこの partial に 1 か所だけ書く。URL は relURL を通し、JSON で返す */ -}}
+{{- $defaults := dict "repo" "" "branch" "main" "postsDir" "content/posts" "imagesDir" "static/images" "imagesURL" "/images/" "defaultCategory" "tech" "editURL" "/edit/" "loginURL" "/login/" "adminURL" "/admin/" "adminImagesURL" "/admin/images/" "contentSelector" "main.contents" -}}
+{{- $s := merge $defaults (site.Params.blogAdmin | default dict) -}}
+{{- dict "repo" $s.repo "branch" $s.branch "postsDir" $s.postsDir "imagesDir" $s.imagesDir "imagesURL" (relURL $s.imagesURL) "defaultCategory" $s.defaultCategory "editURL" (relURL $s.editURL) "loginURL" (relURL $s.loginURL) "adminURL" (relURL $s.adminURL) "adminImagesURL" (relURL $s.adminImagesURL) "contentSelector" $s.contentSelector | jsonify -}}

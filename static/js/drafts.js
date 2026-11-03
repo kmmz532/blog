@@ -1,4 +1,5 @@
 // 下書きはこの端末の localStorage にだけ保存する（公開リポジトリに未公開記事を置かないため）。
+import { config } from './config.js';
 import { getItem, setItem, removeItem, keys } from './storage.js';
 import { setSaveState, showNotice } from './notice.js';
 
@@ -43,7 +44,7 @@ export function renderDrafts(list) {
     const isNew = slug === NEW_SLUG;
     const item = document.createElement('li');
     const link = document.createElement('a');
-    link.href = isNew ? '/edit/' : `/edit/?slug=${encodeURIComponent(slug)}`;
+    link.href = isNew ? config.editURL : `${config.editURL}?slug=${encodeURIComponent(slug)}`;
     link.textContent = draft.title || '（無題）';
     const meta = document.createElement('span');
     meta.className = 'card-meta';

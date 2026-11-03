@@ -1,4 +1,5 @@
 // 記事ファイルの front matter を読み書きする。副作用はない。
+import { config } from './config.js';
 import { dateToJstInput } from './time.js';
 
 // 画面で扱うキー。それ以外は raw 行のまま保持して書き戻す。build は読み込みで捨てて保存で作り直す
@@ -78,7 +79,7 @@ export function parseArticle(text) {
       title: String(values.title ?? ''),
       date: dateToJstInput(date),
       // 階層の順のリスト（先頭が一番上）。旧形式の 1 つだけのリストもそのまま読める（design.md §16）
-      categories: values.categories?.length ? values.categories : ['tech'],
+      categories: values.categories?.length ? values.categories : [config.defaultCategory],
       tags: values.tags ?? [],
       summary: String(values.summary ?? ''),
       image: String(values.image ?? ''),

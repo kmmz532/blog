@@ -1,3 +1,4 @@
+import { config } from './config.js';
 import { getPost, getToken, ensureDevSession, isValidSlug } from './github.js';
 import { uploadImage } from './image.js';
 import { parseArticle } from './frontmatter.js';
@@ -111,7 +112,7 @@ function writeForm(fields) {
     slugs.syncAutoSlug();
   }
   // 旧形式の下書き（category が 1 つだけ）も読める
-  state.categories = [...(fields.categories ?? [fields.category ?? 'tech'])];
+  state.categories = [...(fields.categories ?? [fields.category ?? config.defaultCategory])];
   taxonomy.renderCategories();
   state.tags = [...fields.tags];
   taxonomy.renderSelectedTags();
@@ -327,7 +328,7 @@ function attachTemplate() {
     if (!slug) return;
     if (hasContent() && !confirm('今書いている内容を、選んだ記事の内容で置き換えます。よろしいですか？（下書き保存したものは残ります）')) return;
     state.dirty = false;
-    location.href = `/edit/?from=${encodeURIComponent(slug)}`;
+    location.href = `${config.editURL}?from=${encodeURIComponent(slug)}`;
   });
 }
 
@@ -401,7 +402,7 @@ async function load() {
       slug: '',
       title: '',
       date: nowJst(),
-      categories: ['tech'],
+      categories: [config.defaultCategory],
       tags: [],
       summary: '',
       body: '',
@@ -536,5 +537,5 @@ await ensureDevSession();
 if (getToken()) {
   start();
 } else {
-  location.replace(`/login/?return=${encodeURIComponent(location.pathname + location.search)}`);
+  location.replace(`${config.loginURL}?return=${encodeURIComponent(location.pathname + location.search)}`);
 }

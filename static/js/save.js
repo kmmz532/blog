@@ -1,4 +1,5 @@
 // 公開・slug 変更・削除（design.md §7）。画面の状態と部品は引数で受け取る。editor.js は import しない
+import { config } from './config.js';
 import { savePost, deletePost, ConflictError } from './github.js';
 import { buildArticle, buildExternal } from './frontmatter.js';
 import { draftKey, removeDraft, renderDrafts } from './drafts.js';
@@ -109,7 +110,7 @@ export function createSave({ state, readForm, validate, slugs, drafts, cancelDra
       });
       if (slugChanged && !warning) recordDelete(oldSlug);
       state.dirty = false;
-      history.replaceState(null, '', `/edit/?slug=${encodeURIComponent(fields.slug)}`);
+      history.replaceState(null, '', `${config.editURL}?slug=${encodeURIComponent(fields.slug)}`);
       updateChrome();
       renderDrafts($('drafts'));
 

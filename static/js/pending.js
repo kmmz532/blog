@@ -1,5 +1,6 @@
 // 公開・削除の直後に、反映待ちの内容をこの端末だけで先に見せる（design.md §12）。
 // 控えは localStorage に置き、ビルド時刻を過ぎたら、または 30 分経ったら消す。GitHub API は呼ばない。
+import { config } from './config.js';
 import { getToken } from './github.js';
 import { getItem, setItem, removeItem, keys } from './storage.js';
 import { renderPreview } from './preview.js';
@@ -181,7 +182,7 @@ function renderCard(slug, fields) {
   }
 
   const edit = el('a', 'card-edit');
-  edit.href = `/edit/?slug=${encodeURIComponent(slug)}`;
+  edit.href = `${config.editURL}?slug=${encodeURIComponent(slug)}`;
   edit.setAttribute('aria-label', '編集');
   edit.title = '編集';
   edit.append(icon('fa-solid fa-pen'));
@@ -220,7 +221,7 @@ function isFirstPage() {
 }
 
 function showStaleNotice() {
-  const main = document.querySelector('main.contents');
+  const main = document.querySelector(config.contentSelector);
   if (!main) return;
   main.prepend(
     el('p', 'pending-notice', '公開した記事が反映されていない可能性があります（Actions を確認してください）'),
@@ -244,7 +245,7 @@ export function applyPending() {
   if (match && document.querySelector('[data-not-found]')) {
     const control = controlFor(match[1]);
     if (control?.op === 'save' && control.fields.kind !== 'external') {
-      renderArticle(document.querySelector('main.contents'), control.fields);
+      renderArticle(document.querySelector(config.contentSelector), control.fields);
     }
     return;
   }

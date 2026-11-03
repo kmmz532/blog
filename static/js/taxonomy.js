@@ -1,5 +1,6 @@
 // カテゴリとタグ（design.md §11.6・§16）。カテゴリは「>」区切りの入力か既存のチップで選ぶ、タグは複数選ぶ。どちらも「新規」で作れる。
 // 画面の状態（state）と、変更を知らせる関数（markDirty）は引数で受け取る。editor.js は import しない
+import { config } from './config.js';
 import { showNotice } from './notice.js';
 
 const $ = (id) => document.getElementById(id);
@@ -203,7 +204,7 @@ export function createTaxonomy({ state, markDirty }) {
       state.knownTags = [...tagCounts].map(([name, count]) => ({ name, count })).sort(byCount);
       // 新規記事は件数が一番多い最上位のカテゴリを初期値にする（既存が無ければ tech）
       const keepCurrent = state.originalSlug !== null || state.categoryPicked;
-      if (!keepCurrent) state.categories = [childrenOf([])[0]?.name ?? 'tech'];
+      if (!keepCurrent) state.categories = [childrenOf([])[0]?.name ?? config.defaultCategory];
       renderCategories();
       renderTagSuggestions($('f-tag-entry').value);
     } catch {

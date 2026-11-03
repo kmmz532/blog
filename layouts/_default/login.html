@@ -1,8 +1,9 @@
 {{ define "main" }}
 <h1 class="page-title">ログイン</h1>
+{{- $gh := partial "gh-admin/settings.html" . | transform.Unmarshal }}
 <ol class="steps">
   <li>GitHub の Settings → Developer settings → Fine-grained tokens で新しいトークンを作成する。</li>
-  <li>Repository access は「Only select repositories」で <code>blog-article</code> のみを選ぶ。</li>
+  <li>Repository access は「Only select repositories」で <code>{{ path.Base $gh.repo }}</code> のみを選ぶ。</li>
   <li>Permissions は Repository permissions の <strong>Contents: Read and write</strong> のみ付与する。</li>
   <li>有効期限は 90 日以内にする。</li>
 </ol>

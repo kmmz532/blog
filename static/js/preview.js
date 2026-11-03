@@ -1,3 +1,4 @@
+import { config } from './config.js';
 import { addCopyButtons } from './copy.js';
 import { imageSrc } from './image.js';
 
@@ -293,8 +294,8 @@ export function renderPreview(markdown, title, container, { onThumb } = {}) {
   // 公開前や手元の確認では /images/... が開けないので、見られる URL に差し替える
   content.querySelectorAll('img[src]').forEach((img) => {
     const url = img.getAttribute('src');
-    if (url.startsWith('/images/')) img.src = imageSrc(url);
-    if (!onThumb || !(url.startsWith('/images/') || isHttpUrl(url))) return;
+    if (url.startsWith(config.imagesURL)) img.src = imageSrc(url);
+    if (!onThumb || !(url.startsWith(config.imagesURL) || isHttpUrl(url))) return;
     const wrap = makeElement('span', 'thumb-target');
     const button = makeElement('button', 'thumb-set', 'サムネイルにする');
     button.type = 'button';

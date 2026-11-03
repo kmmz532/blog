@@ -1,5 +1,6 @@
 // ログイン状態に応じて管理者向けの表示を切り替える。
 // 表示制御は UX のためだけ。実際の権限は GitHub 側が判定する。
+import { config } from './config.js';
 import { getToken, clearSession, ensureDevSession, isLocalHost } from './github.js';
 import { applyPending } from './pending.js';
 
@@ -14,7 +15,7 @@ for (const el of document.querySelectorAll('.admin-only')) {
 for (const el of document.querySelectorAll('.guest-only')) {
   el.hidden = loggedIn;
   if (el.tagName === 'A') {
-    el.href = `/login/?return=${encodeURIComponent(location.pathname + location.search)}`;
+    el.href = `${config.loginURL}?return=${encodeURIComponent(location.pathname + location.search)}`;
   }
 }
 
@@ -37,7 +38,7 @@ if (authLink) {
     authLink.addEventListener('click', logout);
   } else {
     const ret = encodeURIComponent(location.pathname + location.search);
-    authLink.href = `/login/?return=${ret}`;
+    authLink.href = `${config.loginURL}?return=${ret}`;
   }
 }
 

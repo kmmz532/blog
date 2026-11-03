@@ -1,4 +1,5 @@
 // 他の JS は GitHub API をこのモジュール経由でのみ呼ぶ。
+import { config, escapeRe } from './config.js';
 import { getItem, setItem, removeItem } from './storage.js';
 
 const API_ORIGIN = 'https://api.github.com';
@@ -6,10 +7,13 @@ const TOKEN_KEY = 'blog_token';
 const LOGIN_KEY = 'blog_login';
 const SLUG_RE = /^[a-z0-9-]{1,80}$/;
 // 画像は blog-article の static/images/<yyyy>/<8文字>.<ext> に置く
-const IMAGE_PATH_RE = /^static\/images\/\d{4}\/[a-z0-9]{8}\.(webp|png|jpg|gif|svg)$/;
+const IMAGE_PATH_RE = new RegExp(`^${escapeRe(config.imagesDir)}/\\d{4}/[a-z0-9]{8}\\.(webp|png|jpg|gif|svg)$`);
+// リポジトリ内のパス（static/images/...）と記事に書く公開パス（/images/...）の相互変換
+const toPublicPath = (path) => config.imagesURL + path.slice(config.imagesDir.length + 1);
+const toRepoPath = (publicPath) => `${config.imagesDir}/${publicPath.slice(config.imagesURL.length)}`;
 
-export const repo = document.querySelector('meta[name="blog-repo"]')?.content ?? '';
-export const branch = document.querySelector('meta[name="blog-branch"]')?.content ?? '';
+export const repo = config.repo ?? '';
+export const branch = config.branch ?? '';
 
 export class ConflictError extends Error {}
 
@@ -50,7 +54,7 @@ function postPath(slug) {
   if (!isValidSlug(slug)) {
     throw new Error('slug は英小文字・数字・ハイフンのみ（1〜80 文字）で指定してください。');
   }
-  return `content/posts/${slug}.md`;
+  return `${config.postsDir}/${slug}.md`;
 }
 
 // btoa / atob 単体は日本語で壊れるので UTF-8 バイト列を経由する
@@ -67,7 +71,7 @@ function fromBase64(b64) {
 
 function redirectToLogin() {
   const ret = encodeURIComponent(location.pathname + location.search);
-  location.href = `/login/?return=${ret}`;
+  location.href = `${config.loginURL}?return=${ret}`;
 }
 
 // token を省略すると保存済みトークンを使う（ログイン時だけ明示的に渡す）。
@@ -180,7 +184,7 @@ export async function saveImage(path, base64) {
 // 1 つのフォルダは 1000 件まで。取れない年があっても他の年は返す
 export async function listImages() {
   const ref = `?ref=${encodeURIComponent(branch)}`;
-  const years = (await api(`${contentsUrl('static/images')}${ref}`)) ?? [];
+  const years = (await api(`${contentsUrl(config.imagesDir)}${ref}`)) ?? [];
   const dirs = years.filter((entry) => entry.type === 'dir' && /^\d{4}$/.test(entry.name));
   const lists = await Promise.all(dirs.map((dir) => api(`${contentsUrl(dir.path)}${ref}`)));
   return lists
@@ -188,7 +192,7 @@ export async function listImages() {
     .filter((entry) => entry.type === 'file' && IMAGE_PATH_RE.test(entry.path))
     .map((entry) => ({
       path: entry.path,
-      publicPath: entry.path.replace(/^static/, ''),
+      publicPath: toPublicPath(entry.path),
       sha: entry.sha,
       size: entry.size,
     }))
@@ -204,7 +208,7 @@ export async function deleteImage(path, sha) {
 }
 
 // 公開前の画像を見るための URL（blog-article は public）。/images/... の記事内の書き方から作る
-export const rawImageUrl = (publicPath) => `https://raw.githubusercontent.com/${repo}/${branch}/static${publicPath}`;
+export const rawImageUrl = (publicPath) => `https://raw.githubusercontent.com/${repo}/${branch}/${toRepoPath(publicPath)}`;
 
 // ログイン時に使う。書き込み権限の確認はここで行う
 export async function checkRepoPush(token) {

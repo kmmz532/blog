@@ -1,5 +1,6 @@
 // /admin/ の一覧・絞り込み・選択・一括操作（design.md §17）。
 // 一覧は index.json（公開済みの記事）から作る。ユーザー由来の文字列は textContent で描画する。
+import { config } from './config.js';
 import { ensureDevSession, getToken, getPost, commitChanges, ConflictError } from './github.js';
 import { applyBulk } from './frontmatter.js';
 
@@ -53,13 +54,13 @@ function row(item) {
   checkCell.append(check);
 
   const title = document.createElement('a');
-  title.href = `/edit/?slug=${encodeURIComponent(item.slug)}`;
+  title.href = `${config.editURL}?slug=${encodeURIComponent(item.slug)}`;
   title.textContent = item.title || item.url || '（無題）';
   const titleCell = document.createElement('td');
   titleCell.append(title);
   if (!item.external) {
     const copy = document.createElement('a');
-    copy.href = `/edit/?from=${encodeURIComponent(item.slug)}`;
+    copy.href = `${config.editURL}?from=${encodeURIComponent(item.slug)}`;
     copy.className = 'template-link';
     copy.textContent = 'テンプレートにする';
     titleCell.append(' ', copy);
@@ -231,5 +232,5 @@ if (getToken()) {
   attach();
   load();
 } else {
-  location.replace(`/login/?return=${encodeURIComponent(location.pathname + location.search)}`);
+  location.replace(`${config.loginURL}?return=${encodeURIComponent(location.pathname + location.search)}`);
 }
