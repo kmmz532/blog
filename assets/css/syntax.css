@@ -198,3 +198,10 @@
 .carditem[hidden] {
   display: none;
 }
+
+/* 反映待ちの記事の帯にある編集ボタン */
+.pending-edit {
+  margin-left: 0.75rem;
+  color: var(--link);
+  white-space: nowrap;
+}
