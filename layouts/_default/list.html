@@ -4,7 +4,7 @@
   <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
   <input id="q" type="search" name="q" aria-label="検索キーワード" placeholder="タイトル、タグ、本文から検索" autocomplete="off">
 </form>
-<p id="search-count" class="card-meta" aria-live="polite"></p>
+<p id="search-count" class="card-meta" aria-live="polite"><span id="search-count-text"></span><span id="search-spinner" class="search-spinner" role="img" aria-label="読み込み中" hidden></span></p>
 <div id="search-results" class="card-list" data-index-url="{{ "index.json" | relURL }}"></div>
 <div id="home-list">
   <div class="card-list" data-pending-target="list">

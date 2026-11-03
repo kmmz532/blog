@@ -1,7 +1,8 @@
 // 検索結果の描画は textContent のみ使う（記事本文を innerHTML に入れない）。
 const input = document.getElementById('q');
 const results = document.getElementById('search-results');
-const count = document.getElementById('search-count');
+const countLabel = document.getElementById('search-count-text');
+const spinner = document.getElementById('search-spinner');
 const indexUrl = results.dataset.indexUrl;
 // トップページでは、検索中だけ記事の一覧とページ送りを隠して結果を出す（検索ページには無い）
 const homeList = document.getElementById('home-list');
@@ -10,7 +11,6 @@ const homeList = document.getElementById('home-list');
 let posts = [];
 const seen = new Set();
 let nextUrl = indexUrl;
-let total = null;
 let loadError = false;
 let reading = null;
 
@@ -68,11 +68,10 @@ function card(post) {
   return article;
 }
 
-// 読み終わるまでは「読み込み中（n / total）」を出す。読み終わっていれば件数だけ
+// 読み込み中は件数の横にクルクル（spinner）を出す。件数の文言は読み終わる前後で変えない
 function countText(hits) {
   if (loadError) return `${hits.length} 件（一部の検索インデックスを読み込めませんでした）`;
-  if (nextUrl === null) return `${hits.length} 件`;
-  return `${hits.length} 件（読み込み中 ${posts.length} / ${total ?? '?'}）`;
+  return `${hits.length} 件`;
 }
 
 function render() {
@@ -84,17 +83,18 @@ function render() {
   history.replaceState(null, '', query ? `?${query}` : location.pathname);
 
   results.replaceChildren();
+  spinner.hidden = reading === null || nextUrl === null;
   if (homeList) homeList.hidden = words.length > 0;
   if (loadError && posts.length === 0) {
-    count.textContent = '検索インデックスを読み込めませんでした。';
+    countLabel.textContent = '検索インデックスを読み込めませんでした。';
     return;
   }
   if (words.length === 0) {
-    count.textContent = '';
+    countLabel.textContent = '';
     return;
   }
   const hits = posts.filter((post) => matches(post, words));
-  count.textContent = countText(hits);
+  countLabel.textContent = countText(hits);
   results.replaceChildren(...hits.map(card));
   // 結果が入れ替わるたびに、ページを開いたときと同じ出現の動きをやり直す
   results.style.animation = 'none';
@@ -115,7 +115,6 @@ function readIndex() {
           seen.add(post.slug);
           posts.push(post);
         }
-        total = page.total;
         nextUrl = page.next;
         render();
       }
