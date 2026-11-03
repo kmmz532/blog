@@ -11,7 +11,7 @@ const SHORTCODE_LINE = /\{\{<\s*(link-card|tweet|youtube|instagram|vimeo|niconic
 const TWEET_URL = /^https:\/\/(?:x|twitter)\.com\/([A-Za-z0-9_]{1,15})\/status\/\d+/;
 const INSTAGRAM_URL = /^https:\/\/(?:www\.)?instagram\.com\/(p|reel)\/([A-Za-z0-9_-]+)\/?/;
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
-// ビルド時に取った OGP（/ogp/index.json、design.md §18）。読めたら一度だけ読み、以後は同じ Promise を使う
+// ビルド時に取った OGP（/ogp/index.json）。読めたら一度だけ読み、以後は同じ Promise を使う
 let ogpIndex = null;
 
 function isHttpUrl(value) {
@@ -144,7 +144,7 @@ function fillLinkCard(slot, url) {
   });
 }
 
-// X の公式の埋め込み（widgets.js、design.md §18）。読み込めなければ blockquote の中のリンクが残る
+// X の公式の埋め込み（widgets.js、§18）。読み込めなければ blockquote の中のリンクが残る
 let twitterScript = null;
 
 function loadTwitterWidget(slot) {

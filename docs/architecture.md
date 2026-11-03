@@ -29,20 +29,23 @@ OAuth を使わない理由は、GitHub の OAuth はトークン交換に clien
 ```
 blog/                           本体
 ├─ hugo.toml                    設定。記事は posts/ から取り込む
-├─ content/                     edit / login / search の各ページ
+├─ content/                     edit / login / admin の画面（機能側）と search など
 ├─ layouts/                     テンプレート
 ├─ assets/css/                  スタイル（kmmz.jp の配色を移植）
-├─ static/js/                   ブラウザ側の JavaScript
-│  ├─ github.js                 GitHub API のラッパー（API はこの経由でのみ呼ぶ）
-│  ├─ editor.js                 編集画面の状態遷移
-│  ├─ frontmatter.js            front matter の読み書き（副作用なし）
-│  ├─ drafts.js                 下書きの保存と一覧
-│  ├─ preview.js                プレビューの描画と無害化
-│  ├─ image.js                  画像の変換と保存
-│  ├─ images.js                 画像の一覧・アップロード・削除の画面部品
-│  ├─ pending.js                反映待ちの表示。見た目の雛形は layouts/partials/pending-templates.html
-│  ├─ storage.js                localStorage の例外処理をまとめたもの
-│  └─ time.js                   日本時間の計算
+├─ assets/gh-admin/               管理画面の CSS（editor.css）
+├─ static/js/                     ブラウザ側の JavaScript（本体に残すもの）
+│  ├─ theme.js                    ダークモードの切り替え
+│  └─ search.js                   検索
+├─ static/gh-admin/js/            管理画面の JavaScript（機能側。github.js など）
+│  ├─ github.js                   GitHub API のラッパー（API はこの経由でのみ呼ぶ）
+│  ├─ editor.js                   編集画面の状態遷移
+│  ├─ frontmatter.js              front matter の読み書き（副作用なし）
+│  ├─ drafts.js                   下書きの保存と一覧
+│  ├─ preview.js                  プレビューの描画と無害化
+│  ├─ image.js                    画像の変換と保存
+│  ├─ images.js                   画像の一覧・アップロード・削除の画面部品
+│  ├─ pending.js                  反映待ちの表示。見た目の雛形は layouts/partials/pending-templates.html
+│  └─ time.js                     日本時間の計算
 └─ posts/                       blog-article の clone（Git 管理外）
 
 blog-article/                   記事と画像

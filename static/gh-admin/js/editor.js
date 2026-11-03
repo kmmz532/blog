@@ -33,7 +33,7 @@ const state = {
   tags: [],
   // 選択中のカテゴリ（階層の順。先頭が一番上）
   categories: [],
-  // 既存の記事から集計したカテゴリの階層。{ path, name, count } の配列（design.md §16）
+  // 既存の記事から集計したカテゴリの階層。{ path, name, count } の配列
   categoryNodes: [],
   knownTags: [],
   dirty: false,

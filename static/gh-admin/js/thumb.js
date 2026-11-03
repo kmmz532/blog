@@ -1,4 +1,4 @@
-// サムネイル（手動設定があればそれ。無ければ自動。design.md §3・§11.6）。
+// サムネイル（手動設定があればそれ。無ければ自動）
 // 画面の状態（state）と変更通知（markDirty）は引数で受け取る。editor.js は import しない
 import { loadIndex } from './index-loader.js';
 import { uploadImage, imageSrc } from './image.js';
@@ -15,7 +15,7 @@ const WIDTH_SUFFIX_RE = /\|\d+$/;
 const LINK_CARD_RE = /\{\{<\s*link-card\s+url="([^"]+)"/g;
 
 export function createThumb({ state, markDirty }) {
-  // ---- サムネイル（手動設定があればそれ。無ければ自動。design.md §3・§11.6） ----
+  // ---- サムネイル（手動設定があればそれ。無ければ自動） ----
 
   // 今どう決まっているかを返す。自動の画像は本文の最初の画像（外部記事は OGP なのでプレビューなし）
   function thumbStatus() {

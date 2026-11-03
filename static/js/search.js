@@ -6,7 +6,7 @@ const indexUrl = results.dataset.indexUrl;
 // トップページでは、検索中だけ記事の一覧とページ送りを隠して結果を出す（検索ページには無い）
 const homeList = document.getElementById('home-list');
 
-// 索引は 1 ファイルずつ読む（next をたどる。design.md の索引の節）。読んだ分は覚えておく
+// 索引は 1 ファイルずつ読む（next をたどる。）。読んだ分は覚えておく
 let posts = [];
 const seen = new Set();
 let nextUrl = indexUrl;

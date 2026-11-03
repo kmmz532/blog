@@ -1,4 +1,4 @@
-// 索引（gh-admin/index.json など）を 1 ファイルずつ読む。next をたどり、slug で重複を除く（design.md の索引の節）。
+// 索引（gh-admin/index.json など）を 1 ファイルずつ読む。next をたどり、slug で重複を除く。
 // onPage(読んだ分, 全件数) は 1 ファイルごとに呼ぶ。stop(読んだ分) が true を返したら、そこで読むのを止める。
 export async function loadIndex(url, { onPage, stop } = {}) {
   const seen = new Set();

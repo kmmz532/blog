@@ -18,7 +18,7 @@ function choice(text, pressed, onClick) {
 }
 
 export function createTaxonomy({ state, markDirty }) {
-  // ---- カテゴリ（階層は「>」で区切った 1 本の流れ。design.md §16） ----
+  // ---- カテゴリ（階層は「>」で区切った 1 本の流れ） ----
 
   const SEPARATOR = ' > ';
   const toText = (path) => path.join(SEPARATOR);

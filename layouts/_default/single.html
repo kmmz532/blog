@@ -53,7 +53,7 @@
 
 {{ define "scripts" }}
 <script type="module">
-  import { addCopyButtons } from "{{ "js/copy.js" | relURL }}";
+  import { addCopyButtons } from "{{ "gh-admin/js/copy.js" | relURL }}";
   addCopyButtons(document.querySelector(".post-body"));
 </script>
 {{ end }}

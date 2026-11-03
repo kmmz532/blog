@@ -1,4 +1,4 @@
-{{- /* 管理画面（一括管理・編集・テンプレート・サムネイル）が読む索引（design.md §17・§19）。検索用の /index.json とは分ける。
+{{- /* 管理画面（一括管理・編集・テンプレート・サムネイル）が読む索引。検索用の /index.json とは分ける。
   1 ファイル indexPageSize 件まで。2 つ目以降は /gh-admin/index/<n>.json（T78f2） */ -}}
 {{- $size := int (site.Params.indexPageSize | default 50) -}}
 {{- $v := now.Unix -}}
