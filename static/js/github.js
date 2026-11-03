@@ -142,7 +142,7 @@ export async function deletePost(slug, sha) {
   });
 }
 
-// 複数の記事を 1 コミットにまとめる（design.md §17）。changes は { slug: text | null }（null は削除）。
+// 複数の記事を 1 コミットにまとめる。changes は { slug: text | null }（null は削除）。
 // 参照（ブランチ）が他で進んでいたら ConflictError。強制更新はしないので、失敗時は何も変わらない
 export async function commitChanges(changes, message) {
   const ref = await api(`/repos/${repo}/git/ref/heads/${branch}`);

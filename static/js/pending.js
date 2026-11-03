@@ -1,4 +1,4 @@
-// 公開・削除の直後に、反映待ちの内容をこの端末だけで先に見せる（design.md §12）。
+// 公開・削除の直後に、反映待ちの内容をこの端末だけで先に見せる。
 // 控えは localStorage に置き、ビルド時刻を過ぎたら、または 30 分経ったら消す。GitHub API は呼ばない。
 import { config } from './config.js';
 import { getToken } from './github.js';

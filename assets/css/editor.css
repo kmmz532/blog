@@ -124,7 +124,7 @@
   display: none;
 }
 
-/* slug 欄と「自動」の表示（design.md §11.6） */
+/* slug 欄と「自動」の表示 */
 .slug-row {
   display: flex;
   align-items: center;
@@ -596,7 +596,7 @@ body:has(.editor) .footer {
 }
 
 
-/* カテゴリの階層（design.md §16）。段ごとに、同じ段の候補を 1 行に並べる */
+/* カテゴリの階層。段ごとに、同じ段の候補を 1 行に並べる */
 #category-chips {
   display: flex;
   flex-direction: column;
@@ -610,7 +610,7 @@ body:has(.editor) .footer {
   gap: 0.4rem;
 }
 
-/* 一括管理（design.md §17） */
+/* 一括管理 */
 .admin-note {
   color: var(--text-secondary);
   font-size: 0.9rem;

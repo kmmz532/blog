@@ -1,4 +1,4 @@
-// /admin/ の一覧・絞り込み・選択・一括操作（design.md §17）。
+// /admin/ の一覧・絞り込み・選択・一括操作。
 // 一覧は索引（gh-admin/index.json。1 ファイルずつ読む）から作る。ユーザー由来の文字列は textContent で描画する。
 import { config } from './config.js';
 import { ensureDevSession, getToken, getPost, commitChanges, ConflictError } from './github.js';

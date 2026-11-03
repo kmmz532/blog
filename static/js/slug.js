@@ -1,4 +1,4 @@
-// slug の自動生成・検証・表示（design.md §11.6）。画面の状態（state）は引数で受け取る。editor.js は import しない
+// slug の自動生成・検証・表示。画面の状態（state）は引数で受け取る。editor.js は import しない
 import { isValidSlug } from './github.js';
 
 const $ = (id) => document.getElementById(id);

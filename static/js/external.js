@@ -111,7 +111,7 @@ export function isHttps(url) {
   }
 }
 
-// 外部記事フォーム（design.md §3.1・§11.6）。画面の状態と他の部品は引数で受け取る。editor.js は import しない
+// 外部記事フォーム。画面の状態と他の部品は引数で受け取る。editor.js は import しない
 export function createExternalForm({ state, markDirty, slugs, taxonomy, updateSummaryCount, refreshPreview }) {
   // ---- 外部記事 ----
 

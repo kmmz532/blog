@@ -1,4 +1,4 @@
-{{- /* {{< instagram url="https://www.instagram.com/p/<コード>/" >}}: Instagram の投稿を iframe で埋め込む。公式のスクリプトは使わない（design.md §18） */ -}}
+{{- /* {{< instagram url="https://www.instagram.com/p/<コード>/" >}}: Instagram の投稿を iframe で埋め込む。公式のスクリプトは使わない */ -}}
 {{- $url := .Get "url" -}}
 {{- $m := findRESubmatch `^https://(?:www\.)?instagram\.com/(p|reel)/([A-Za-z0-9_-]+)/?` $url -}}
 {{- if $m -}}

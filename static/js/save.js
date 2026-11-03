@@ -1,4 +1,4 @@
-// 公開・slug 変更・削除（design.md §7）。画面の状態と部品は引数で受け取る。editor.js は import しない
+// 公開・slug 変更・削除。画面の状態と部品は引数で受け取る。editor.js は import しない
 import { config } from './config.js';
 import { savePost, deletePost, ConflictError } from './github.js';
 import { buildArticle, buildExternal } from './frontmatter.js';

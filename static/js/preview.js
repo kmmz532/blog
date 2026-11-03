@@ -6,7 +6,7 @@ import { imageSrc } from './image.js';
 // 記事詳細（single.html）と同じ見た目になるよう、タイトルと本文を同じクラスで出す。
 // title が null のときはタイトルを出さない（編集画面は本文欄の上にタイトル入力があるため）。
 const DROP = 'script, iframe, object, embed, style, link, meta, base, form';
-// 本文の記法（design.md §18）。コードブロックの外だけ変換する。行の途中にあっても変換する
+// 本文の記法。コードブロックの外だけ変換する。行の途中にあっても変換する
 const SHORTCODE_LINE = /\{\{<\s*(link-card|tweet|youtube|instagram|vimeo|niconico|soundcloud|facebook)\s+(?:url|id)="([^"]+)"\s*>\}\}/g;
 const TWEET_URL = /^https:\/\/(?:x|twitter)\.com\/([A-Za-z0-9_]{1,15})\/status\/\d+/;
 const INSTAGRAM_URL = /^https:\/\/(?:www\.)?instagram\.com\/(p|reel)\/([A-Za-z0-9_-]+)\/?/;
@@ -22,7 +22,7 @@ function isHttpUrl(value) {
   }
 }
 
-// 数式（design.md §21）。記事ページ（Hugo の passthrough）と同じ区切りにする。$...$ は使わない（金額の $ を誤認するため）
+// 数式。記事ページ（Hugo の passthrough）と同じ区切りにする。$...$ は使わない（金額の $ を誤認するため）
 const MATH_BLOCK = /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]/g;
 const MATH_INLINE = /\\\(([\s\S]+?)\\\)/g;
 
@@ -189,7 +189,7 @@ function fillYoutube(slot, id) {
   slot.replaceChildren(wrap);
 }
 
-// Instagram の投稿は iframe で埋め込む（design.md §18）。URL の形が違えば通常のリンク
+// Instagram の投稿は iframe で埋め込む。URL の形が違えば通常のリンク
 function fillInstagram(slot, url) {
   const match = INSTAGRAM_URL.exec(url);
   if (!match) {

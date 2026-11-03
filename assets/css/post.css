@@ -190,7 +190,7 @@
 }
 
 
-/* 目次（design.md §14.1）。幅 960px 以上はサイドバーに、未満は本文の前に折りたたんで出す */
+/* 目次。幅 960px 以上はサイドバーに、未満は本文の前に折りたたんで出す */
 .toc ul {
   list-style: none;
   margin: 0;
@@ -235,7 +235,7 @@
   }
 }
 
-/* 見出しのアンカー（design.md §14.2）。hover・focus のときだけ表示する */
+/* 見出しのアンカー。hover・focus のときだけ表示する */
 .heading-anchor {
   margin-left: 0.3em;
   color: var(--text-secondary);
@@ -250,7 +250,7 @@ h4:hover .heading-anchor,
   opacity: 1;
 }
 
-/* コードのコピーボタン（design.md §14.3）。右上に出す */
+/* コードのコピーボタン。右上に出す */
 .post-body pre {
   position: relative;
 }
@@ -277,12 +277,12 @@ h4:hover .heading-anchor,
   color: var(--foreground);
 }
 
-/* 記事詳細の更新日（design.md §14.4）。投稿日の横に小さく出す */
+/* 記事詳細の更新日。投稿日の横に小さく出す */
 .post-updated {
   color: var(--text-secondary);
 }
 
-/* パンくず（design.md §16）。記事詳細の一番上に出す */
+/* パンくず。記事詳細の一番上に出す */
 .breadcrumb ol {
   display: flex;
   flex-wrap: wrap;
@@ -309,7 +309,7 @@ h4:hover .heading-anchor,
   color: inherit;
 }
 
-/* 本文のリンクカード（design.md §18）。記事詳細と編集画面のプレビューで同じ見た目 */
+/* 本文のリンクカード。記事詳細と編集画面のプレビューで同じ見た目 */
 .post-body .link-card {
   display: flex;
   gap: 16px;
@@ -370,7 +370,7 @@ h4:hover .heading-anchor,
   border-radius: 8px;
 }
 
-/* 本文の YouTube 埋め込み（design.md §18）。16:9 の枠に iframe を収める */
+/* 本文の YouTube 埋め込み。16:9 の枠に iframe を収める */
 .post-body .video-embed {
   position: relative;
   aspect-ratio: 16 / 9;
@@ -391,7 +391,7 @@ h4:hover .heading-anchor,
   color: #c00;
 }
 
-/* 本文の Instagram 埋め込み（design.md §18）。投稿の縦長に合わせて幅を 540px まで */
+/* 本文の Instagram 埋め込み。投稿の縦長に合わせて幅を 540px まで */
 .post-body .instagram-embed {
   margin: 1.25em auto;
   max-width: 540px;
@@ -418,7 +418,7 @@ h4:hover .heading-anchor,
   border-radius: 8px;
 }
 
-/* 本文の Facebook 埋め込み（design.md §18）。投稿の縦長に合わせて幅を 500px まで */
+/* 本文の Facebook 埋め込み。投稿の縦長に合わせて幅を 500px まで */
 .post-body .facebook-embed {
   margin: 1.25em auto;
   max-width: 500px;

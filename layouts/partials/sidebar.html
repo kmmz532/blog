@@ -1,5 +1,5 @@
 <aside class="sidebar">
-  {{- /* 記事の目次は h2・h3 が 3 つ以上あるときだけ（design.md §14.1）。幅 960px 未満は本文の前に出す */}}
+  {{- /* 記事の目次は h2・h3 が 3 つ以上あるときだけ。幅 960px 未満は本文の前に出す */}}
   {{- if and .IsPage (eq .Section "posts") (ge (len (findRE "<h[23][ >]" .Content)) 3) }}
   <section class="sidebar-card sidebar-toc">
     <h2 class="sidebar-title">目次</h2>

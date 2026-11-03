@@ -1,4 +1,4 @@
-// カテゴリとタグ（design.md §11.6・§16）。カテゴリは「>」区切りの入力か既存のチップで選ぶ、タグは複数選ぶ。どちらも「新規」で作れる。
+// カテゴリとタグ。カテゴリは「>」区切りの入力か既存のチップで選ぶ、タグは複数選ぶ。どちらも「新規」で作れる。
 // 画面の状態（state）と、変更を知らせる関数（markDirty）は引数で受け取る。editor.js は import しない
 import { loadIndex } from './index-loader.js';
 import { config } from './config.js';

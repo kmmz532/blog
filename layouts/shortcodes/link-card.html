@@ -1,4 +1,4 @@
-{{- /* 本文の {{< link-card url="..." >}} をカードにする（design.md §18）。OGP が取れなければ通常のリンク */ -}}
+{{- /* 本文の {{< link-card url="..." >}} をカードにする。OGP が取れなければ通常のリンク */ -}}
 {{- $url := .Get "url" -}}
 {{- $meta := partial "link-meta.html" $url -}}
 {{- /* 中は span と img だけにして、<p> の中に入っても正しい HTML になるようにする */ -}}

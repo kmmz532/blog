@@ -100,7 +100,7 @@ function insertText(textarea, text) {
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-// URL を入れてから、その URL をカード記法に置き換える。2 回に分けるので、Ctrl+Z 1 回で URL に戻る（design.md §18）
+// URL を入れてから、その URL をカード記法に置き換える。2 回に分けるので、Ctrl+Z 1 回で URL に戻る
 function insertCardFromUrl(textarea, url) {
   const start = textarea.selectionStart;
   insertText(textarea, url);

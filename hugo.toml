@@ -24,7 +24,7 @@ enableRobotsTXT = true
 
 [markup.goldmark.extensions.passthrough]
   enable = true
-  # 数式（design.md §21）。インラインは \(...\) だけ（本文の $ を誤認しないため）
+  # 数式。インラインは \(...\) だけ（本文の $ を誤認しないため）
   [markup.goldmark.extensions.passthrough.delimiters]
     block = [['$$', '$$'], ['\[', '\]']]
     inline = [['\(', '\)']]

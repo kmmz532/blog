@@ -78,14 +78,14 @@ export function parseArticle(text) {
       slug: '',
       title: String(values.title ?? ''),
       date: dateToJstInput(date),
-      // 階層の順のリスト（先頭が一番上）。旧形式の 1 つだけのリストもそのまま読める（design.md §16）
+      // 階層の順のリスト（先頭が一番上）。旧形式の 1 つだけのリストもそのまま読める
       categories: values.categories?.length ? values.categories : [config.defaultCategory],
       tags: values.tags ?? [],
       summary: String(values.summary ?? ''),
       image: String(values.image ?? ''),
       url: String(values.external ?? ''),
       source: String(values.source ?? ''),
-      // 更新日。画面では扱わず、更新のたびに保存時の値で上書きする（design.md §14.4）
+      // 更新日。画面では扱わず、更新のたびに保存時の値で上書きする
       lastmod: String(values.lastmod ?? ''),
       body,
     },
@@ -132,7 +132,7 @@ export function buildExternal(fields, extra) {
   return `---\n${lines.join('\n')}\n---\n`;
 }
 
-// 一括操作の変換（design.md §17）。カテゴリを置き換え（null なら変えない）、タグを追加・削除する。
+// 一括操作の変換。カテゴリを置き換え（null なら変えない）、タグを追加・削除する。
 // 本文・他の項目・lastmod は変えない。記事と外部記事のどちらも同じ形で扱う
 export function applyBulk(text, { categories = null, addTags = [], removeTags = [] }) {
   const parsed = parseArticle(text);
