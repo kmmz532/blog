@@ -144,7 +144,7 @@ function fillLinkCard(slot, url) {
   });
 }
 
-// X の公式の埋め込み（widgets.js、§18）。読み込めなければ blockquote の中のリンクが残る
+// X の公式の埋め込み（widgets.js）。読み込めなければ blockquote の中のリンクが残る
 let twitterScript = null;
 
 function loadTwitterWidget(slot) {

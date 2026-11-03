@@ -875,7 +875,7 @@ body:has(.editor) .footer {
   margin-top: 0.75rem;
 }
 
-/* サムネイル欄（編集画面）。§11.6 */
+/* サムネイル欄（編集画面） */
 .thumb-current {
   display: flex;
   align-items: center;

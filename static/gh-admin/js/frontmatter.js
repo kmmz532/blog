@@ -118,7 +118,7 @@ export function buildArticle(fields, aliases, extra) {
   return `---\n${lines.join('\n')}\n---\n\n${body}\n`;
 }
 
-// 外部記事は本文を持たず、詳細ページも作らない（設計書 §3.1）
+// 外部記事は本文を持たず、詳細ページも作らない
 export function buildExternal(fields, extra) {
   const lines = [
     ...frontFields(fields),
