@@ -4,5 +4,5 @@
     <a href="{{ "/index.xml" | relURL }}" aria-label="RSS" title="RSS"><i class="fa-solid fa-rss" aria-hidden="true"></i></a>
     <a href="{{ "/index.json" | relURL }}" aria-label="JSON" title="JSON"><i class="fa-solid fa-code" aria-hidden="true"></i></a>
   </span>
-  <a id="auth-link" class="footer-admin" href="{{ "/login/" | relURL }}">管理</a>
+  {{ partial "gh-admin/button.html" (dict "kind" "footer" "page" .) }}
 </footer>

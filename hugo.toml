@@ -1,7 +1,9 @@
+title = "かみみずブログ"
 baseURL = "https://blog.kmmz.jp/"
 languageCode = "ja"
 timeZone = "Asia/Tokyo"
-title = "かみみずブログ"
+# ogp.md が link-card の URL を 1 回のテンプレート実行で全部取りに行くため、取得が遅いと既定の 30 秒を超える
+timeout = "5m"
 enableRobotsTXT = true
 
 [pagination]
@@ -22,7 +24,7 @@ enableRobotsTXT = true
 
 [markup.goldmark.extensions.passthrough]
   enable = true
-  # 数式（design.md §21）。インラインは \(...\) だけ（本文の $ を誤認しないため）
+  # 数式。インラインは \(...\) だけ（本文の $ を誤認しないため）
   [markup.goldmark.extensions.passthrough.delimiters]
     block = [['$$', '$$'], ['\[', '\]']]
     inline = [['\(', '\)']]
@@ -32,19 +34,24 @@ enableRobotsTXT = true
   endLevel = 3
 
 [params]
+  # 索引（/index.json・/gh-admin/index.json）の 1 ファイルの件数。2 つ目以降は /index/2.json のように分ける
+  indexPageSize = 50
   description = "Kmmz1127の個人ブログです！"
   # 画像の無い記事の og:image（任意。/images/... の形）。未設定なら出さない
   # ogImage = "/images/ogp.png"
   headerTitle = "Kmmz1127 Blog"
   icon = "/favicon.ico"
   appleIcon = "/apple-touch-icon.png"
-  repo = "kmmz532/blog-article"
-  branch = "main"
   # Cloudflare Web Analytics のトークン（任意。未設定なら計測しない）
   # cfAnalyticsToken = "1804f0b089514bd89f825935e08c428f"
   author = "Mizuto, Kaminakano"
   bio = "ウェブ開発やアプリ開発に興味のある大学生"
   footer = "© 2025-2026 Mizuto, Kaminakano - CC BY 4.0. | contact@kmmz.jp - Osaka, Japan"
+
+# 管理画面（gh-admin）の設定。未設定の項目は layouts/partials/gh-admin/settings.html の既定値
+[params.ghAdmin]
+  repo = "kmmz532/blog-article"
+  branch = "main"
 
 # サイドバーのリンク (URLが空であれば非表示)
 [[params.links]]
@@ -67,6 +74,10 @@ enableRobotsTXT = true
   name = "Instagram"
   url = "https://www.instagram.com/_miz210/"
   icon = "fa-brands fa-instagram"
+
+# 管理画面の機能は Hugo Modules の部品（版はタグで固定。go.mod に記録）
+[[module.imports]]
+  path = "github.com/kmmz532/hugo-gh-admin"
 
 # 記事は別リポジトリ blog-article を posts/ に clone して取り込む
 [[module.mounts]]

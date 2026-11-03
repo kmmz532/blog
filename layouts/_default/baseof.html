@@ -2,7 +2,7 @@
 <html lang="{{ site.Language.LanguageCode }}">
 <head>
   {{ partial "head.html" . }}
-  {{- /* 反映待ちの控えを消す基準（design.md §12）。このページを作ったビルドの時刻 */}}
+  {{- /* 反映待ちの控えを消す基準。このページを作ったビルドの時刻 */}}
   <meta name="build-time" content="{{ now.Unix }}">
 </head>
 <body>
@@ -22,7 +22,7 @@
     </button>
   </div>
   <script src="{{ "js/theme.js" | relURL }}" type="module"></script>
-  <script src="{{ "js/admin.js" | relURL }}" type="module"></script>
+  {{ partial "pending-templates.html" . }}
   {{ block "scripts" . }}{{ end }}
 </body>
 </html>

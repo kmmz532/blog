@@ -1,4 +1,4 @@
-// Compare the Hugo build output with a saved baseline (design.md §15).
+// Compare the Hugo build output with a saved baseline
 // Usage: npm run diff-build                    (compare; the baseline is made on the first run)
 //        node scripts/diff-build.mjs --reset   (replace the baseline with the current build)
 // The output goes to .diff-build/ (not in git). Exit code 1 means the build output changed.

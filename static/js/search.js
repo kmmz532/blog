@@ -6,8 +6,13 @@ const indexUrl = results.dataset.indexUrl;
 // トップページでは、検索中だけ記事の一覧とページ送りを隠して結果を出す（検索ページには無い）
 const homeList = document.getElementById('home-list');
 
+// 索引は 1 ファイルずつ読む（next をたどる。）。読んだ分は覚えておく
 let posts = [];
+const seen = new Set();
+let nextUrl = indexUrl;
+let total = null;
 let loadError = false;
+let reading = null;
 
 // 大文字小文字・全角半角（NFKC）・カタカナとひらがなの違いを無視して比べる
 function normalize(text) {
@@ -63,6 +68,13 @@ function card(post) {
   return article;
 }
 
+// 読み終わるまでは「読み込み中（n / total）」を出す。読み終わっていれば件数だけ
+function countText(hits) {
+  if (loadError) return `${hits.length} 件（一部の検索インデックスを読み込めませんでした）`;
+  if (nextUrl === null) return `${hits.length} 件`;
+  return `${hits.length} 件（読み込み中 ${posts.length} / ${total ?? '?'}）`;
+}
+
 function render() {
   const words = normalize(input.value.trim()).split(/\s+/).filter(Boolean);
   const params = new URLSearchParams(location.search);
@@ -72,8 +84,8 @@ function render() {
   history.replaceState(null, '', query ? `?${query}` : location.pathname);
 
   results.replaceChildren();
-  if (homeList) homeList.hidden = words.length > 0 && !loadError;
-  if (loadError) {
+  if (homeList) homeList.hidden = words.length > 0;
+  if (loadError && posts.length === 0) {
     count.textContent = '検索インデックスを読み込めませんでした。';
     return;
   }
@@ -82,7 +94,7 @@ function render() {
     return;
   }
   const hits = posts.filter((post) => matches(post, words));
-  count.textContent = `${hits.length} 件`;
+  count.textContent = countText(hits);
   results.replaceChildren(...hits.map(card));
   // 結果が入れ替わるたびに、ページを開いたときと同じ出現の動きをやり直す
   results.style.animation = 'none';
@@ -90,21 +102,30 @@ function render() {
   results.style.animation = '';
 }
 
-// 本文まで入った索引は大きいので、トップページでは検索を始めるまで読まない
-let loading = null;
-function loadIndex() {
-  loading ??= fetch(indexUrl)
-    .then((res) => {
-      if (!res.ok) throw new Error(String(res.status));
-      return res.json();
-    })
-    .then((json) => {
-      posts = json;
-    })
-    .catch(() => {
+// 1 ファイルずつ読み足す。読み終わるまで 1 本だけ走らせ、検索語が変わっても止めない（読んだ分は次の検索でも使う）
+function readIndex() {
+  reading ??= (async () => {
+    try {
+      while (nextUrl) {
+        const res = await fetch(nextUrl);
+        if (!res.ok) throw new Error(String(res.status));
+        const page = await res.json();
+        for (const post of page.items) {
+          if (seen.has(post.slug)) continue;
+          seen.add(post.slug);
+          posts.push(post);
+        }
+        total = page.total;
+        nextUrl = page.next;
+        render();
+      }
+    } catch {
       loadError = true;
-    });
-  return loading;
+      nextUrl = null;
+      render();
+    }
+  })();
+  return reading;
 }
 
 // 入力が止まってから検索する（1 文字ごとに全記事を調べ直さない）
@@ -112,8 +133,8 @@ const DEBOUNCE_MS = 200;
 let timer = 0;
 input.addEventListener('input', () => {
   clearTimeout(timer);
-  timer = setTimeout(async () => {
-    await loadIndex();
+  timer = setTimeout(() => {
+    readIndex();
     render();
   }, DEBOUNCE_MS);
 });
@@ -121,5 +142,6 @@ document.getElementById('search-form').addEventListener('submit', (event) => eve
 
 input.value = new URLSearchParams(location.search).get('q') ?? '';
 
-if (!homeList || input.value.trim()) await loadIndex();
+// トップページでは検索を始めるまで読まない
+if (!homeList || input.value.trim()) readIndex();
 render();

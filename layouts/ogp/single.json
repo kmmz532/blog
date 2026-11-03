@@ -1,4 +1,4 @@
-{{- /* 記事中の link-card の URL を集め、ビルド時に取った OGP を配列にする。編集画面のプレビューが読む（design.md §18） */ -}}
+{{- /* 記事中の link-card の URL を集め、ビルド時に取った OGP を配列にする。編集画面のプレビューが読む */ -}}
 {{- $urls := slice -}}
 {{- range site.RegularPages -}}
   {{- range findRESubmatch `\{\{<\s*link-card\s+url="([^"]+)"` .RawContent -}}

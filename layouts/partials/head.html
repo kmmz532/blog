@@ -1,9 +1,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-{{- /* アクセス解析（Cloudflare Web Analytics）は params.cfAnalyticsToken があり、公開ビルドの通常ページだけ（design.md §20） */}}
+{{- /* アクセス解析（Cloudflare Web Analytics）は params.cfAnalyticsToken があり、公開ビルドの通常ページだけ */}}
 {{- $cfToken := "" }}
 {{- if and site.Params.cfAnalyticsToken (not hugo.IsServer) (not .Params.robots) }}{{ $cfToken = site.Params.cfAnalyticsToken }}{{ end }}
-<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://platform.twitter.com https://platform.twimg.com{{ if $cfToken }} https://static.cloudflareinsights.com{{ end }}{{ if eq .Layout "edit" }} https://cdnjs.cloudflare.com{{ end }}; object-src 'none'; base-uri 'self'">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://platform.twitter.com https://platform.twimg.com{{ if $cfToken }} https://static.cloudflareinsights.com{{ end }}{{ partial "gh-admin/csp.html" . }}; object-src 'none'; base-uri 'self'">
 {{- /* ダークモードの初期化。描画前に適用してちらつきを防ぐ */}}
 <script>
   (function () {
@@ -33,7 +33,7 @@
 <meta property="og:locale" content="ja_JP">
 {{- $image := "" }}
 {{- if .IsPage }}{{ $image = (partialCached "external-meta.html" . .File.Path).image }}{{ end }}
-{{- /* 記事に画像が無いときだけ params.ogImage（任意）を使う。その場合の twitter:card は summary（design.md §14.5） */}}
+{{- /* 記事に画像が無いときだけ params.ogImage（任意）を使う。その場合の twitter:card は summary */}}
 {{- $fallback := false }}
 {{- if and .IsPage (not $image) site.Params.ogImage }}{{ $image = site.Params.ogImage }}{{ $fallback = true }}{{ end }}
 {{- with $image }}
@@ -59,10 +59,8 @@
 {{- end }}
 {{- end }}
 {{- /* 管理画面の JS が読む設定値。JS にリポジトリ名を直書きしない */}}
-<meta name="blog-repo" content="{{ site.Params.repo }}">
-<meta name="blog-branch" content="{{ site.Params.branch }}">
 <link rel="alternate" type="application/rss+xml" title="{{ site.Title }}" href="{{ "index.xml" | absURL }}">
-{{- /* アイコンは params.icon / params.appleIcon を設定したときだけ出す（design.md §13） */}}
+{{- /* アイコンは params.icon / params.appleIcon を設定したときだけ出す */}}
 {{- with site.Params.icon }}
 <link rel="icon" href="{{ . | relURL }}">
 {{- end }}
@@ -73,12 +71,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
-{{- /* 数式の見た目（KaTeX の CSS。ビルド時の HTML とプレビューの両方に使う。design.md §21） */}}
+{{- /* 数式の見た目（KaTeX の CSS。ビルド時の HTML とプレビューの両方に使う） */}}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous" referrerpolicy="no-referrer">
-{{- /* CSS は分けて書き、ここで順番どおりに 1 ファイルへ連結する（design.md §15） */ -}}
-{{- $parts := slice (resources.Get "css/base.css") (resources.Get "css/layout.css") (resources.Get "css/list.css") (resources.Get "css/post.css") (resources.Get "css/editor.css") (resources.Get "css/syntax.css") -}}
+{{- /* CSS は分けて書き、ここで順番どおりに 1 ファイルへ連結する */ -}}
+{{- $parts := slice (resources.Get "css/base.css") (resources.Get "css/layout.css") (resources.Get "css/list.css") (resources.Get "css/post.css") (resources.Get "gh-admin/editor.css") (resources.Get "css/syntax.css") -}}
 {{- $main := resources.Concat "css/main.css" $parts | minify | fingerprint }}
 <link rel="stylesheet" href="{{ $main.RelPermalink }}" integrity="{{ $main.Data.Integrity }}">
+{{- /* 管理画面の部品（meta・CSS・admin.js）。CSS は本体の bundle の後に読む */}}
+{{ partial "gh-admin/head.html" . }}
 {{- with $cfToken }}
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{ dict "token" . | jsonify }}'></script>
 {{- end }}

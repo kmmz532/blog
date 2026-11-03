@@ -1,4 +1,4 @@
-{{- /* {{< tweet url="https://x.com/<user>/status/<id>" >}}: X の投稿を公式の埋め込み（widgets.js）で出す。読めなければ通常のリンク（design.md §18） */ -}}
+{{- /* {{< tweet url="https://x.com/<user>/status/<id>" >}}: X の投稿を公式の埋め込み（widgets.js）で出す。読めなければ通常のリンク */ -}}
 {{- $url := .Get "url" -}}
 {{- if findRE `^https://(?:x|twitter)\.com/[A-Za-z0-9_]{1,15}/status/\d+` $url -}}
 <blockquote class="twitter-tweet"><a href="{{ $url }}">{{ $url }}</a></blockquote>
