@@ -1,4 +1,4 @@
-{{- /* 検索用の索引。1 ファイル indexPageSize 件まで。2 つ目以降は /index/<n>.json（T78f2） */ -}}
+{{- /* 検索用の索引。1 ファイル indexPageSize 件まで。2 つ目以降は /index/<n>.json */ -}}
 {{- $size := int (site.Params.indexPageSize | default 50) -}}
 {{- $v := now.Unix -}}
 {{- $items := slice -}}

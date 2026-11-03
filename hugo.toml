@@ -34,7 +34,7 @@ enableRobotsTXT = true
   endLevel = 3
 
 [params]
-  # 索引（/index.json・/gh-admin/index.json）の 1 ファイルの件数。2 つ目以降は /index/2.json のように分ける（T78f2）
+  # 索引（/index.json・/gh-admin/index.json）の 1 ファイルの件数。2 つ目以降は /index/2.json のように分ける
   indexPageSize = 50
   description = "Kmmz1127の個人ブログです！"
   # 画像の無い記事の og:image（任意。/images/... の形）。未設定なら出さない
