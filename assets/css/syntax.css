@@ -173,7 +173,7 @@
 /* GenericUnderline */ html.dark .chroma .gl { text-decoration: underline }
 /* TextWhitespace */ html.dark .chroma .w { color: #6e7681 }
 
-/* 反映待ち（公開した端末だけの表示）。§12 */
+/* 反映待ち（公開した端末だけの表示） */
 .pending-band {
   display: inline-flex;
   align-items: center;
