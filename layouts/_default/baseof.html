@@ -23,6 +23,7 @@
   </div>
   <script src="{{ "js/theme.js" | relURL }}" type="module"></script>
   <script src="{{ "js/admin.js" | relURL }}" type="module"></script>
+  {{ partial "pending-templates.html" . }}
   {{ block "scripts" . }}{{ end }}
 </body>
 </html>

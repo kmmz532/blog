@@ -86,10 +86,30 @@ function pendingBand(text = '反映待ち（この端末だけの表示）') {
   return band;
 }
 
-function dateEl(date) {
-  const time = el('time', '', date.slice(0, 10).replaceAll('-', '.'));
+// 反映待ちの雛形（layouts/partials/pending-templates.html）を複製する。雛形が無いページでは null
+function fromTemplate(id) {
+  const template = document.getElementById(id);
+  return template ? template.content.firstElementChild.cloneNode(true) : null;
+}
+
+// data-field の要素を探す
+const field = (root, name) => root.querySelector(`[data-field="${name}"]`);
+
+// data-item の雛形を items の数だけ複製して box に入れる（雛形は外す）
+function fillItems(box, items, fill) {
+  const template = box.querySelector('template[data-item]');
+  template.remove();
+  for (const item of items) {
+    const node = template.content.firstElementChild.cloneNode(true);
+    fill(node, item);
+    box.append(node);
+  }
+}
+
+function setDate(root, date) {
+  const time = field(root, 'date');
+  time.textContent = date.slice(0, 10).replaceAll('-', '.');
   time.dateTime = date;
-  return time;
 }
 
 function loadMarked() {
@@ -105,97 +125,91 @@ function loadMarked() {
   });
 }
 
-// 記事詳細と同じ形で描画する（タイトル・日付・カテゴリ・タグ・本文）
+// 記事詳細と同じ形で描画する（タイトル・日付・カテゴリ・タグ・本文）。雛形が無ければ帯だけ出す
 async function renderArticle(container, fields) {
+  const article = fromTemplate('gh-admin-pending-article');
+  if (!article) {
+    container.prepend(pendingBand());
+    return;
+  }
   try {
     await loadMarked();
   } catch {
     // 読めなければ renderPreview が「読み込めませんでした」を出す
   }
-  renderPreview(fields.body, fields.title, container);
-  const heading = container.querySelector('h1');
-  const meta = el('div', 'post-meta');
-  meta.append(dateEl(fields.date));
-  const tags = el('div', 'card-tags');
-  for (const tag of fields.tags ?? []) tags.append(el('span', 'chip', `#${tag}`));
-  heading.after(meta, ...(tags.childElementCount ? [tags] : []));
-  container.prepend(breadcrumb(fields));
-  container.prepend(pendingBand());
-}
+  // 本文は一時的な箱で描き、雛形の本文の箱（data-field="body"）と入れ替える
+  const scratch = document.createElement('div');
+  renderPreview(fields.body, null, scratch);
 
-// 記事詳細のパンくず（design.md §16）。保留中の表示なのでリンクは付けない
-function breadcrumb(fields) {
-  const nav = el('nav', 'breadcrumb');
-  nav.setAttribute('aria-label', 'パンくず');
-  const list = el('ol');
-  for (const name of ['トップ', ...(fields.categories ?? []), fields.title || '（無題）']) {
-    list.append(el('li', '', name));
+  const title = fields.title || '（無題）';
+  fillItems(field(article, 'crumbs'), ['トップ', ...(fields.categories ?? []), title], (node, name) => {
+    node.textContent = name;
+  });
+  field(article, 'title').textContent = title;
+  setDate(article, fields.date);
+  if (fields.tags?.length) {
+    const tags = field(article, 'tags');
+    tags.hidden = false;
+    fillItems(tags, fields.tags, (node, tag) => {
+      node.textContent = `#${tag}`;
+    });
   }
-  nav.append(list);
-  return nav;
+  field(article, 'body').replaceWith(...scratch.childNodes);
+  container.replaceChildren(...article.childNodes);
 }
 
 function renderDeleted(container) {
   container.replaceChildren(pendingBand('この記事は削除済みです（反映待ち）'));
 }
 
+// 一覧に出す反映待ちのカード。雛形が無ければ帯だけ返す
 function renderCard(slug, fields) {
+  const card = fromTemplate('gh-admin-pending-card');
+  if (!card) return pendingBand();
   const external = fields.kind === 'external';
-  const article = el('article', 'carditem');
+  const thumb = field(card, 'thumb');
   if (fields.image) {
-    article.classList.add('has-thumb');
-    const thumb = el('img', 'card-thumb');
     thumb.src = fields.image;
-    thumb.width = 96;
-    thumb.height = 96;
-    thumb.alt = '';
-    thumb.loading = 'lazy';
-    article.append(thumb);
+    card.classList.add('has-thumb');
+  } else {
+    thumb.remove();
   }
-  const body = el('div', 'card-body');
-  body.append(pendingBand());
-
-  const meta = el('div', 'card-meta');
-  meta.append(dateEl(fields.date));
-  if (fields.categories?.length) meta.append(el('span', 'card-category', fields.categories.join(' / ')));
-
-  const heading = el('h2', 'card-title');
-  const link = el('a', '', fields.title || fields.url || '（無題）');
+  setDate(card, fields.date);
+  if (fields.categories?.length) {
+    const categories = field(card, 'categories');
+    categories.textContent = fields.categories.join(' / ');
+    categories.hidden = false;
+  }
+  const link = field(card, 'title');
+  link.textContent = fields.title || fields.url || '（無題）';
   link.href = external ? fields.url : `/posts/${slug}/`;
   if (external) {
     link.target = '_blank';
     link.rel = 'noopener';
+    field(card, 'external').hidden = false;
+    field(card, 'source').textContent = fields.source || '';
   }
-  heading.append(link);
-  if (external) {
-    const source = el('span', 'card-external');
-    source.append(icon('fa-solid fa-arrow-up-right-from-square'), ` ${fields.source || ''}`);
-    heading.append(source);
+  if (fields.summary) {
+    const summary = field(card, 'summary');
+    summary.textContent = fields.summary;
+    summary.hidden = false;
   }
-  body.append(meta, heading);
-
-  if (fields.summary) body.append(el('p', 'card-excerpt', fields.summary));
   if (fields.tags?.length) {
-    const tags = el('div', 'card-tags');
-    for (const tag of fields.tags) tags.append(el('span', 'chip', `#${tag}`));
-    body.append(tags);
+    const tags = field(card, 'tags');
+    tags.hidden = false;
+    fillItems(tags, fields.tags, (node, tag) => {
+      node.textContent = `#${tag}`;
+    });
   }
-
-  const edit = el('a', 'card-edit');
-  edit.href = `${config.editURL}?slug=${encodeURIComponent(slug)}`;
-  edit.setAttribute('aria-label', '編集');
-  edit.title = '編集';
-  edit.append(icon('fa-solid fa-pen'));
-
-  article.append(body, edit);
-  return article;
+  field(card, 'edit').href = `${config.editURL}?slug=${encodeURIComponent(slug)}`;
+  return card;
 }
 
 // 一覧の中から slug のカードを探す（編集リンクの slug で判定）
 function findCard(list, slug) {
   return (
-    [...list.querySelectorAll('.carditem')].find((card) => {
-      const href = card.querySelector('.card-edit')?.getAttribute('href') ?? '';
+    [...list.children].find((card) => {
+      const href = card.querySelector('a[href*="slug="]')?.getAttribute('href') ?? '';
       return new URL(href, location.href).searchParams.get('slug') === slug;
     }) ?? null
   );
@@ -221,7 +235,7 @@ function isFirstPage() {
 }
 
 function showStaleNotice() {
-  const main = document.querySelector(config.contentSelector);
+  const main = document.querySelector('main');
   if (!main) return;
   main.prepend(
     el('p', 'pending-notice', '公開した記事が反映されていない可能性があります（Actions を確認してください）'),
@@ -245,11 +259,11 @@ export function applyPending() {
   if (match && document.querySelector('[data-not-found]')) {
     const control = controlFor(match[1]);
     if (control?.op === 'save' && control.fields.kind !== 'external') {
-      renderArticle(document.querySelector(config.contentSelector), control.fields);
+      renderArticle(document.querySelector('[data-pending-target="article"]'), control.fields);
     }
     return;
   }
 
-  const list = document.querySelector('.card-list');
+  const list = document.querySelector('[data-pending-target="list"]');
   if (list && isFirstPage()) applyToList(list);
 }

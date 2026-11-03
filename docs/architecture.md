@@ -40,6 +40,7 @@ blog/                           本体
 │  ├─ preview.js                プレビューの描画と無害化
 │  ├─ image.js                  画像の変換と保存
 │  ├─ images.js                 画像の一覧・アップロード・削除の画面部品
+│  ├─ pending.js                反映待ちの表示。見た目の雛形は layouts/partials/pending-templates.html
 │  ├─ storage.js                localStorage の例外処理をまとめたもの
 │  └─ time.js                   日本時間の計算
 └─ posts/                       blog-article の clone（Git 管理外）

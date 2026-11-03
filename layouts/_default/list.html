@@ -7,7 +7,7 @@
 <p id="search-count" class="card-meta" aria-live="polite"></p>
 <div id="search-results" class="card-list" data-index-url="{{ "index.json" | relURL }}"></div>
 <div id="home-list">
-  <div class="card-list">
+  <div class="card-list" data-pending-target="list">
     {{- range $pag.Pages }}
     {{- partial "post-card.html" . }}
     {{- else }}
