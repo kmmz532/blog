@@ -50,6 +50,7 @@ enableRobotsTXT = true
 
 # 管理画面（gh-admin）の設定。未設定の項目は layouts/partials/gh-admin/settings.html の既定値
 [params.ghAdmin]
+  lang = "ja"
   repo = "kmmz532/blog-article"
   branch = "main"
 
