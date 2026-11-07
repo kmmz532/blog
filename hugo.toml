@@ -42,8 +42,8 @@ enableRobotsTXT = true
   headerTitle = "Kmmz1127 Blog"
   icon = "/favicon.ico"
   appleIcon = "/apple-touch-icon.png"
-  # Cloudflare Web Analytics のトークン（任意。未設定なら計測しない）
-  # cfAnalyticsToken = "1804f0b089514bd89f825935e08c428f"
+  # Cloudflare Web Analytics のトークン（任意）
+  cfAnalyticsToken = "1804f0b089514bd89f825935e08c428f"
   author = "Mizuto, Kaminakano"
   bio = "ウェブ開発やアプリ開発に興味のある大学生"
   footer = "© 2025-2026 Mizuto, Kaminakano - CC BY 4.0. | contact@kmmz.jp - Osaka, Japan"
