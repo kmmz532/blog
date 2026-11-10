@@ -33,13 +33,14 @@
 <meta property="og:locale" content="ja_JP">
 {{- $image := "" }}
 {{- if .IsPage }}{{ $image = (partialCached "external-meta.html" . .File.Path).image }}{{ end }}
-{{- /* 記事に画像が無いときだけ params.ogImage（任意）を使う。その場合の twitter:card は summary */}}
-{{- $fallback := false }}
-{{- if and .IsPage (not $image) site.Params.ogImage }}{{ $image = site.Params.ogImage }}{{ $fallback = true }}{{ end }}
-{{- with $image }}
-<meta property="og:image" content="{{ . | absURL }}">
-<meta name="twitter:card" content="{{ if $fallback }}summary{{ else }}summary_large_image{{ end }}">
+{{- /* 記事固有のサムネイルがある場合だけ大きいカードにする。無い場合はサイトロゴで summary */}}
+{{- if $image }}
+<meta property="og:image" content="{{ $image | absURL }}">
+<meta name="twitter:card" content="summary_large_image">
 {{- else }}
+{{- with site.Params.appleIcon }}
+<meta property="og:image" content="{{ . | absURL }}">
+{{- end }}
 <meta name="twitter:card" content="summary">
 {{- end }}
 {{- if .IsPage }}
