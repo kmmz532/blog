@@ -11,3 +11,4 @@ github.com/kmmz532/hugo-shortcodes v0.1.0/go.mod h1:urBZ6YmX/4ycAZ+nDhh1x9iLvawd
 github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261110051017-58c901f3e262/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
 github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261110052243-19980f4f693d/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
 github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261110053106-c534f0852984/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
+github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261110053221-cf928d36dea2/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
