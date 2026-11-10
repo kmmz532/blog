@@ -3,6 +3,12 @@
   クラス名は post-card.html と single.html のものと同じにする（見た目を揃えるため）。
   文言は gh-admin の辞書（言語は params.ghAdmin.lang）から取る。 */ -}}
 {{- $i18n := partial "gh-admin/i18n.html" . | transform.Unmarshal -}}
+{{- /* 通常記事と同じHugoのurlize・relURLでカテゴリURLを生成し、反映待ちJSへ渡す */ -}}
+{{- $categoryURLs := dict -}}
+{{- range site.Taxonomies.categories -}}
+  {{- $categoryURLs = merge $categoryURLs (dict .Page.Title .Page.RelPermalink) -}}
+{{- end -}}
+<script type="application/json" id="gh-admin-category-urls">{{ $categoryURLs | jsonify | safeJS }}</script>
 <template id="gh-admin-pending-card">
   <article class="carditem">
     <img class="card-thumb" data-field="thumb" width="96" height="96" alt="" loading="lazy">
