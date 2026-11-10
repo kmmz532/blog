@@ -1,4 +1,4 @@
-  title = "かみみずブログ"
+title = "かみみずブログ"
 baseURL = "https://blog.kmmz.jp/"
 languageCode = "ja"
 timeZone = "Asia/Tokyo"
@@ -41,7 +41,7 @@ enableRobotsTXT = true
   defaultThumbnail = "/default-thumbnail.png"
   # 画像の無い記事の og:image（任意。/images/... の形）。未設定なら出さない
   # ogImage = "/images/ogp.png"
-  headerTitle = "かみみずブログ"
+  headerTitle = "Kmmz-Blog"
   icon = "/favicon.ico"
   appleIcon = "/apple-touch-icon.png"
   # Cloudflare Web Analytics のトークン（任意）
