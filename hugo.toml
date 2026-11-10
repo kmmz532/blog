@@ -53,6 +53,9 @@ enableRobotsTXT = true
   lang = "ja"
   repo = "kmmz532/blog-article"
   branch = "main"
+  siteRepo = "kmmz532/blog"
+  siteBranch = "main"
+  siteConfigPath = "hugo.toml"
 
 # サイドバーのリンク (URLが空であれば非表示)
 [[params.links]]
