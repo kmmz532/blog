@@ -12,6 +12,8 @@ on:
       - layouts/**
       - static/**
       - hugo.toml
+      - go.mod
+      - go.sum
   workflow_dispatch:
 
 permissions: {}
