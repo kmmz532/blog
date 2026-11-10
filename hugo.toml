@@ -37,6 +37,8 @@ enableRobotsTXT = true
   # 索引（/index.json・/gh-admin/index.json）の 1 ファイルの件数。2 つ目以降は /index/2.json のように分ける
   indexPageSize = 50
   description = "Kmmz1127の個人ブログです！"
+  # 記事カードのデフォルトサムネイル（任意。/default-thumbnail.png の形）。未設定なら画像なし
+  defaultThumbnail = ""
   # 画像の無い記事の og:image（任意。/images/... の形）。未設定なら出さない
   # ogImage = "/images/ogp.png"
   headerTitle = "Kmmz1127 Blog"
