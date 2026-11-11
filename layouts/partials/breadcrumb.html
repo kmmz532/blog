@@ -15,6 +15,9 @@
       {{- $label := cond (eq .Data.Singular "tag") "タグ" "カテゴリ" }}
     <li><a href="{{ printf "/%s/" $taxonomy | relURL }}">{{ $label }}</a></li>
     <li aria-current="page">{{ .Title }}</li>
+    {{- else if eq .Kind "taxonomy" }}
+      {{- $label := cond (eq .Data.Singular "tag") "タグ" "カテゴリ" }}
+    <li aria-current="page">{{ $label }}</li>
     {{- else }}
     <li aria-current="page">{{ .Title }}</li>
     {{- end }}
