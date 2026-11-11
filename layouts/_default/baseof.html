@@ -9,6 +9,7 @@
   {{ partial "header.html" . }}
   <div class="layout">
     <main class="contents">
+      {{ partial "breadcrumb.html" . }}
       {{ block "main" . }}{{ end }}
     </main>
     {{- if not (or (eq .Kind "404") (eq (.Params.sidebar | default true) false)) }}

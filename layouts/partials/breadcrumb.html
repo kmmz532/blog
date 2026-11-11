@@ -1,0 +1,26 @@
+{{- /* トップ以外のページに共通のパンくずを表示する */}}
+{{- if not .IsHome }}
+<nav class="breadcrumb" aria-label="パンくず">
+  <ol>
+    <li><a href="{{ "/" | relURL }}">トップ</a></li>
+    {{- if .IsPage }}
+      {{- with .Params.categories }}
+        {{- range . }}
+    <li><a href="{{ "/categories/" | relURL }}{{ . | urlize }}/">{{ . }}</a></li>
+        {{- end }}
+      {{- end }}
+    <li aria-current="page">{{ .Title }}</li>
+    {{- else if eq .Kind "term" }}
+      {{- $taxonomy := .Data.Plural }}
+      {{- $label := cond (eq .Data.Singular "tag") "タグ" "カテゴリ" }}
+    <li><a href="{{ printf "/%s/" $taxonomy | relURL }}">{{ $label }}</a></li>
+    <li aria-current="page">{{ .Title }}</li>
+    {{- else if eq .Kind "taxonomy" }}
+      {{- $label := cond (eq .Data.Singular "tag") "タグ" "カテゴリ" }}
+    <li aria-current="page">{{ $label }}</li>
+    {{- else }}
+    <li aria-current="page">{{ .Title }}</li>
+    {{- end }}
+  </ol>
+</nav>
+{{- end }}
