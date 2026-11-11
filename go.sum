@@ -6,8 +6,10 @@ github.com/kmmz532/hugo-gh-admin v0.8.0 h1:WcBx8JdxWLLg+NpWY6YtbCia+BFnRiOEj0NdR
 github.com/kmmz532/hugo-gh-admin v0.8.0/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
 github.com/kmmz532/hugo-gh-admin v0.8.1 h1:xM/6bOHy+chVMSMKmv1YT1eTuPMoaWCwjQcgIQ5alSc=
 github.com/kmmz532/hugo-gh-admin v0.8.1/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
-github.com/kmmz532/hugo-shortcodes v0.1.0 h1:qjfvQKSkpCex2xOrHXWhhrBRocVYztcfY4hzCcI3jeo=
-github.com/kmmz532/hugo-shortcodes v0.1.0/go.mod h1:urBZ6YmX/4ycAZ+nDhh1x9iLvawdL3vq9RVz18+ydlM=
+github.com/kmmz532/hugo-shortcodes v0.2.0 h1:m4Qtu66+va/QzTbLTN4FRJQd5TRTpVD6fnai+u+KkwE=
+github.com/kmmz532/hugo-shortcodes v0.2.0/go.mod h1:urBZ6YmX/4ycAZ+nDhh1x9iLvawdL3vq9RVz18+ydlM=
+github.com/kmmz532/hugo-shortcodes v0.2.1 h1:RdXB1++5X3dwd5qMl4lWtEWObzb1Lp6GFnBaJ1Ut2eM=
+github.com/kmmz532/hugo-shortcodes v0.2.1/go.mod h1:urBZ6YmX/4ycAZ+nDhh1x9iLvawdL3vq9RVz18+ydlM=
 github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261110051017-58c901f3e262/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
 github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261110052243-19980f4f693d/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
 github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261110053106-c534f0852984/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
