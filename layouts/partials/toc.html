@@ -1,0 +1,18 @@
+{{- /*
+  記事の目次。H2・H3 が 3 つ以上ある場合だけ表示する。
+  variant: mobile または sidebar
+*/ -}}
+{{- $page := .page -}}
+{{- if ge (len (findRE "<h[23][ >]" $page.Content)) 3 }}
+  {{- if eq .variant "sidebar" }}
+<section class="sidebar-card sidebar-toc">
+  <h2 class="sidebar-title">目次</h2>
+  {{ $page.TableOfContents | replaceRE `id="TableOfContents"` `class="toc"` | safeHTML }}
+</section>
+  {{- else }}
+<details class="toc-mobile">
+  <summary>目次</summary>
+  {{ $page.TableOfContents | replaceRE `id="TableOfContents"` `class="toc"` | safeHTML }}
+</details>
+  {{- end }}
+{{- end }}
