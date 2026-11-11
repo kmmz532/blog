@@ -1,15 +1,5 @@
 {{ define "main" }}
 <article class="post" data-slug="{{ .File.ContentBaseName }}">
-  {{- /* パンくず: トップ > カテゴリの各段 > 記事。カテゴリは階層の順のリスト */}}
-  <nav class="breadcrumb" aria-label="パンくず">
-    <ol>
-      <li><a href="{{ "/" | relURL }}">トップ</a></li>
-      {{- range .Params.categories }}
-      <li><a href="{{ "/categories/" | relURL }}{{ . | urlize }}/">{{ . }}</a></li>
-      {{- end }}
-      <li aria-current="page">{{ .Title }}</li>
-    </ol>
-  </nav>
   <h1 class="post-title">{{ .Title }}</h1>
   <div class="post-meta">
     <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ .Date.Format "2006.01.02" }}</time>
@@ -25,12 +15,7 @@
     {{- end }}
   </div>
   {{- end }}
-  {{- if ge (len (findRE "<h[23][ >]" .Content)) 3 }}
-  <details class="toc-mobile">
-    <summary>目次</summary>
-    {{ .TableOfContents | replaceRE `id="TableOfContents"` `class="toc"` | safeHTML }}
-  </details>
-  {{- end }}
+  {{ partial "toc.html" (dict "page" . "variant" "mobile") }}
   <div class="post-body">{{ .Content }}</div>
   <nav class="post-nav" aria-label="前後の記事">
     {{- with .NextInSection }}
