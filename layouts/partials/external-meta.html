@@ -5,11 +5,11 @@
   | replaceRE `(?s)<a[^>]*class="[^"]*link-card[^"]*"[^>]*>.*?</a>` ""
   | replaceRE `(?s)<h[1-6][^>]*>.*?</h[1-6]>` ""
   | replaceRE `(?s)<pre[^>]*>.*?</pre>` ""
-  | replaceRE `</li>\\s*<li[^>]*>` "、"
+  | replaceRE `</li>\s*<li[^>]*>` "、"
   | replaceRE `<li[^>]*>|</li>` ""
   | replaceRE `(?i)</(p|blockquote|div|ul|ol|section|article|table|tr)>` " "
 -}}
-{{- $summary := .Params.summary | default ($summaryBody | plainify | replaceRE `\\s+` " " | strings.TrimSpace | truncate 120 "…") -}}
+{{- $summary := .Params.summary | default ($summaryBody | plainify | replaceRE `\s+` " " | strings.TrimSpace | truncate 120 "…") -}}
 {{- /* サムネイル: front matter の image（手動）が最優先。通常記事は本文の最初の画像、外部記事は OGP の画像 */ -}}
 {{- $image := .Params.image | default "" -}}
 {{- /* 編集画面のサムネイル候補（https の画像。外部記事は OGP の og:image と twitter:image を全部集める。通常記事は空） */ -}}
