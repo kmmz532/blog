@@ -1,8 +1,7 @@
 {{- /* 記事のタイトル・概要・サムネイルを dict で返す。外部記事は front matter を優先し、空の項目だけ OGP で補う。取得に失敗したら front matter だけ */ -}}
 {{- $title := .Params.title | default .Title -}}
-{{- /* 通常記事の概要: front matter が空なら本文から作る（見出し・コード・リンクカードを除外） */ -}}
+{{- /* 通常記事の概要: front matter が空なら本文から作る（見出し・コードを除外） */ -}}
 {{- $summaryBody := .Content
-  | replaceRE `(?s)<a[^>]*class="[^"]*link-card[^"]*"[^>]*>.*?</a>` ""
   | replaceRE `(?s)<h[1-6][^>]*>.*?</h[1-6]>` ""
   | replaceRE `(?s)<pre[^>]*>.*?</pre>` ""
   | replaceRE `</li>\s*<li[^>]*>` "、"
