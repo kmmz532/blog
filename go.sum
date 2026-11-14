@@ -23,3 +23,4 @@ github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261110102130-4ee1f523660b/go.mod h1:
 github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261110122018-221870b2629e/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
 github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261110122214-82043063ac54/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
 github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261114142431-a784f5ba59fb/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
+github.com/kmmz532/hugo-gh-admin v0.8.2-0.20261114143136-42456b690f45/go.mod h1:bHdWT6DtOrulew3k1Mm0HkANLGu9vO37hRhItAu36gI=
