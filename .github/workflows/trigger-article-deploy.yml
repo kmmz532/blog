@@ -28,12 +28,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # GitHub App が登録されていれば、実行のたびに短時間だけ有効なトークンを発行する（期限切れがない）。
+      # Variables の DISPATCH_APP_ID と Secrets の DISPATCH_APP_PRIVATE_KEY が無ければ、従来の ARTICLE_DEPLOY_TOKEN を使う
+      - id: app-token
+        if: vars.DISPATCH_APP_ID != ''
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.DISPATCH_APP_ID }}
+          private-key: ${{ secrets.DISPATCH_APP_PRIVATE_KEY }}
+          owner: kmmz532
+          repositories: blog-article
       - name: Dispatch blog-article deploy
         env:
-          GH_TOKEN: ${{ secrets.ARTICLE_DEPLOY_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.ARTICLE_DEPLOY_TOKEN }}
         run: |
           if [ -z "$GH_TOKEN" ]; then
-            echo "ARTICLE_DEPLOY_TOKEN が未設定です。Settings → Secrets and variables → Actions で登録してください。"
+            echo "トークンがありません。GitHub App（Variables の DISPATCH_APP_ID と Secrets の DISPATCH_APP_PRIVATE_KEY）か、Secrets の ARTICLE_DEPLOY_TOKEN を登録してください。"
             exit 1
           fi
           gh workflow run deploy.yml --repo kmmz532/blog-article --ref main
