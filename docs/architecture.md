@@ -14,9 +14,16 @@
 - 静的サイトジェネレーター: Hugo
 - ホスティング: GitHub Pages
 - フロントエンド: 素のES Modules（ビルドなし）。依存はCDNの `marked`（プレビュー）だけ
-- 認証: 管理者が発行したfine-grained Personal Access Token（PAT）
+- 認証: 「GitHubでログイン」（GitHubのOAuth）。予備として、fine-grained Personal Access Token（PAT）の入力も使える
 
-OAuthを利用しない理由は、GitHubのOAuthはトークン交換にclient secretが必要で、CORSにも対応していないためです。サーバーを置かずに実装できません。
+GitHubのOAuthは、トークンの交換にclient secretが必要で、CORSにも対応していません。そのため、[Blogit](https://github.com/kmmz532/blogit) のOAuth Appと認証用Worker（client secretを持つ）を共用しています。ログインの流れは次のとおりです。
+
+1. ログイン画面の「GitHubでログイン」から、GitHubの許可画面を開く
+2. GitHubは、OAuth Appのコールバック URL にある中継ページ（`https://blogit.kmmz.jp/oauth/`）にコードを渡す
+3. 中継ページが、コードをこのサイトのログイン画面に戻す
+4. ログイン画面が、BlogitのWorker（`/github/token`）でコードをトークンに交換する
+
+設定は `hugo.toml` の `params.ghAdmin` の `oauthClientID`・`oauthTokenURL`・`oauthRelayURL` です。
 
 ## 記事の扱い
 

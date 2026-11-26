@@ -5,7 +5,8 @@
 ## 権限
 
 - 書き込みの権限はGitHubが判定します。このサイトに独自の認可処理はありません。
-- トークンは `blog-article` のContents（読み書き）だけに絞ります。
+- 「GitHubでログイン」で受け取るトークンは、OAuthの `repo` スコープです。ログインしたアカウントの全リポジトリに書き込めます。権限を `blog-article` だけに絞りたいときは、Contents（読み書き）だけのfine-grained PATでログインします。
+- トークンの交換は、BlogitのWorkerを経由します。Workerはトークンを保存も記録もしません。
 - 画面の「管理者向けの表示」は使い勝手のためだけです。実際の権限はGitHub側で決まります。
 
 ## トークン
@@ -24,7 +25,7 @@
 
 ## 取り込み元
 
-管理画面の機能は、別リポジトリ `github.com/kmmz532/hugo-gh-admin` を Hugo Modules で取り込んでいます。版は `go.mod` とタグで固定しています。取り込む版を上げるときは、差分を読んでから `go.mod` と `go.sum` を更新します。
+管理画面の機能は、別リポジトリ `github.com/kmmz532/hugo-gh-admin` を Hugo Modules で取り込んでいます。版は固定せず、ビルドのたびに最新のタグを利用します（`go.mod` に `require` を書かない）。
 
 ## 報告
 
