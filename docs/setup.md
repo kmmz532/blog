@@ -9,7 +9,7 @@
 
 ## 2. ローカルで起動する
 
-前提: Hugo 0.141.0以上（**extended**）と、Go（Hugo Modules の取り込みに利用する）。
+前提: Hugo 0.169.0以上（**extended**）と、Go（Hugo Modules の取り込みに利用する）。
 
 ```sh
 git clone <blogのURL> blog

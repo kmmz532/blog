@@ -57,5 +57,5 @@ blog-article/                   記事と画像
 
 1. 本体（`kmmz532/blog`）を作業ディレクトリに取得する
 2. `blog-article` を `posts/` に取得する
-3. Hugo（0.122.0のextended）で `hugo --minify` を実行する
+3. Hugo（0.169.0のextended）で `hugo --minify` を実行する
 4. `public/` をPagesにデプロイする
