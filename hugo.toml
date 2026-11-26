@@ -55,7 +55,7 @@ enableRobotsTXT = true
   # 管理画面の「GitHubでログイン」（Blogit の OAuth App と認証用 Worker を利用する）
   oauthClientID = "Ov23liHRAqWTpiQTTKjW"
   oauthTokenURL = "https://blogit-auth.kmmz1127.workers.dev/github/token"
-  oauthRelayURL = "https://blogit.kmmz.jp/"
+  oauthRelayURL = "https://blogit.kmmz.jp/oauth/"
   lang = "ja"
   repo = "kmmz532/blog-article"
   branch = "main"
