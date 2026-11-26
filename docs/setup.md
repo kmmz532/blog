@@ -25,21 +25,17 @@ hugo server
 
 `posts/` は `.gitignore` に入っているので、記事のコミットは `blog-article` 側で行います。
 
-## 管理画面の部品を手元で直す
+## テーマと部品の版
 
-管理画面の機能は Hugo Modules の部品 `github.com/kmmz532/hugo-gh-admin` として取り込んでいます。版は固定せず、ビルドのたびに最新のタグを利用します。
+見た目は Blogit の `default` テーマ（`github.com/kmmz532/blogit/themes/default`）、管理画面は `github.com/kmmz532/hugo-gh-admin` を、Hugo Modules で取り込んでいます。
 
-手元の作業コピーを利用するには、`GH_ADMIN_DIR` に作業コピーのパスを指定して `npm run dev` を起動します。`scripts/dev.mjs` が `HUGO_MODULE_REPLACEMENTS` を設定します。
+- テーマは版を固定せず、ビルドのたびに Blogit の最新のコミットを利用します。
+- hugo-gh-admin と hugo-shortcodes の版は、テーマ（`themes/base/go.mod`）が指定する版になります。新しい版を使うには、Blogit 側で `themes/base/go.mod` を上げます。
+- 手元で `hugo` を実行すると、Hugoが `go.mod` に `require` を書き足し、`go.sum` を作ります。どちらもコミットしません。
+- テーマや部品を更新した直後は、Goのモジュールのプロキシが新しい版を認識するまで数分から30分ほどかかります。その間にビルドすると古い版のままになるため、時間をおいて `blog-article` のActionsを実行し直します。
+- 特定の版に固定するときは、`hugo mod get github.com/kmmz532/blogit/themes/default@<版>` を実行し、`go.mod` と `go.sum` をコミットします。
 
-```sh
-GH_ADMIN_DIR=F:\workspace\kmmz1127\hugo-gh-admin npm run dev
-```
-
-手元で `hugo` を実行すると、Hugoが `go.mod` に `require` を書き足し、`go.sum` を作ります。どちらもコミットしません。
-
-部品に新しいタグを付けた直後は、Goのモジュールのプロキシが新しい版を認識するまで数分から30分ほどかかります。その間にビルドすると古い版のままになるため、時間をおいて `blog-article` のActionsを実行し直します。
-
-特定の版に固定するときは、`hugo mod get github.com/kmmz532/hugo-gh-admin@vX.Y.Z` を実行し、`go.mod` と `go.sum` をコミットします。
+テーマや部品を手元の作業コピーで試すときは、このリポジトリの `go.mod` に一時的に `replace`（例: `replace github.com/kmmz532/blogit/themes/base => ../blogit/themes/base`）を書きます。`replace` はコミットしません。
 
 ## 3. ログインの準備
 
