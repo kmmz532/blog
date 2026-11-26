@@ -9,7 +9,7 @@
 
 ## 2. ローカルで起動する
 
-前提: Hugo 0.141.0以上の **extended** 版と、Go（Hugo Modules の取り込みに利用する）。
+前提: Hugo 0.141.0以上（**extended**）と、Go（Hugo Modules の取り込みに利用する）。
 
 ```sh
 git clone <blogのURL> blog
@@ -25,15 +25,15 @@ hugo server
 
 `posts/` は `.gitignore` に入っているので、記事のコミットは `blog-article` 側で行います。
 
-## テーマと部品の版
+## テーマと部品のバージョン
 
 見た目は Blogit の `default` テーマ（`github.com/kmmz532/blogit/themes/default`）、管理画面は `github.com/kmmz532/hugo-gh-admin` を、Hugo Modules で取り込んでいます。
 
-- テーマは版を固定せず、ビルドのたびに Blogit の最新のコミットを利用します。
-- hugo-gh-admin と hugo-shortcodes の版は、テーマ（`themes/base/go.mod`）が指定する版になります。新しい版を使うには、Blogit 側で `themes/base/go.mod` を上げます。
+- テーマはバージョンを固定せず、ビルドのたびに Blogit の最新のコミットを利用します。
+- hugo-gh-admin と hugo-shortcodes のバージョンは、テーマ（`themes/base/go.mod`）が指定するバージョンになります。新しいバージョンを使うには、Blogit 側で `themes/base/go.mod` を上げます。
 - 手元で `hugo` を実行すると、Hugoが `go.mod` に `require` を書き足し、`go.sum` を作ります。どちらもコミットしません。
-- テーマや部品を更新した直後は、Goのモジュールのプロキシが新しい版を認識するまで数分から30分ほどかかります。その間にビルドすると古い版のままになるため、時間をおいて `blog-article` のActionsを実行し直します。
-- 特定の版に固定するときは、`hugo mod get github.com/kmmz532/blogit/themes/default@<版>` を実行し、`go.mod` と `go.sum` をコミットします。
+- テーマや部品を更新した直後は、Goのモジュールのプロキシが新しいバージョンを認識するまで数分から30分ほどかかります。その間にビルドすると古いバージョンのままになるため、時間をおいて `blog-article` のActionsを実行し直します。
+- 特定のバージョンに固定するときは、`hugo mod get github.com/kmmz532/blogit/themes/default@<バージョン>` を実行し、`go.mod` と `go.sum` をコミットします。
 
 テーマや部品を手元の作業コピーで試すときは、このリポジトリの `go.mod` に一時的に `replace`（例: `replace github.com/kmmz532/blogit/themes/base => ../blogit/themes/base`）を書きます。`replace` はコミットしません。
 

@@ -25,7 +25,7 @@
 
 ## 取り込み元
 
-管理画面の機能は、別リポジトリ `github.com/kmmz532/hugo-gh-admin` を Hugo Modules で取り込んでいます。版は固定せず、ビルドのたびに最新のタグを利用します（`go.mod` に `require` を書かない）。
+管理画面の機能は、別リポジトリ `github.com/kmmz532/hugo-gh-admin` を Hugo Modules で取り込んでいます。バージョンは固定せず、ビルドのたびに最新のタグを利用します（`go.mod` に `require` を書かない）。
 
 ## 報告
 

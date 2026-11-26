@@ -53,7 +53,7 @@ if (devToken) {
 }
 
 // GH_ADMIN_DIR があれば、手元の hugo-gh-admin の作業コピーを使う（Hugo Modules の replace）。
-// 未設定なら、go.mod に記録した版を使う
+// 未設定なら、go.mod に記録したバージョンを使う
 const env = { ...process.env };
 const adminDir = process.env.GH_ADMIN_DIR;
 if (adminDir) {
