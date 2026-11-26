@@ -54,6 +54,9 @@ enableRobotsTXT = true
 
 # 管理画面（gh-admin）の設定。未設定の項目は layouts/partials/gh-admin/settings.html の既定値
 [params.ghAdmin]
+  # サイト設定の「バージョン」タブの「最新の版で再ビルド」。ビルドは記事リポジトリ（blog-article）で行う
+  buildRepo = "kmmz532/blog-article"
+  buildWorkflow = "deploy.yml"
   # 管理画面の「GitHubでログイン」（Blogit の OAuth App と認証用 Worker を利用する）
   oauthClientID = "Ov23liHRAqWTpiQTTKjW"
   oauthTokenURL = "https://blogit-auth.kmmz1127.workers.dev/github/token"
